@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, FormControl, InputLabel,
-  Select, MenuItem, Grid, Box, FormHelperText
+  Select, MenuItem, Box, FormHelperText
 } from '@mui/material';
 import { fetchUsers } from '../../services/userService';
 import { formatDateForInput } from '../../utils/dateUtils';
@@ -180,36 +180,40 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             {errors.userId && <FormHelperText>{errors.userId}</FormHelperText>}
           </FormControl>
           
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Data/Ora Inizio"
-                name="start"
-                type="datetime-local"
-                fullWidth
-                value={formatDateForInput(formData.start)}
-                onChange={handleDateChange}
-                InputLabelProps={{ shrink: true }}
-                required
-                error={!!errors.start}
-                helperText={errors.start}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Data/Ora Fine"
-                name="end"
-                type="datetime-local"
-                fullWidth
-                value={formatDateForInput(formData.end)}
-                onChange={handleDateChange}
-                InputLabelProps={{ shrink: true }}
-                required
-                error={!!errors.end}
-                helperText={errors.end}
-              />
-            </Grid>
-          </Grid>
+          {/* Sostituito Grid con Box utilizzando CSS Grid */}
+          <Box 
+            sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
+              gap: 2, 
+              mt: 1 
+            }}
+          >
+            <TextField
+              label="Data/Ora Inizio"
+              name="start"
+              type="datetime-local"
+              fullWidth
+              value={formatDateForInput(formData.start)}
+              onChange={handleDateChange}
+              InputLabelProps={{ shrink: true }}
+              required
+              error={!!errors.start}
+              helperText={errors.start}
+            />
+            <TextField
+              label="Data/Ora Fine"
+              name="end"
+              type="datetime-local"
+              fullWidth
+              value={formatDateForInput(formData.end)}
+              onChange={handleDateChange}
+              InputLabelProps={{ shrink: true }}
+              required
+              error={!!errors.end}
+              helperText={errors.end}
+            />
+          </Box>
           
           <TextField
             label="Descrizione"

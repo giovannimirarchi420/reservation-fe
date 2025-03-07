@@ -3,13 +3,15 @@ import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/it';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
-import { 
-  Box, Paper, Button, FormControl, InputLabel, 
-  Select, MenuItem, IconButton, Typography
+import {
+  Box, Paper, Button, FormControl, InputLabel,
+  Select, MenuItem, IconButton, Typography,
+  Tooltip, ToggleButtonGroup, ToggleButton
 } from '@mui/material';
 import {
   CalendarViewDay, CalendarViewWeek, CalendarViewMonth,
-  ArrowBack, ArrowForward, Add as AddIcon
+  Add as AddIcon, Today as TodayIcon,
+  ChevronLeft, ChevronRight, FilterList
 } from '@mui/icons-material';
 import BookingForm from './BookingForm';
 import EventItem from './EventItem';
@@ -48,14 +50,14 @@ const BookingCalendar = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadData();
   }, []);
 
   // Filtra gli eventi in base alla risorsa selezionata
-  const filteredEvents = selectedResource 
-    ? events.filter(event => event.resourceId === selectedResource) 
-    : events;
+  const filteredEvents = selectedResource
+      ? events.filter(event => event.resourceId === selectedResource)
+      : events;
 
   // Handler per aprire il modal di prenotazione con slot selezionato
   const handleSelectSlot = (slotInfo) => {
@@ -82,8 +84,8 @@ const BookingCalendar = () => {
       if (bookingData.id) {
         // Aggiorna un evento esistente
         const updatedEvent = await updateEvent(bookingData.id, bookingData);
-        setEvents(events.map(event => 
-          event.id === updatedEvent.id ? updatedEvent : event
+        setEvents(events.map(event =>
+            event.id === updatedEvent.id ? updatedEvent : event
         ));
       } else {
         // Crea un nuovo evento
@@ -115,7 +117,7 @@ const BookingCalendar = () => {
   const eventStyleGetter = (event) => {
     const resource = resources.find(r => r.id === event.resourceId);
     const backgroundColor = resource ? getResourceTypeColor(resource.type) : '#1976d2';
-    
+
     return {
       style: {
         backgroundColor,
@@ -128,137 +130,192 @@ const BookingCalendar = () => {
     };
   };
 
-  return (
-    <Box sx={{ p: 3, height: 'calc(100vh - 64px)' }}>
-      <Paper elevation={2} sx={{ height: '100%', p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button 
-              variant={currentView === 'day' ? 'contained' : 'outlined'} 
-              size="small"
-              onClick={() => setCurrentView('day')}
-              startIcon={<CalendarViewDay />}
-            >
-              Giorno
-            </Button>
-            <Button 
-              variant={currentView === 'week' ? 'contained' : 'outlined'} 
-              size="small"
-              onClick={() => setCurrentView('week')}
-              startIcon={<CalendarViewWeek />}
-            >
-              Settimana
-            </Button>
-            <Button 
-              variant={currentView === 'month' ? 'contained' : 'outlined'} 
-              size="small"
-              onClick={() => setCurrentView('month')}
-              startIcon={<CalendarViewMonth />}
-            >
-              Mese
-            </Button>
-          </Box>
-          
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Button 
-              variant="contained" 
-              color="primary" 
-              onClick={() => {
-                setSelectedEvent(null);
-                setIsBookingModalOpen(true);
-              }}
-              startIcon={<AddIcon />}
-            >
-              Nuova Prenotazione
-            </Button>
-            
-            <IconButton onClick={() => setSelectedDate(moment(selectedDate).subtract(1, currentView).toDate())}>
-              <ArrowBack />
-            </IconButton>
-            
-            <Button onClick={() => setSelectedDate(new Date())}>
-              Oggi
-            </Button>
-            
-            <IconButton onClick={() => setSelectedDate(moment(selectedDate).add(1, currentView).toDate())}>
-              <ArrowForward />
-            </IconButton>
-          </Box>
-          
-          <FormControl sx={{ minWidth: 200 }}>
-            <InputLabel id="resource-filter-label">Filtra Risorsa</InputLabel>
-            <Select
-              labelId="resource-filter-label"
-              value={selectedResource || ''}
-              label="Filtra Risorsa"
-              onChange={(e) => setSelectedResource(e.target.value ? parseInt(e.target.value) : null)}
-            >
-              <MenuItem value="">Tutte le risorse</MenuItem>
-              {resources.map(resource => (
-                <MenuItem key={resource.id} value={resource.id}>
-                  {resource.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
-        
-        <Box sx={{ height: 'calc(100% - 50px)' }}>
-          {isLoading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <Typography>Caricamento calendario...</Typography>
-            </Box>
-          ) : (
-            <Calendar
-              localizer={localizer}
-              events={filteredEvents}
-              startAccessor="start"
-              endAccessor="end"
-              style={{ height: '100%' }}
-              views={['day', 'week', 'month']}
-              view={currentView}
-              onView={(view) => setCurrentView(view)}
-              date={selectedDate}
-              onNavigate={(date) => setSelectedDate(date)}
-              selectable
-              onSelectSlot={handleSelectSlot}
-              onSelectEvent={handleSelectEvent}
-              eventPropGetter={eventStyleGetter}
-              messages={{
-                today: 'Oggi',
-                previous: 'Precedente',
-                next: 'Successivo',
-                month: 'Mese',
-                week: 'Settimana',
-                day: 'Giorno',
-                agenda: 'Agenda',
-                date: 'Data',
-                time: 'Ora',
-                event: 'Evento',
-                noEventsInRange: 'Nessuna prenotazione in questo periodo'
-              }}
-              popup
-              components={{
-                event: EventItem
-              }}
-            />
-          )}
-        </Box>
-      </Paper>
+  const handleViewChange = (event, newView) => {
+    if (newView !== null) {
+      setCurrentView(newView);
+    }
+  };
 
-      {/* Dialog prenotazione */}
-      <BookingForm 
-        open={isBookingModalOpen}
-        onClose={() => {
-          setIsBookingModalOpen(false);
-          setSelectedEvent(null);
-        }}
-        booking={selectedEvent}
-        onSave={handleSaveBooking}
-        onDelete={handleDeleteBooking}
-        resources={resources}
-      />
-    </Box>
+  return (
+      <Box sx={{ p: 3, height: 'calc(100vh - 64px)' }}>
+        <Paper elevation={2} sx={{ height: '100%', p: 2 }}>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            justifyContent: 'space-between',
+            alignItems: { xs: 'stretch', md: 'center' },
+            gap: 2,
+            mb: 2
+          }}>
+            {/* Prima riga (o colonna su mobile): controlli di visualizzazione */}
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              {/* Toggle buttons per vista calendario - sostituiscono i bottoni singoli */}
+              <ToggleButtonGroup
+                  value={currentView}
+                  exclusive
+                  onChange={handleViewChange}
+                  aria-label="vista calendario"
+                  size="small"
+              >
+                <ToggleButton value="day" aria-label="vista giornaliera">
+                  <Tooltip title="Vista giornaliera">
+                    <CalendarViewDay />
+                  </Tooltip>
+                </ToggleButton>
+                <ToggleButton value="week" aria-label="vista settimanale">
+                  <Tooltip title="Vista settimanale">
+                    <CalendarViewWeek />
+                  </Tooltip>
+                </ToggleButton>
+                <ToggleButton value="month" aria-label="vista mensile">
+                  <Tooltip title="Vista mensile">
+                    <CalendarViewMonth />
+                  </Tooltip>
+                </ToggleButton>
+              </ToggleButtonGroup>
+
+              {/* Controlli navigazione */}
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Tooltip title="Precedente">
+                  <IconButton
+                      onClick={() => setSelectedDate(moment(selectedDate).subtract(1, currentView).toDate())}
+                      size="small"
+                  >
+                    <ChevronLeft />
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="Oggi">
+                  <Button
+                      onClick={() => setSelectedDate(new Date())}
+                      variant="outlined"
+                      size="small"
+                      startIcon={<TodayIcon />}
+                      sx={{ mx: 1 }}
+                  >
+                    Oggi
+                  </Button>
+                </Tooltip>
+
+                <Tooltip title="Successivo">
+                  <IconButton
+                      onClick={() => setSelectedDate(moment(selectedDate).add(1, currentView).toDate())}
+                      size="small"
+                  >
+                    <ChevronRight />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+
+            {/* Seconda riga (o colonna su mobile): azioni e filtri */}
+            <Box sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: { xs: 'wrap', md: 'nowrap' }
+            }}>
+              <Tooltip title="Crea nuova prenotazione">
+                <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {
+                      setSelectedEvent(null);
+                      setIsBookingModalOpen(true);
+                    }}
+                    startIcon={<AddIcon />}
+                    fullWidth={false}
+                >
+                  Nuova Prenotazione
+                </Button>
+              </Tooltip>
+
+              <FormControl
+                  size="small"
+                  sx={{
+                    minWidth: { xs: '100%', sm: 200 },
+                    flexGrow: { xs: 1, md: 0 }
+                  }}
+              >
+                <InputLabel id="resource-filter-label">Risorsa</InputLabel>
+                <Select
+                    labelId="resource-filter-label"
+                    value={selectedResource || ''}
+                    label="Risorsa"
+                    onChange={(e) => setSelectedResource(e.target.value ? parseInt(e.target.value) : null)}
+                    startAdornment={<FilterList fontSize="small" sx={{ mr: 1, ml: -0.5 }} />}
+                >
+                  <MenuItem value="">Tutte le risorse</MenuItem>
+                  {resources.map(resource => (
+                      <MenuItem key={resource.id} value={resource.id}>
+                        {resource.name}
+                      </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
+
+          <Box sx={{ height: 'calc(100% - 70px)' }}>
+            {isLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                  <Typography>Caricamento calendario...</Typography>
+                </Box>
+            ) : (
+                <Calendar
+                    localizer={localizer}
+                    events={filteredEvents}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: '100%' }}
+                    views={['day', 'week', 'month']}
+                    view={currentView}
+                    date={selectedDate}
+                    selectable
+                    onSelectSlot={handleSelectSlot}
+                    onSelectEvent={handleSelectEvent}
+                    eventPropGetter={eventStyleGetter}
+                    messages={{
+                      today: 'Oggi',
+                      previous: 'Precedente',
+                      next: 'Successivo',
+                      month: 'Mese',
+                      week: 'Settimana',
+                      day: 'Giorno',
+                      agenda: 'Agenda',
+                      date: 'Data',
+                      time: 'Ora',
+                      event: 'Evento',
+                      noEventsInRange: 'Nessuna prenotazione in questo periodo'
+                    }}
+                    popup
+                    components={{
+                      event: EventItem,
+                      toolbar: () => null // Disabilita la toolbar predefinita del calendario
+                    }}
+                />
+            )}
+          </Box>
+        </Paper>
+
+        {/* Dialog prenotazione */}
+        <BookingForm
+            open={isBookingModalOpen}
+            onClose={() => {
+              setIsBookingModalOpen(false);
+              setSelectedEvent(null);
+            }}
+            booking={selectedEvent}
+            onSave={handleSaveBooking}
+            onDelete={handleDeleteBooking}
+            resources={resources}
+        />
+      </Box>
   );
 };
 

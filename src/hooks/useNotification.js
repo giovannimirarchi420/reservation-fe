@@ -6,16 +6,16 @@ import { NotificationContext } from '../context/NotificationContext';
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);
-  
+
   if (!context) {
     throw new Error('useNotification deve essere usato all\'interno di un NotificationProvider');
   }
-  
+
   return context;
 };
 
 // Per l'implementazione interna del provider
-export const createNotificationState = () => {
+export const useNotificationState = () => {
   // Simula un sistema di notifiche
   const [notifications, setNotifications] = useState([
     {
@@ -43,17 +43,17 @@ export const createNotificationState = () => {
       read: false,
       createdAt: new Date()
     };
-    
+
     setNotifications(prev => [newNotification, ...prev]);
     return newNotification.id;
   }, []);
 
   // Marca una notifica come letta
   const markAsRead = useCallback((id) => {
-    setNotifications(prev => 
-      prev.map(notification => 
-        notification.id === id 
-          ? { ...notification, read: true } 
+    setNotifications(prev =>
+      prev.map(notification =>
+        notification.id === id
+          ? { ...notification, read: true }
           : notification
       )
     );
@@ -61,14 +61,14 @@ export const createNotificationState = () => {
 
   // Marca tutte le notifiche come lette
   const markAllAsRead = useCallback(() => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(notification => ({ ...notification, read: true }))
     );
   }, []);
 
   // Rimuove una notifica
   const removeNotification = useCallback((id) => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.filter(notification => notification.id !== id)
     );
   }, []);
@@ -82,7 +82,7 @@ export const createNotificationState = () => {
     const timer = setTimeout(() => {
       addNotification('Nuova prenotazione creata da Luigi Bianchi', 'success');
     }, 60000);
-    
+
     return () => clearTimeout(timer);
   }, [addNotification]);
 

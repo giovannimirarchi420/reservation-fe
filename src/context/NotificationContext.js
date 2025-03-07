@@ -1,12 +1,12 @@
 import React, { createContext } from 'react';
-import { createNotificationState } from '../hooks/useNotification';
+import { useNotificationState } from '../hooks/useNotification';
 
 // Creazione del contesto
 export const NotificationContext = createContext();
 
 // Provider del contesto
 export const NotificationProvider = ({ children }) => {
-  const notificationState = createNotificationState();
+  const notificationState = useNotificationState();
 
   return (
     <NotificationContext.Provider value={notificationState}>
