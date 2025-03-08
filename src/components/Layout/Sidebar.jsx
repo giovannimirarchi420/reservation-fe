@@ -1,14 +1,10 @@
-import React from 'react';
-import {
-  Drawer, Toolbar, List, ListItem, ListItemIcon,
-  ListItemText, Divider, Box
-} from '@mui/material';
+import React, {useContext} from 'react';
+import {Box, Divider, Drawer, List, ListItem, ListItemIcon, ListItemText, Toolbar} from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventIcon from '@mui/icons-material/Event';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
-import { useContext } from 'react';
-import { AuthContext } from '../../context/AuthContext';
+import {AuthContext} from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
   const { currentUser, logout } = useContext(AuthContext);

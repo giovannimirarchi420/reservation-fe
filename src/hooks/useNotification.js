@@ -1,8 +1,8 @@
 /**
  * Hook per la gestione delle notifiche
  */
-import { useState, useEffect, useCallback, useContext } from 'react';
-import { NotificationContext } from '../context/NotificationContext';
+import {useCallback, useContext, useEffect, useState} from 'react';
+import {NotificationContext} from '../context/NotificationContext';
 
 export const useNotification = () => {
   const context = useContext(NotificationContext);

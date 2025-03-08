@@ -1,8 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, FormControl, InputLabel, Select,
-  MenuItem, FormHelperText, Box
+import React, {useEffect, useState} from 'react';
+import {
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    FormHelperText,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField
 } from '@mui/material';
 
 const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete }) => {

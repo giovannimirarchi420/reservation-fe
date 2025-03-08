@@ -1,5 +1,5 @@
-import React, { createContext } from 'react';
-import { useNotificationState } from '../hooks/useNotification';
+import React, {createContext} from 'react';
+import {useNotificationState} from '../hooks/useNotification';
 
 // Creazione del contesto
 export const NotificationContext = createContext();

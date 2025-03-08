@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box, Paper, Tabs, Tab } from '@mui/material';
+import React, {useState} from 'react';
+import {Box, Paper, Tab, Tabs} from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import PeopleIcon from '@mui/icons-material/People';
 import ResourceManagement from './ResourceManagement';

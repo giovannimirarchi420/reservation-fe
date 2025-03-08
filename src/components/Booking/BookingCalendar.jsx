@@ -1,23 +1,37 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
+import React, {useEffect, useState} from 'react';
+import {Calendar, momentLocalizer} from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/it';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
-  Box, Paper, Button, FormControl, InputLabel,
-  Select, MenuItem, IconButton, Typography,
-  Tooltip, ToggleButtonGroup, ToggleButton
+    Box,
+    Button,
+    FormControl,
+    IconButton,
+    InputLabel,
+    MenuItem,
+    Paper,
+    Select,
+    ToggleButton,
+    ToggleButtonGroup,
+    Tooltip,
+    Typography
 } from '@mui/material';
 import {
-  CalendarViewDay, CalendarViewWeek, CalendarViewMonth,
-  Add as AddIcon, Today as TodayIcon,
-  ChevronLeft, ChevronRight, FilterList
+    Add as AddIcon,
+    CalendarViewDay,
+    CalendarViewMonth,
+    CalendarViewWeek,
+    ChevronLeft,
+    ChevronRight,
+    FilterList,
+    Today as TodayIcon
 } from '@mui/icons-material';
 import BookingForm from './BookingForm';
 import EventItem from './EventItem';
-import { fetchEvents, createEvent, updateEvent, deleteEvent } from '../../services/bookingService';
-import { fetchResources } from '../../services/resourceService';
-import { getResourceTypeColor } from '../../utils/colorUtils';
+import {createEvent, deleteEvent, fetchEvents, updateEvent} from '../../services/bookingService';
+import {fetchResources} from '../../services/resourceService';
+import {getResourceTypeColor} from '../../utils/colorUtils';
 
 // Configura moment.js per l'italiano
 moment.locale('it');

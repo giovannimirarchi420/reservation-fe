@@ -1,11 +1,20 @@
-import React, { useState, useEffect } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, FormControl, InputLabel,
-  Select, MenuItem, Box, FormHelperText
+    Box,
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    FormHelperText,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField
 } from '@mui/material';
-import { fetchUsers } from '../../services/userService';
-import { formatDateForInput } from '../../utils/dateUtils';
+import {fetchUsers} from '../../services/userService';
+import {formatDateForInput} from '../../utils/dateUtils';
 
 const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) => {
   const [formData, setFormData] = useState({

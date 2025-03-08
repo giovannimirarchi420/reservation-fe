@@ -1,102 +1,63 @@
 /**
- * Servizio per la gestione delle risorse
+ * Service for resource-related API operations
  */
-import { apiRequest } from './api';
+import apiRequest from './apiCore';
 
 /**
- * Recupera tutte le risorse
- * @returns {Promise<Array>} Lista di risorse
+ * Get all resources
+ * @param {Object} filters - Optional filters (status, typeId)
+ * @returns {Promise<Array>} List of resources
  */
-export const fetchResources = async () => {
-  try {
-    return await apiRequest('/api/resources');
-  } catch (error) {
-    console.error('Error fetching resources:', error);
-    throw error;
-  }
+export const fetchResources = (filters = {}) => {
+  let queryParams = '';
+  if (filters.status) queryParams += `status=${filters.status}`;
+  if (filters.typeId) queryParams += `${queryParams ? '&' : ''}typeId=${filters.typeId}`;
+  
+  return apiRequest(`/resources${queryParams ? '?' + queryParams : ''}`);
 };
 
 /**
- * Recupera tutti i tipi di risorse
- * @returns {Promise<Array>} Lista di tipi di risorse
+ * Get a resource by ID
+ * @param {number} id - Resource ID
+ * @returns {Promise<Object>} Resource data
  */
-export const fetchResourceTypes = async () => {
-  try {
-    return await apiRequest('/api/resource-types');
-  } catch (error) {
-    console.error('Error fetching resource types:', error);
-    throw error;
-  }
-};
+export const fetchResource = (id) => apiRequest(`/resources/${id}`);
 
 /**
- * Recupera una risorsa specifica
- * @param {number} id - ID della risorsa
- * @returns {Promise<Object>} Risorsa
+ * Create a new resource
+ * @param {Object} resourceData - New resource data
+ * @returns {Promise<Object>} Created resource
  */
-export const fetchResource = async (id) => {
-  try {
-    return await apiRequest(`/api/resources/${id}`);
-  } catch (error) {
-    console.error(`Error fetching resource ${id}:`, error);
-    throw error;
-  }
-};
+export const createResource = (resourceData) => apiRequest('/resources', 'POST', resourceData);
 
 /**
- * Crea una nuova risorsa
- * @param {Object} resourceData - Dati della risorsa
- * @returns {Promise<Object>} Risorsa creata
+ * Update an existing resource
+ * @param {number} id - Resource ID
+ * @param {Object} resourceData - Updated resource data
+ * @returns {Promise<Object>} Updated resource
  */
-export const createResource = async (resourceData) => {
-  try {
-    return await apiRequest('/api/resources', 'POST', resourceData);
-  } catch (error) {
-    console.error('Error creating resource:', error);
-    throw error;
-  }
-};
+export const updateResource = (id, resourceData) => apiRequest(`/resources/${id}`, 'PUT', resourceData);
 
 /**
- * Aggiorna una risorsa esistente
- * @param {number} id - ID della risorsa
- * @param {Object} resourceData - Dati aggiornati della risorsa
- * @returns {Promise<Object>} Risorsa aggiornata
+ * Update resource status
+ * @param {number} id - Resource ID
+ * @param {string} status - New status (ACTIVE, MAINTENANCE, UNAVAILABLE)
+ * @returns {Promise<Object>} Updated resource
  */
-export const updateResource = async (id, resourceData) => {
-  try {
-    return await apiRequest(`/api/resources/${id}`, 'PUT', resourceData);
-  } catch (error) {
-    console.error(`Error updating resource ${id}:`, error);
-    throw error;
-  }
-};
+export const updateResourceStatus = (id, status) => 
+  apiRequest(`/resources/${id}/status?status=${status}`, 'PATCH');
 
 /**
- * Elimina una risorsa
- * @param {number} id - ID della risorsa
- * @returns {Promise<Object>} Risorsa eliminata
+ * Delete a resource
+ * @param {number} id - Resource ID
+ * @returns {Promise<Object>} Deletion response
  */
-export const deleteResource = async (id) => {
-  try {
-    return await apiRequest(`/api/resources/${id}`, 'DELETE');
-  } catch (error) {
-    console.error(`Error deleting resource ${id}:`, error);
-    throw error;
-  }
-};
+export const deleteResource = (id) => apiRequest(`/resources/${id}`, 'DELETE');
 
 /**
- * Ottiene le risorse per tipo
- * @param {number} typeId - ID del tipo di risorsa
- * @returns {Promise<Array>} Risorse del tipo specificato
+ * Search resources
+ * @param {string} query - Search term
+ * @returns {Promise<Array>} Found resources
  */
-export const getResourcesByType = async (typeId) => {
-  try {
-    const resources = await fetchResources();
-    return resources.filter(resource => resource.type === typeId);
-  } catch (error) {
-    console.error(`Error fetching resources by type ${typeId}:`, error);
-    throw error;
-  }
-};
+export const searchResources = (query) => 
+  apiRequest(`/resources/search?query=${encodeURIComponent(query)}`);

@@ -1,110 +1,81 @@
 /**
- * Servizio per la gestione delle prenotazioni (eventi)
+ * Service for event/booking-related API operations
  */
-import { apiRequest } from './api';
+import apiRequest from './apiCore';
 
 /**
- * Recupera tutte le prenotazioni
- * @returns {Promise<Array>} Lista di prenotazioni
+ * Get all events/bookings
+ * @param {Object} filters - Optional filters (resourceId, startDate, endDate)
+ * @returns {Promise<Array>} List of events
  */
-export const fetchEvents = async () => {
-  try {
-    return await apiRequest('/api/events');
-  } catch (error) {
-    console.error('Error fetching events:', error);
-    throw error;
+export const fetchEvents = (filters = {}) => {
+  let queryParams = '';
+  if (filters.resourceId) queryParams += `resourceId=${filters.resourceId}`;
+  if (filters.startDate) {
+    const startDateStr = filters.startDate instanceof Date 
+      ? filters.startDate.toISOString() 
+      : filters.startDate;
+    queryParams += `${queryParams ? '&' : ''}startDate=${encodeURIComponent(startDateStr)}`;
   }
+  if (filters.endDate) {
+    const endDateStr = filters.endDate instanceof Date 
+      ? filters.endDate.toISOString() 
+      : filters.endDate;
+    queryParams += `${queryParams ? '&' : ''}endDate=${encodeURIComponent(endDateStr)}`;
+  }
+  
+  return apiRequest(`/events${queryParams ? '?' + queryParams : ''}`);
 };
 
 /**
- * Recupera una prenotazione specifica
- * @param {number} id - ID della prenotazione
- * @returns {Promise<Object>} Prenotazione
+ * Get events for the current user
+ * @returns {Promise<Array>} List of user's events
  */
-export const fetchEvent = async (id) => {
-  try {
-    return await apiRequest(`/api/events/${id}`);
-  } catch (error) {
-    console.error(`Error fetching event ${id}:`, error);
-    throw error;
-  }
-};
+export const fetchMyEvents = () => apiRequest('/events/my-events');
 
 /**
- * Crea una nuova prenotazione
- * @param {Object} eventData - Dati della prenotazione
- * @returns {Promise<Object>} Prenotazione creata
+ * Get an event by ID
+ * @param {number} id - Event ID
+ * @returns {Promise<Object>} Event data
  */
-export const createEvent = async (eventData) => {
-  try {
-    return await apiRequest('/api/events', 'POST', eventData);
-  } catch (error) {
-    console.error('Error creating event:', error);
-    throw error;
-  }
-};
+export const fetchEvent = (id) => apiRequest(`/events/${id}`);
 
 /**
- * Aggiorna una prenotazione esistente
- * @param {number} id - ID della prenotazione
- * @param {Object} eventData - Dati aggiornati della prenotazione
- * @returns {Promise<Object>} Prenotazione aggiornata
+ * Create a new event
+ * @param {Object} eventData - New event data
+ * @returns {Promise<Object>} Created event
  */
-export const updateEvent = async (id, eventData) => {
-  try {
-    return await apiRequest(`/api/events/${id}`, 'PUT', eventData);
-  } catch (error) {
-    console.error(`Error updating event ${id}:`, error);
-    throw error;
-  }
-};
+export const createEvent = (eventData) => apiRequest('/events', 'POST', eventData);
 
 /**
- * Elimina una prenotazione
- * @param {number} id - ID della prenotazione
- * @returns {Promise<Object>} Prenotazione eliminata
+ * Update an existing event
+ * @param {number} id - Event ID
+ * @param {Object} eventData - Updated event data
+ * @returns {Promise<Object>} Updated event
  */
-export const deleteEvent = async (id) => {
-  try {
-    return await apiRequest(`/api/events/${id}`, 'DELETE');
-  } catch (error) {
-    console.error(`Error deleting event ${id}:`, error);
-    throw error;
-  }
-};
+export const updateEvent = (id, eventData) => apiRequest(`/events/${id}`, 'PUT', eventData);
 
 /**
- * Controlla se una prenotazione è in conflitto con altre
- * @param {Object} eventData - Dati della prenotazione
- * @returns {Promise<boolean>} true se c'è conflitto, false altrimenti
+ * Delete an event
+ * @param {number} id - Event ID
+ * @returns {Promise<Object>} Deletion response
  */
-export const checkEventConflicts = async (eventData) => {
-  try {
-    const events = await fetchEvents();
-    
-    // Filtra gli eventi per la stessa risorsa, escludendo l'evento corrente se ha un ID
-    const resourceEvents = events.filter(event => 
-      event.resourceId === eventData.resourceId && 
-      (!eventData.id || event.id !== eventData.id)
-    );
-    
-    // Verifica sovrapposizioni
-    const newStart = new Date(eventData.start).getTime();
-    const newEnd = new Date(eventData.end).getTime();
-    
-    return resourceEvents.some(event => {
-      const existingStart = new Date(event.start).getTime();
-      const existingEnd = new Date(event.end).getTime();
-      
-      // Verifica se c'è sovrapposizione
-      return (
-        (newStart >= existingStart && newStart < existingEnd) || // Inizio nuovo durante esistente
-        (newEnd > existingStart && newEnd <= existingEnd) || // Fine nuovo durante esistente
-        (newStart <= existingStart && newEnd >= existingEnd) // Nuovo copre esistente
-      );
-    });
-  } catch (error) {
-    console.error('Error checking event conflicts:', error);
-    throw error;
-  }
+export const deleteEvent = (id) => apiRequest(`/events/${id}`, 'DELETE');
+
+/**
+ * Check for conflicts for an event
+ * @param {number} resourceId - Resource ID
+ * @param {Date|string} start - Start date and time
+ * @param {Date|string} end - End date and time
+ * @param {number} eventId - Event ID (optional, to exclude from checks)
+ * @returns {Promise<Object>} Response with conflict info
+ */
+export const checkEventConflicts = (resourceId, start, end, eventId = null) => {
+  const startStr = start instanceof Date ? start.toISOString() : start;
+  const endStr = end instanceof Date ? end.toISOString() : end;
+  
+  let url = `/events/check-conflicts?resourceId=${resourceId}&start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`;
+  if (eventId) url += `&eventId=${eventId}`;
+  
+  return apiRequest(url);
 };

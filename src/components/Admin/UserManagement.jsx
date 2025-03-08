@@ -1,14 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Box, Typography, Button, Grid, TextField,
-  InputAdornment, IconButton, CircularProgress
-} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import {Box, Button, CircularProgress, Grid, InputAdornment, TextField, Typography} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import UserCard from '../Users/UserCard';
 import UserForm from '../Users/UserForm';
-import { fetchUsers, createUser, updateUser, deleteUser } from '../../services/userService';
+import {createUser, deleteUser, fetchUsers, updateUser} from '../../services/userService';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);

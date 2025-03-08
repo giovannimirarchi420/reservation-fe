@@ -1,15 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Box, Typography, Button, Grid, TextField, 
-  InputAdornment, IconButton, CircularProgress
-} from '@mui/material';
+import React, {useEffect, useState} from 'react';
+import {Box, Button, CircularProgress, Grid, InputAdornment, TextField, Typography} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import ResourceCard from '../Resources/ResourceCard';
 import ResourceForm from '../Resources/ResourceForm';
-import { fetchResources, createResource, updateResource, deleteResource } from '../../services/resourceService';
-import { fetchResourceTypes } from '../../services/resourceService';
+import {createResource, deleteResource, fetchResources, updateResource} from '../../services/resourceService';
+import {fetchResourceTypes} from '../../services/resourceTypeService';
 
 const ResourceManagement = () => {
   const [resources, setResources] = useState([]);

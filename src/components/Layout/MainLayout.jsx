@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Box } from '@mui/material';
+import React, {useState} from 'react';
+import {Box} from '@mui/material';
 import AppHeader from './AppHeader';
 import Sidebar from './Sidebar';
 

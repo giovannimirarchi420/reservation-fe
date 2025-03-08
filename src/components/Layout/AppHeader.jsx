@@ -1,13 +1,10 @@
-import React, { useContext } from 'react';
-import { 
-  AppBar, Toolbar, Typography, IconButton, Badge, 
-  Menu, MenuItem, Avatar
-} from '@mui/material';
+import React, {useContext} from 'react';
+import {AppBar, Avatar, Badge, IconButton, Menu, MenuItem, Toolbar, Typography} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircle from '@mui/icons-material/AccountCircle';
-import { useNotification } from '../../hooks/useNotification';
-import { AuthContext } from '../../context/AuthContext';
+import {useNotification} from '../../hooks/useNotification';
+import {AuthContext} from '../../context/AuthContext';
 
 const AppHeader = ({ onMenuClick }) => {
   const { notifications } = useNotification();

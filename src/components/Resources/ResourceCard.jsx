@@ -1,7 +1,15 @@
 import React from 'react';
-import { 
-  Card, CardContent, Typography, Box, Chip, 
-  IconButton, Menu, MenuItem, ListItemIcon, ListItemText 
+import {
+    Box,
+    Card,
+    CardContent,
+    Chip,
+    IconButton,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    Typography
 } from '@mui/material';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import EditIcon from '@mui/icons-material/Edit';
