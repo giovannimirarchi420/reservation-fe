@@ -1,17 +1,7 @@
 /**
  * Servizio per l'autenticazione tramite Keycloak
  */
-import Keycloak from 'keycloak-js';
-
-// Configurazione Keycloak
-const keycloakConfig = {
-    url: 'http://localhost:8180',
-    realm: 'resource-management',
-    clientId: 'resource-management-app'
-};
-
-// Inizializzazione dell'istanza Keycloak
-const keycloak = new Keycloak(keycloakConfig);
+import keycloak from '../config/keycloak.js';
 
 /**
  * Inizializza Keycloak e gestisce l'autenticazione
@@ -101,6 +91,8 @@ export const logout = (options = {}) => {
  * @returns {boolean} true se l'utente è autenticato
  */
 export const isAuthenticated = () => {
+    console.log(keycloak.token)
+    console.log(localStorage.token)
     return !!keycloak.token;
 };
 

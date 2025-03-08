@@ -27,7 +27,7 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
     // Add authentication token if user is logged in
     if (authService.isAuthenticated()) {
       // Update token if necessary
-      await authService.updateToken(30); // Update if expires within 30 seconds
+      //await authService.updateToken(30); // Update if expires within 30 seconds
       headers['Authorization'] = authService.getAuthHeader();
     }
 
