@@ -1,4 +1,5 @@
-import React, { createContext, useCallback, useEffect, useRef, useState } from 'react';
+import React, { createContext, useCallback, useEffect, useState } from 'react';
+import keycloak from '../config/keycloak';
 import * as authService from '../services/authService';
 
 // Create context
@@ -9,77 +10,86 @@ export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [keycloakInitialized, setKeycloakInitialized] = useState(false);
 
-  // Use a ref to track initialization attempts
-  const initializationAttempted = useRef(false);
-
-  // Initialize Keycloak on mount
+  // Detect authentication state changes and update user info
   useEffect(() => {
-    // Only try to initialize if not already attempted
-    if (initializationAttempted.current) {
-      return;
+
+    // Initialize Keycloak without authentication
+    // This will set up the instance but not attempt to authenticate
+    if(!keycloak.didInitialize){
+      keycloak.init({
+        onLoad: 'login-required', // Changed from 'check-sso' to 'login-required'
+        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+        pkceMethod: 'S256', // For better security
+        enableLogging: process.env.NODE_ENV !== 'production', // Log only in development
+        checkLoginIframe: false // Disable iframe checking to prevent issues with redirects
+      }).then(authenticated => {
+        if (authenticated) {
+          console.log('User is already authenticated');
+          const userInfo = authService.getUserInfo();
+          console.log(userInfo);
+          setCurrentUser(userInfo);
+          setLoading(false)
+          // Set up token refresh
+          keycloak.onTokenExpired = () => {
+            console.log('Token expired, attempting refresh...');
+            keycloak.updateToken(70)
+                .then(refreshed => {
+                  if (refreshed) {
+                    console.log('Token successfully refreshed');
+                  } else {
+                    console.log('Token still valid');
+                  }
+                })
+                .catch(error => {
+                  console.error('Error during token refresh', error);
+                });
+          };
+        } else {
+          console.log('Not authenticated');
+        }
+      }).catch(error => {
+        console.error('Failed to initialize Keycloak', error);
+      });
     }
 
-    initializationAttempted.current = true;
 
-    const initAuth = async () => {
-      try {
-        await authService.initKeycloak(
-            // Success callback
-            (token, tokenParsed) => {
-              // Get user details from authService
-              const userInfo = authService.getUserInfo();
-              if (userInfo) {
-                setCurrentUser(userInfo);
-              }
-              setError(null);
-            },
-            // Error callback
-            (errorMsg) => {
-              console.error('Keycloak initialization error:', errorMsg);
-              setError('Error during authentication system initialization');
-            },
-            // Token expired callback
-            (refreshed) => {
-              console.log('Token refresh status:', refreshed);
-              // Optional: you could update some state here if needed
-            }
-        );
-      } catch (err) {
-        console.error('Keycloak initialization error:', err);
-        setError('Error during authentication system initialization');
-      } finally {
-        setKeycloakInitialized(true);
-        setLoading(false);
-      }
+    // Set up a listener for auth state changes if needed
+    const handleTokenExpired = () => {
+      console.log('Token expired event received');
+      // You might want to show a notification or handle this in some way
     };
 
-    initAuth();
+    keycloak.onTokenExpired = handleTokenExpired;
 
-    // Setup token refresh
-    const refreshInterval = setInterval(() => {
-      if (authService.isAuthenticated()) {
-        authService.updateToken()
-            .catch((error) => {
-              console.warn('Failed to refresh token, logging out', error);
-              authService.logout();
-            });
-      }
-    }, 60000); // Check every minute
-
-    return () => clearInterval(refreshInterval);
   }, []);
 
   // Login function
-  const login = useCallback(() => {
-    authService.login();
+  const login = useCallback((option) => {
+    setLoading(true);
+    try {
+      authService.login(option);
+      return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Failed to login. Please try again.');
+      setLoading(false);
+      return false;
+    }
   }, []);
 
   // Logout function
   const logout = useCallback(() => {
-    authService.logout();
-    setCurrentUser(null);
+    setLoading(true);
+    try {
+      authService.logout();
+      setCurrentUser(null);
+      setLoading(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+      setError('Failed to logout. Please try again.');
+      setLoading(false);
+    }
   }, []);
 
   // Check if user is admin
@@ -120,7 +130,6 @@ export const AuthProvider = ({ children }) => {
     currentUser,
     loading,
     error,
-    keycloakInitialized,
     login,
     logout,
     isAdmin,

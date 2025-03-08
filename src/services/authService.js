@@ -4,69 +4,6 @@
 import keycloak from '../config/keycloak.js';
 
 /**
- * Inizializza Keycloak e gestisce l'autenticazione
- * @param {Function} onAuthSuccess - Callback da eseguire quando l'autenticazione ha successo
- * @param {Function} onAuthError - Callback da eseguire in caso di errore di autenticazione
- * @param {Function} onTokenExpired - Callback da eseguire quando il token scade
- * @returns {Promise} Promessa con l'esito dell'inizializzazione
- */
-export const initKeycloak = (onAuthSuccess, onAuthError, onTokenExpired) => {
-    return new Promise((resolve, reject) => {
-        keycloak.init({
-            onLoad: 'check-sso',
-            silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
-            pkceMethod: 'S256', // Per maggiore sicurezza
-            enableLogging: process.env.NODE_ENV !== 'production' // Log solo in sviluppo
-        })
-            .then(authenticated => {
-                if (authenticated) {
-                    // Imposta il callback per il refresh automatico del token
-                    keycloak.onTokenExpired = () => {
-                        console.log('Token scaduto, tentativo di refresh...');
-                        keycloak.updateToken(70)
-                            .then(refreshed => {
-                                if (refreshed) {
-                                    console.log('Token aggiornato con successo');
-                                    // Salva il nuovo token
-                                    saveTokens(keycloak.token, keycloak.refreshToken);
-                                } else {
-                                    console.log('Token ancora valido');
-                                }
-                                if (onTokenExpired) {
-                                    onTokenExpired(refreshed);
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Errore durante il refresh del token', error);
-                                // Se non è possibile aggiornare il token, logout
-                                logout();
-                            });
-                    };
-
-                    // Salva i token
-                    saveTokens(keycloak.token, keycloak.refreshToken);
-
-                    if (onAuthSuccess) {
-                        onAuthSuccess(keycloak.token, keycloak.tokenParsed);
-                    }
-                } else {
-                    if (onAuthError) {
-                        onAuthError('Non autenticato');
-                    }
-                }
-                resolve(authenticated);
-            })
-            .catch(error => {
-                console.error('Errore durante l\'inizializzazione di Keycloak', error);
-                if (onAuthError) {
-                    onAuthError(error);
-                }
-                reject(error);
-            });
-    });
-};
-
-/**
  * Avvia il processo di login
  * @param {Object} options - Opzioni di login
  * @returns {Promise} Promessa con l'esito del login
@@ -91,8 +28,6 @@ export const logout = (options = {}) => {
  * @returns {boolean} true se l'utente è autenticato
  */
 export const isAuthenticated = () => {
-    console.log(keycloak.token)
-    console.log(localStorage.token)
     return !!keycloak.token;
 };
 
@@ -209,7 +144,6 @@ const createAvatarFromName = (name) => {
 };
 
 export default {
-    initKeycloak,
     login,
     logout,
     isAuthenticated,

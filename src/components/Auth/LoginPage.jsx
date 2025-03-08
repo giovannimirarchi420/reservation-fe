@@ -37,7 +37,7 @@ const LoginPage = () => {
     setIsLoading(true);
     
     try {
-      const success = await login(email, password, rememberMe);
+      const success = await login({email, password, rememberMe});
       if (success) {
         // Il reindirizzamento sarà gestito nell'useEffect
       }

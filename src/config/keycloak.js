@@ -7,7 +7,8 @@ const keycloakConfig = {
     clientId: process.env.REACT_APP_KEYCLOAK_CLIENT_ID || 'resource-management-app'
 };
 
-// Create and export a single Keycloak instance
+// Create Keycloak instance
 const keycloak = new Keycloak(keycloakConfig);
+
 
 export default keycloak;

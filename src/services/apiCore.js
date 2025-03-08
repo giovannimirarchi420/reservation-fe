@@ -27,7 +27,7 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
     // Add authentication token if user is logged in
     if (authService.isAuthenticated()) {
       // Update token if necessary
-      //await authService.updateToken(30); // Update if expires within 30 seconds
+      await authService.updateToken(); // Update if expires within 30 seconds
       headers['Authorization'] = authService.getAuthHeader();
     }
 
@@ -51,7 +51,7 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
       // If token has expired (401), try to refresh and retry the request
       if (response.status === 401) {
         try {
-          const refreshed = await authService.updateToken(30);
+          const refreshed = await authService.updateToken();
           if (refreshed) {
             // Retry request with new token
             return apiRequest(endpoint, method, data, options);
