@@ -1,5 +1,7 @@
-import React, {useContext, useEffect, useState} from 'react';
-import {Calendar, momentLocalizer} from 'react-big-calendar';
+// This fix applies to your src/components/Booking/BookingCalendar.jsx file
+
+import React, { useContext, useEffect, useState } from 'react';
+import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/it';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -29,10 +31,10 @@ import {
 } from '@mui/icons-material';
 import BookingForm from './BookingForm';
 import EventItem from './EventItem';
-import {createEvent, deleteEvent, fetchEvents, updateEvent} from '../../services/bookingService';
-import {fetchResources} from '../../services/resourceService';
-import {getResourceTypeColor} from '../../utils/colorUtils';
-import {AuthContext} from '../../context/AuthContext';
+import { createEvent, deleteEvent, fetchEvents, updateEvent } from '../../services/bookingService';
+import { fetchResources } from '../../services/resourceService';
+import { getResourceTypeColor } from '../../utils/colorUtils';
+import { AuthContext } from '../../context/AuthContext';
 
 // Configura moment.js per l'italiano
 moment.locale('it');
@@ -58,7 +60,14 @@ const BookingCalendar = () => {
           fetchEvents(),
           fetchResources()
         ]);
-        setEvents(eventsData);
+        
+        const processedEvents = eventsData.map(event => ({
+          ...event,
+          start: new Date(event.start),
+          end: new Date(event.end)
+        }));
+        
+        setEvents(processedEvents);
         setResources(resourcesData);
       } catch (error) {
         console.error('Error loading data:', error);
@@ -97,16 +106,37 @@ const BookingCalendar = () => {
   // Salva una prenotazione
   const handleSaveBooking = async (bookingData) => {
     try {
-      if (bookingData.id) {
+      // Assicurati che bookingData.start e bookingData.end siano oggetti Date
+      const processedBookingData = {
+        ...bookingData,
+        start: bookingData.start instanceof Date ? bookingData.start : new Date(bookingData.start),
+        end: bookingData.end instanceof Date ? bookingData.end : new Date(bookingData.end),
+      };
+      
+      if (processedBookingData.id) {
         // Aggiorna un evento esistente
-        const updatedEvent = await updateEvent(bookingData.id, bookingData);
+        const updatedEvent = await updateEvent(processedBookingData.id, processedBookingData);
+        // Assicurati che le date nella risposta siano oggetti Date
+        const processedUpdatedEvent = {
+          ...updatedEvent,
+          start: new Date(updatedEvent.start),
+          end: new Date(updatedEvent.end)
+        };
+        
         setEvents(events.map(event =>
-            event.id === updatedEvent.id ? updatedEvent : event
+            event.id === processedUpdatedEvent.id ? processedUpdatedEvent : event
         ));
       } else {
         // Crea un nuovo evento
-        const newEvent = await createEvent(bookingData);
-        setEvents([...events, newEvent]);
+        const newEvent = await createEvent(processedBookingData);
+        // Assicurati che le date nella risposta siano oggetti Date
+        const processedNewEvent = {
+          ...newEvent,
+          start: new Date(newEvent.start),
+          end: new Date(newEvent.end)
+        };
+        
+        setEvents([...events, processedNewEvent]);
       }
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
