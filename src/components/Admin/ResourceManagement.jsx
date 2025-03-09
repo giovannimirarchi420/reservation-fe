@@ -26,7 +26,7 @@ import {
 } from '../../services/resourceService';
 import {createResourceType, fetchResourceTypes} from '../../services/resourceTypeService';
 
-const ResourceManagement = () => {
+const ResourceManagement = ({ onSwitchToResourceType }) => {
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -121,25 +121,9 @@ const ResourceManagement = () => {
     }
   };
 
-  // Funzione per aggiungere rapidamente un nuovo tipo di risorsa
-  const handleAddResourceType = async () => {
-    try {
-      const name = prompt('Inserisci il nome del nuovo tipo di risorsa:');
-      if (!name) return; // Annullato dall'utente
-
-      const newType = await createResourceType({
-        name,
-        description: '',
-        color: '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0') // Colore casuale
-      });
-
-      setResourceTypes([...resourceTypes, newType]);
-      setFilterType(newType.id.toString());
-      setNeedsRefresh(prev => !prev); // Forza un aggiornamento
-    } catch (error) {
-      console.error('Error creating resource type:', error);
-      alert('Errore nella creazione del tipo di risorsa. Riprova.');
-    }
+  // Modificato per reindirizzare alla gestione dei tipi di risorsa
+  const handleAddResourceType = () => {
+    onSwitchToResourceType();
   };
 
   // Label per gli stati

@@ -7,11 +7,21 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  IconButton,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
-  TextField
+  Snackbar,
+  TextField,
+  Tooltip,
+  Typography
 } from '@mui/material';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const [formData, setFormData] = useState({
@@ -24,6 +34,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     roles: ['USER']
   });
   const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [copiedToClipboard, setCopiedToClipboard] = useState(false);
+  const [showSnackbar, setShowSnackbar] = useState(false);
 
   // Popola il form quando viene selezionato un utente
   useEffect(() => {
@@ -133,6 +146,61 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
+  // Funzione per generare una password casuale
+  const generateRandomPassword = () => {
+    const lowercase = 'abcdefghijklmnopqrstuvwxyz';
+    const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const symbols = '!@#$%^&*()_+[]{}|;:,.<>?';
+
+    const allChars = lowercase + uppercase + numbers + symbols;
+
+    let password = '';
+    // Assicurati che la password contenga almeno un carattere di ogni tipo
+    password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+    password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+    password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+
+    // Aggiungi altri caratteri casuali per arrivare a 12 caratteri
+    for (let i = 0; i < 8; i++) {
+      password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+    }
+
+    // Mescola i caratteri della password
+    password = password.split('').sort(() => 0.5 - Math.random()).join('');
+
+    setFormData({
+      ...formData,
+      password: password
+    });
+
+    return password;
+  };
+
+  // Funzione per copiare la password negli appunti
+  const copyPasswordToClipboard = async () => {
+    if (formData.password) {
+      try {
+        await navigator.clipboard.writeText(formData.password);
+        setCopiedToClipboard(true);
+        setShowSnackbar(true);
+
+        // Resetta l'icona dopo 2 secondi
+        setTimeout(() => {
+          setCopiedToClipboard(false);
+        }, 2000);
+      } catch (err) {
+        console.error('Impossibile copiare la password: ', err);
+      }
+    }
+  };
+
+  // Chiudi lo snackbar
+  const handleCloseSnackbar = () => {
+    setShowSnackbar(false);
+  };
+
   return (
       <Dialog
           open={open}
@@ -197,7 +265,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             <TextField
                 label={formData.id ? "Password (lascia vuoto per non modificare)" : "Password"}
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 fullWidth
                 value={formData.password}
                 onChange={handleChange}
@@ -205,6 +273,41 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                 required={!formData.id}
                 error={!!errors.password}
                 helperText={errors.password}
+                InputProps={{
+                  endAdornment: (
+                      <InputAdornment position="end">
+                        <Box sx={{ display: 'flex' }}>
+                          <Tooltip title="Genera password">
+                            <IconButton
+                                onClick={() => generateRandomPassword()}
+                                edge="end"
+                            >
+                              <VpnKeyIcon />
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title="Copia password">
+                            <IconButton
+                                onClick={copyPasswordToClipboard}
+                                edge="end"
+                                color={copiedToClipboard ? "success" : "default"}
+                            >
+                              {copiedToClipboard ? <CheckCircleIcon /> : <ContentCopyIcon />}
+                            </IconButton>
+                          </Tooltip>
+
+                          <Tooltip title={showPassword ? "Nascondi password" : "Mostra password"}>
+                            <IconButton
+                                onClick={() => setShowPassword(!showPassword)}
+                                edge="end"
+                            >
+                              {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
+                      </InputAdornment>
+                  ),
+                }}
             />
 
             <FormControl fullWidth margin="normal" required>
@@ -254,6 +357,15 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               </Button>
           )}
         </DialogActions>
+
+        {/* Feedback per la copia */}
+        <Snackbar
+            open={showSnackbar}
+            autoHideDuration={2000}
+            onClose={handleCloseSnackbar}
+            message="Password copiata negli appunti"
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        />
       </Dialog>
   );
 };

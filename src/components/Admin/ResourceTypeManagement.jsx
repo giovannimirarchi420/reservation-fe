@@ -29,7 +29,7 @@ import {
 import ResourceTypeForm from './ResourceTypeForm';
 import { getContrastTextColor } from '../../utils/colorUtils';
 
-const ResourceTypeManagement = () => {
+const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const [resourceTypes, setResourceTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -37,6 +37,16 @@ const ResourceTypeManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [menuAnchorEl, setMenuAnchorEl] = useState(null);
     const [activeResourceTypeId, setActiveResourceTypeId] = useState(null);
+
+    // Effect to handle opening the form when directed from another component
+    useEffect(() => {
+        if (openFormOnMount) {
+            setSelectedResourceType(null);
+            setIsFormOpen(true);
+            // Reset the flag after opening
+            resetOpenFormFlag();
+        }
+    }, [openFormOnMount, resetOpenFormFlag]);
 
     // Carica tipi di risorsa
     useEffect(() => {

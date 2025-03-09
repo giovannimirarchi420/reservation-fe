@@ -9,9 +9,16 @@ import ResourceTypeManagement from './ResourceTypeManagement';
 
 const AdminPanel = () => {
   const [currentTab, setCurrentTab] = useState(0);
+  const [openResourceTypeForm, setOpenResourceTypeForm] = useState(false);
 
   const handleTabChange = (event, newValue) => {
     setCurrentTab(newValue);
+  };
+
+  // Function to switch to resource type tab and open the form
+  const handleSwitchToResourceType = () => {
+    setCurrentTab(1); // Switch to the "Tipi di Risorse" tab (index 1)
+    setOpenResourceTypeForm(true); // Set the flag to open the form
   };
 
   return (
@@ -30,8 +37,17 @@ const AdminPanel = () => {
           </Tabs>
 
           <Box sx={{ mt: 3 }}>
-            {currentTab === 0 && <ResourceManagement />}
-            {currentTab === 1 && <ResourceTypeManagement />}
+            {currentTab === 0 && (
+                <ResourceManagement
+                    onSwitchToResourceType={handleSwitchToResourceType}
+                />
+            )}
+            {currentTab === 1 && (
+                <ResourceTypeManagement
+                    openFormOnMount={openResourceTypeForm}
+                    resetOpenFormFlag={() => setOpenResourceTypeForm(false)}
+                />
+            )}
             {currentTab === 2 && <UserManagement />}
           </Box>
         </Paper>

@@ -4,6 +4,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import EventIcon from '@mui/icons-material/Event';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import PersonIcon from '@mui/icons-material/Person';
 import {AuthContext} from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
@@ -47,6 +48,17 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
                 <EventIcon />
               </ListItemIcon>
               <ListItemText primary="Calendario" />
+            </ListItem>
+            <ListItem
+                button
+                selected={currentSection === 'profile'}
+                onClick={() => onSectionChange('profile')}
+                sx={{ cursor: 'pointer' }}
+            >
+              <ListItemIcon>
+                <PersonIcon />
+              </ListItemIcon>
+              <ListItemText primary="Il Mio Profilo" />
             </ListItem>
           </List>
           <Divider />
