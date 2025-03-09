@@ -18,12 +18,19 @@ const ReservationsTrendChart = ({ data }) => {
 
   // Funzione sicura per il tooltip che controlla se il dato esiste
   const formatTooltip = (value, name, props) => {
-    if (!props || !props.payload || props.payload.index === undefined || !data[props.payload.index]) {
-      return ['N/A', 'N/A'];
+    // Verifica che i dati necessari siano disponibili
+    if (!props || !props.payload) {
+      return ['Nessun dato', ''];
     }
     
-    const dataPoint = data[props.payload.index];
-    return [`${value} prenotazioni`, `${dataPoint.name} ${dataPoint.year}`];
+    // Ottieni i dati del punto dal payload
+    const item = props.payload;
+    
+    // Restituisci array con valore e descrizione
+    return [
+      `${item.count} prenotazioni`, 
+      `${item.name} ${item.year}`
+    ];
   };
 
   return (

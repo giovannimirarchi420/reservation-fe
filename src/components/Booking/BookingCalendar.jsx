@@ -28,16 +28,35 @@ import {
     Today as TodayIcon
 } from '@mui/icons-material';
 import BookingForm from './BookingForm';
-import EventItem from './EventItem';
 import { createEvent, deleteEvent, fetchEvents, updateEvent } from '../../services/bookingService';
 import { fetchResources } from '../../services/resourceService';
-import { getResourceTypeColor } from '../../utils/colorUtils';
 import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
 
 // Configura moment.js per l'italiano
 moment.locale('it');
 const localizer = momentLocalizer(moment);
+
+// Colori per le risorse - usiamo un set di colori distinti
+const RESOURCE_COLORS = [
+  '#8E24AA', // Purple
+  '#1E88E5', // Blue
+  '#43A047', // Green 
+  '#E53935', // Red
+  '#FB8C00', // Orange
+  '#00ACC1', // Cyan
+  '#3949AB', // Indigo
+  '#7CB342', // Light Green
+  '#C0CA33', // Lime
+  '#FDD835', // Yellow
+  '#6D4C41', // Brown
+  '#546E7A', // Blue Grey
+  '#D81B60', // Pink
+  '#5E35B1', // Deep Purple
+  '#039BE5', // Light Blue
+  '#00897B', // Teal
+  '#F4511E', // Deep Orange
+];
 
 const BookingCalendar = () => {
   const { currentUser } = useContext(AuthContext);
@@ -47,10 +66,12 @@ const BookingCalendar = () => {
   const [selectedResource, setSelectedResource] = useState(null);
   const [events, setEvents] = useState([]);
   const [resources, setResources] = useState([]);
+  const [resourceColors, setResourceColors] = useState({});
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-
+  const [calendarHeight, setCalendarHeight] = useState('100%');
+  
   // Carica eventi e risorse
   useEffect(() => {
     const loadData = async () => {
@@ -62,11 +83,23 @@ const BookingCalendar = () => {
             fetchResources()
           ]);
           
-          const processedEvents = eventsData.map(event => ({
-            ...event,
-            start: new Date(event.start),
-            end: new Date(event.end)
-          }));
+          // Assegna colori alle risorse
+          const colors = {};
+          resourcesData.forEach((resource, index) => {
+            // Usa colori ciclici per avere colori distinti per ogni risorsa
+            colors[resource.id] = RESOURCE_COLORS[index % RESOURCE_COLORS.length];
+          });
+          setResourceColors(colors);
+          
+          const processedEvents = eventsData.map(event => {
+            const resource = resourcesData.find(r => r.id === event.resourceId);
+            return {
+              ...event,
+              start: new Date(event.start),
+              end: new Date(event.end),
+              resourceName: resource ? resource.name : 'Risorsa sconosciuta'
+            };
+          });
           
           setEvents(processedEvents);
           setResources(resourcesData);
@@ -81,6 +114,18 @@ const BookingCalendar = () => {
 
     loadData();
   }, [withErrorHandling]);
+
+  // Aggiorna l'altezza del calendario in base alla vista corrente
+  useEffect(() => {
+    // In vista mensile, usiamo un'altezza fissa per evitare sovrapposizioni con il footer
+    if (currentView === 'month') {
+      // Altezza calcolata per evitare sovrapposizioni con il footer
+      setCalendarHeight('calc(100vh - 220px)');
+    } else {
+      // Per le altre viste, usiamo l'altezza disponibile del contenitore
+      setCalendarHeight('calc(100% - 70px)');
+    }
+  }, [currentView]);
 
   // Filtra gli eventi in base alla risorsa selezionata
   const filteredEvents = selectedResource
@@ -143,12 +188,16 @@ const BookingCalendar = () => {
     });
     
     if (result) {
+      // Aggiungi il nome della risorsa al risultato
+      const resourceName = resources.find(r => r.id === result.resourceId)?.name || 'Risorsa sconosciuta';
+      const enrichedResult = { ...result, resourceName };
+      
       if (processedBookingData.id) {
         // Aggiorna l'evento nella lista
-        setEvents(events.map(event => event.id === result.id ? result : event));
+        setEvents(events.map(event => event.id === enrichedResult.id ? enrichedResult : event));
       } else {
         // Aggiungi il nuovo evento alla lista
-        setEvents([...events, result]);
+        setEvents([...events, enrichedResult]);
       }
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
@@ -172,19 +221,57 @@ const BookingCalendar = () => {
     }
   };
 
+  // Funzione per trovare eventi sovrapposti
+  const findOverlappingEvents = (targetEvent) => {
+    // Funzione che verifica se due eventi si sovrappongono temporalmente
+    const eventsOverlap = (event1, event2) => {
+      return (
+        event1.start < event2.end && 
+        event1.end > event2.start
+      );
+    };
+    
+    // Conta quanti eventi si sovrappongono con questo
+    return filteredEvents.filter(event => 
+      event.id !== targetEvent.id && 
+      eventsOverlap(event, targetEvent)
+    ).length;
+  };
+
   // Stile per gli eventi nel calendario
   const eventStyleGetter = (event) => {
-    const resource = resources.find(r => r.id === event.resourceId);
-    const backgroundColor = resource ? getResourceTypeColor(resource.type) : '#1976d2';
-
+    // Usa il colore basato sulla risorsa
+    const backgroundColor = resourceColors[event.resourceId] || '#1976d2';
+    
+    // Conta quanti eventi si sovrappongono con questo
+    const overlappingCount = findOverlappingEvents(event);
+    
+    // Adatta lo stile in base al numero di eventi sovrapposti
+    const compactMode = overlappingCount >= 2;
+    const extremeCompactMode = overlappingCount >= 4;
+    
     return {
       style: {
         backgroundColor,
-        borderRadius: '4px',
+        borderRadius: '3px',
         opacity: 0.9,
         color: 'white',
-        border: '0px',
-        display: 'block'
+        border: '1px solid ' + backgroundColor,
+        display: 'block',
+        overflow: 'hidden',
+        fontSize: extremeCompactMode ? '0.65rem' : (compactMode ? '0.7rem' : '0.75rem'),
+        padding: extremeCompactMode ? '0px 1px' : '1px 2px',
+        whiteSpace: 'nowrap', 
+        textOverflow: 'ellipsis',
+        marginTop: '1px',
+        marginBottom: '1px',
+        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+        // Imposta un'altezza minima in base al numero di eventi sovrapposti
+        minHeight: extremeCompactMode ? '16px' : (compactMode ? '18px' : '20px'),
+        // Aggiungi un attributo data- che il componente EventItem può leggere
+        '--overlapping-count': overlappingCount,
+        '--compact-mode': compactMode ? 'true' : 'false',
+        '--extreme-compact-mode': extremeCompactMode ? 'true' : 'false'
       }
     };
   };
@@ -195,16 +282,241 @@ const BookingCalendar = () => {
     }
   };
 
+  // Componente per visualizzare gli eventi nel calendario
+  const EventItem = ({ event }) => {
+    // Accedi alle proprietà di stile passate dall'eventStyleGetter
+    const style = event.style || {};
+    const compactMode = style['--compact-mode'] === 'true';
+    const extremeCompactMode = style['--extreme-compact-mode'] === 'true';
+    
+    // In modalità compatta estrema, mostra tutto in un'unica riga
+    if (extremeCompactMode) {
+      return (
+        <Box sx={{ 
+          p: 0.25, 
+          minHeight: '100%',
+          fontSize: 'inherit',
+          lineHeight: 1
+        }}>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              fontWeight: 'bold',
+              fontSize: 'inherit',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              lineHeight: 1
+            }}
+          >
+            {`${event.title} (${event.resourceName})`}
+          </Typography>
+        </Box>
+      );
+    }
+    
+    // In modalità compatta, mostra titolo e risorsa su un'unica riga
+    if (compactMode) {
+      return (
+        <Box sx={{ 
+          p: 0.25, 
+          minHeight: '100%',
+          fontSize: 'inherit',
+          lineHeight: 1
+        }}>
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              fontWeight: 'bold',
+              display: 'inline',
+              fontSize: 'inherit',
+              lineHeight: 1
+            }}
+          >
+            {event.title}
+          </Typography>
+          {' • '}
+          <Typography 
+            variant="caption" 
+            sx={{ 
+              fontStyle: 'italic',
+              display: 'inline',
+              fontSize: '0.9em',
+              lineHeight: 1
+            }}
+          >
+            {event.resourceName}
+          </Typography>
+        </Box>
+      );
+    }
+    
+    // Modalità normale, mostra su due righe
+    return (
+      <Box sx={{ 
+        p: 0.5, 
+        minHeight: '100%',
+        fontSize: 'inherit',
+        lineHeight: 1.1
+      }}>
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            fontWeight: 'bold',
+            display: 'block',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: 1.1
+          }}
+        >
+          {event.title}
+        </Typography>
+        
+        <Typography 
+          variant="caption" 
+          sx={{ 
+            fontStyle: 'italic',
+            display: 'block',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            lineHeight: 1.1,
+            fontSize: '0.85em'
+          }}
+        >
+          {event.resourceName}
+        </Typography>
+      </Box>
+    );
+  };
+
+  // CSS personalizzato per migliorare la visualizzazione degli eventi
+  useEffect(() => {
+    // Aggiungi stili personalizzati per gestire meglio gli eventi sovrapposti
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = `
+      /* Stili base per gli eventi */
+      .rbc-event {
+        min-height: 16px !important;
+        margin-bottom: 1px !important;
+        transition: height 0.2s ease, background-color 0.2s ease;
+      }
+      
+      /* Migliora la visibilità degli eventi in vista mese */
+      .rbc-month-view .rbc-event {
+        border: 1px solid rgba(0, 0, 0, 0.2) !important;
+        margin-top: 1px !important;
+      }
+      
+      /* Riduce lo spazio tra gli slot temporali per avere più spazio per gli eventi */
+      .rbc-timeslot-group {
+        min-height: 40px;
+      }
+      
+      /* Maggiore contrasto per gli eventi selezionati */
+      .rbc-selected {
+        filter: brightness(85%) !important;
+        box-shadow: 0 0 0 2px #888 !important;
+        z-index: 10 !important;
+      }
+      
+      /* Aumenta l'altezza minima della cella in vista mese per contenere più eventi */
+      .rbc-month-row {
+        min-height: 90px;
+      }
+      
+      /* Fix per evitare la sovrapposizione con il footer in vista mensile */
+      .rbc-month-view {
+        min-height: 0 !important;
+        overflow: auto !important;
+      }
+      
+      /* Stile per il popup di "mostra altri" */
+      .rbc-overlay {
+        z-index: 1000;
+        background: white;
+        border: 1px solid #ddd;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        padding: 10px;
+        border-radius: 4px;
+      }
+      
+      /* Rendi gli eventi al passaggio del mouse più evidenti */
+      .rbc-event:hover {
+        filter: brightness(90%);
+        z-index: 5 !important;
+      }
+      
+      /* Riduci ulteriormente lo spazio nella vista mensile */
+      .rbc-month-view .rbc-event {
+        padding: 1px !important;
+      }
+      
+      /* Permetti agli eventi di essere molto compatti nella vista mensile */
+      .rbc-month-view .rbc-event-content {
+        padding: 0 !important;
+        height: auto !important;
+        min-height: 14px !important;
+      }
+      
+      /* Rimuovi il padding all'interno del contenitore degli eventi nella vista mensile */
+      .rbc-month-view .rbc-events-container {
+        margin-right: 0 !important;
+        padding-right: 0 !important;
+      }
+      
+      /* Ridimensiona correttamente il calendario in tutte le viste */
+      .rbc-calendar {
+        height: 100% !important;
+        max-height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      
+      /* Abilita lo scrolling quando necessario in vista mensile */
+      .rbc-month-view {
+        flex: 1 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 0 !important;
+        overflow: auto !important;
+      }
+      
+      /* Assicura che i contenitori interni nella vista mensile non crescano troppo */
+      .rbc-month-view .rbc-month-header,
+      .rbc-month-view .rbc-month-row {
+        flex-shrink: 0 !important;
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      // Rimuovi gli stili personalizzati quando il componente viene smontato
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
   return (
       <Box sx={{ p: 3, height: 'calc(100vh - 64px)' }}>
-        <Paper elevation={2} sx={{ height: '100%', p: 2 }}>
+        <Paper
+          elevation={2}
+          sx={{
+            height: '100%',
+            p: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden'  // Impedisce che il contenuto fuoriesca dal Paper
+          }}
+        >
           <Box sx={{
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
             justifyContent: 'space-between',
             alignItems: { xs: 'stretch', md: 'center' },
             gap: 2,
-            mb: 2
+            mb: 2,
+            flexShrink: 0  // Impedisce che i controlli si riducano
           }}>
             {/* Prima riga (o colonna su mobile): controlli di visualizzazione */}
             <Box sx={{
@@ -327,7 +639,15 @@ const BookingCalendar = () => {
             </Box>
           </Box>
 
-          <Box sx={{ height: 'calc(100% - 70px)' }}>
+          <Box
+            sx={{
+              height: calendarHeight,
+              flex: 1,
+              overflow: 'hidden',  // Contiene il calendario in caso di sovrapposizione
+              display: 'flex',
+              flexDirection: 'column'
+            }}
+          >
             {isLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                   <Typography>Caricamento calendario...</Typography>
@@ -338,7 +658,13 @@ const BookingCalendar = () => {
                     events={filteredEvents}
                     startAccessor="start"
                     endAccessor="end"
-                    style={{ height: '100%' }}
+                    style={{ 
+                      height: '100%', 
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      overflow: 'hidden'
+                    }}
                     views={['day', 'week', 'month']}
                     view={currentView}
                     date={selectedDate}
@@ -346,6 +672,13 @@ const BookingCalendar = () => {
                     onSelectSlot={handleSelectSlot}
                     onSelectEvent={handleSelectEvent}
                     eventPropGetter={eventStyleGetter}
+                    dayLayoutAlgorithm={'no-overlap'}
+                    showMultiDayTimes={true}
+                    slotGroupEventLimit={16}
+                    timeslots={4}
+                    step={15}
+                    min={moment().hour(8).minute(0).toDate()}
+                    max={moment().hour(20).minute(0).toDate()}
                     messages={{
                       today: 'Oggi',
                       previous: 'Precedente',
@@ -357,7 +690,8 @@ const BookingCalendar = () => {
                       date: 'Data',
                       time: 'Ora',
                       event: 'Evento',
-                      noEventsInRange: 'Nessuna prenotazione in questo periodo'
+                      noEventsInRange: 'Nessuna prenotazione in questo periodo',
+                      showMore: (total) => `+ ${total} altre`
                     }}
                     popup
                     components={{

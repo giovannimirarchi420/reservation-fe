@@ -6,6 +6,7 @@ import AdminPanel from './components/Admin/AdminPanel';
 import LoginPage from './components/Auth/LoginPage';
 import ProfileManagement from './components/Profile/ProfileManagement';
 import Dashboard from './components/Dashboard/Dashboard';
+import MyBookingsPage from './components/Booking/MyBookingsPage'; // Importa la nuova pagina
 import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
@@ -64,6 +65,9 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
             case 'calendar':
                 navigate('/calendar');
                 break;
+            case 'mybookings':
+                navigate('/mybookings');
+                break;
             case 'admin':
                 navigate('/admin');
                 break;
@@ -107,6 +111,16 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<BookingCalendar />}
                                     currentSection="calendar"
+                                    requiredRole="user"
+                                />
+                            }
+                        />
+                        <Route
+                            path="/mybookings"
+                            element={
+                                <LayoutWrapper
+                                    element={<MyBookingsPage />}
+                                    currentSection="mybookings"
                                     requiredRole="user"
                                 />
                             }

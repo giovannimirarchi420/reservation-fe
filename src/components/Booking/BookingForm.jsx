@@ -16,10 +16,11 @@ import {
     Divider,
     Alert,
     CircularProgress,
-    Snackbar
+    Snackbar,
+    Paper
 } from '@mui/material';
 import {fetchUsers} from '../../services/userService';
-import {formatDateForInput} from '../../utils/dateUtils';
+import {formatDateForInput, formatDate} from '../../utils/dateUtils';
 import {AuthContext} from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
 import {checkEventConflicts} from '../../services/bookingService';
@@ -40,6 +41,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   const [useCurrentUser, setUseCurrentUser] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
   const [validationMessage, setValidationMessage] = useState(null);
+  const [isReadOnly, setIsReadOnly] = useState(false);
 
   // Carica utenti solo se l'utente corrente è admin
   useEffect(() => {
@@ -61,10 +63,14 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   // Popola il form quando viene selezionato un evento
   useEffect(() => {
     if (booking) {
+      // Determina se l'utente ha diritto di modificare questa prenotazione
+      const isOwnBooking = booking.userId === currentUser?.id;
+      const canEdit = isOwnBooking || isAdmin();
+      setIsReadOnly(!canEdit);
+      
       // Se l'utente è admin e l'ID utente della prenotazione non è l'utente corrente,
       // imposta useCurrentUser a false
       const bookingForOtherUser = isAdmin() && booking.userId && booking.userId !== currentUser?.id;
-      
       setUseCurrentUser(!bookingForOtherUser);
       
       setFormData({
@@ -93,9 +99,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     setUseCurrentUser(true);
     setErrors({});
     setValidationMessage(null);
+    setIsReadOnly(false);
   };
 
   const handleChange = (e) => {
+    if (isReadOnly) return;
+    
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -115,6 +124,8 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleDateChange = (e) => {
+    if (isReadOnly) return;
+    
     const { name, value } = e.target;
     setFormData({
       ...formData,
@@ -126,6 +137,8 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleUserSelectionChange = (useCurrentUserValue) => {
+    if (isReadOnly) return;
+    
     setUseCurrentUser(useCurrentUserValue);
     
     if (useCurrentUserValue) {
@@ -247,187 +260,276 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     }
   };
 
+  // Trova il nome della risorsa in base all'ID
+  const getResourceName = (resourceId) => {
+    const resource = resources.find(r => r.id === resourceId);
+    return resource ? resource.name : 'Risorsa sconosciuta';
+  };
+
+  // Trova il nome dell'utente in base all'ID
+  const getUserName = (userId) => {
+    if (userId === currentUser?.id) {
+      return `${currentUser.firstName} ${currentUser.lastName}` || currentUser.username || 'Tu';
+    }
+    
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      if (user.firstName && user.lastName) {
+        return `${user.firstName} ${user.lastName}`;
+      }
+      return user.username || user.name || 'Utente';
+    }
+    
+    return 'Utente sconosciuto';
+  };
+
+  // Renderizza la visualizzazione di sola lettura
+  const renderReadOnlyView = () => {
+    // Ottieni il nome della risorsa
+    const resourceName = getResourceName(formData.resourceId);
+    // Ottieni il nome dell'utente
+    const userName = getUserName(formData.userId);
+    
+    return (
+      <>
+        <DialogTitle>Dettagli Prenotazione</DialogTitle>
+        <DialogContent>
+          <Paper elevation={0} variant="outlined" sx={{ p: 3, mb: 2, mt: 1 }}>
+            <Typography variant="h6" gutterBottom>{formData.title}</Typography>
+            
+            <Divider sx={{ my: 2 }} />
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Risorsa</Typography>
+              <Typography variant="body1">{resourceName}</Typography>
+            </Box>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Periodo</Typography>
+              <Typography variant="body1">
+                {formatDate(formData.start, 'dddd D MMMM YYYY')}
+              </Typography>
+              <Typography variant="body2">
+                {formatDate(formData.start, 'HH:mm')} - {formatDate(formData.end, 'HH:mm')}
+              </Typography>
+            </Box>
+            
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">Prenotato da</Typography>
+              <Typography variant="body1">{userName}</Typography>
+            </Box>
+            
+            {formData.description && (
+              <Box sx={{ mb: 2 }}>
+                <Typography variant="subtitle2" color="text.secondary">Descrizione</Typography>
+                <Typography variant="body1">{formData.description}</Typography>
+              </Box>
+            )}
+          </Paper>
+          
+          <Alert severity="info">
+            Stai visualizzando una prenotazione creata da un altro utente. Non è possibile modificarla.
+          </Alert>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>
+            Chiudi
+          </Button>
+        </DialogActions>
+      </>
+    );
+  };
+
+  // Renderizza il form di modifica
+  const renderEditForm = () => {
+    return (
+      <>
+        <DialogTitle>{formData.id ? 'Modifica Prenotazione' : 'Nuova Prenotazione'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <TextField
+              label="Titolo"
+              name="title"
+              fullWidth
+              value={formData.title}
+              onChange={handleChange}
+              margin="normal"
+              required
+              error={!!errors.title}
+              helperText={errors.title}
+            />
+            
+            <FormControl fullWidth margin="normal" required error={!!errors.resourceId}>
+              <InputLabel id="resource-select-label">Risorsa</InputLabel>
+              <Select
+                labelId="resource-select-label"
+                name="resourceId"
+                value={formData.resourceId || ''}
+                label="Risorsa"
+                onChange={handleChange}
+              >
+                <MenuItem value="">Seleziona risorsa</MenuItem>
+                {resources.map(resource => (
+                  <MenuItem key={resource.id} value={resource.id}>
+                    {resource.name} - {resource.specs}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
+            </FormControl>
+
+            {/* Section for user selection - only available for admins */}
+            {isAdmin() && (
+              <Box sx={{ mt: 3, mb: 2 }}>
+                <Divider sx={{ mb: 2 }}>
+                  <Typography variant="caption" color="text.secondary">
+                    Utente della prenotazione
+                  </Typography>
+                </Divider>
+                
+                <Alert severity="info" sx={{ mb: 2 }}>
+                  In qualità di amministratore, puoi effettuare prenotazioni per altri utenti o a tuo nome.
+                </Alert>
+                
+                <FormControl fullWidth>
+                  <Select
+                    value={useCurrentUser ? 'current' : 'other'}
+                    onChange={(e) => handleUserSelectionChange(e.target.value === 'current')}
+                  >
+                    <MenuItem value="current">Prenota a mio nome ({currentUser?.name || currentUser?.username})</MenuItem>
+                    <MenuItem value="other">Prenota per un altro utente</MenuItem>
+                  </Select>
+                </FormControl>
+                
+                {!useCurrentUser && (
+                  <FormControl fullWidth margin="normal" required error={!!errors.userId}>
+                    <InputLabel id="user-select-label">Seleziona utente</InputLabel>
+                    <Select
+                      labelId="user-select-label"
+                      name="userId"
+                      value={formData.userId || ''}
+                      label="Seleziona utente"
+                      onChange={handleChange}
+                    >
+                      <MenuItem value="">Seleziona utente</MenuItem>
+                      {users.map(user => (
+                        <MenuItem key={user.id} value={user.id}>
+                          {user.name || user.username || `${user.firstName} ${user.lastName}`}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.userId && <FormHelperText>{errors.userId}</FormHelperText>}
+                  </FormControl>
+                )}
+              </Box>
+            )}
+            
+            {/* Date/time selection */}
+            <Box 
+              sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
+                gap: 2, 
+                mt: 1 
+              }}
+            >
+              <TextField
+                label="Data/Ora Inizio"
+                name="start"
+                type="datetime-local"
+                fullWidth
+                value={formatDateForInput(formData.start)}
+                onChange={handleDateChange}
+                InputLabelProps={{ shrink: true }}
+                required
+                error={!!errors.start}
+                helperText={errors.start}
+              />
+              <TextField
+                label="Data/Ora Fine"
+                name="end"
+                type="datetime-local"
+                fullWidth
+                value={formatDateForInput(formData.end)}
+                onChange={handleDateChange}
+                InputLabelProps={{ shrink: true }}
+                required
+                error={!!errors.end}
+                helperText={errors.end}
+              />
+            </Box>
+            
+            {/* Pulsante per verificare conflitti */}
+            <Box sx={{ mt: 1, mb: 2 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={checkConflicts}
+                disabled={isChecking || !formData.resourceId || !formData.start || !formData.end}
+                fullWidth
+                startIcon={isChecking ? <CircularProgress size={20} /> : null}
+              >
+                {isChecking ? 'Verifica in corso...' : 'Verifica disponibilità'}
+              </Button>
+            </Box>
+            
+            {/* Messaggio di validazione */}
+            {validationMessage && (
+              <Alert 
+                severity={validationMessage.type} 
+                sx={{ mt: 1, mb: 2 }}
+              >
+                {validationMessage.text}
+              </Alert>
+            )}
+            
+            <TextField
+              label="Descrizione"
+              name="description"
+              fullWidth
+              multiline
+              rows={4}
+              value={formData.description || ''}
+              onChange={handleChange}
+              margin="normal"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>
+            Annulla
+          </Button>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            onClick={handleSubmit}
+            disabled={isChecking}
+          >
+            {formData.id ? 'Aggiorna' : 'Conferma'}
+          </Button>
+          {formData.id && (
+            <Button 
+              variant="contained" 
+              color="error" 
+              onClick={() => onDelete(formData.id)}
+              disabled={isChecking}
+            >
+              Elimina
+            </Button>
+          )}
+        </DialogActions>
+      </>
+    );
+  };
+
   return (
     <Dialog 
       open={open} 
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth={isReadOnly ? "sm" : "md"}
       fullWidth
     >
-      <DialogTitle>{formData.id ? 'Modifica Prenotazione' : 'Nuova Prenotazione'}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <TextField
-            label="Titolo"
-            name="title"
-            fullWidth
-            value={formData.title}
-            onChange={handleChange}
-            margin="normal"
-            required
-            error={!!errors.title}
-            helperText={errors.title}
-          />
-          
-          <FormControl fullWidth margin="normal" required error={!!errors.resourceId}>
-            <InputLabel id="resource-select-label">Risorsa</InputLabel>
-            <Select
-              labelId="resource-select-label"
-              name="resourceId"
-              value={formData.resourceId || ''}
-              label="Risorsa"
-              onChange={handleChange}
-            >
-              <MenuItem value="">Seleziona risorsa</MenuItem>
-              {resources.map(resource => (
-                <MenuItem key={resource.id} value={resource.id}>
-                  {resource.name} - {resource.specs}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
-          </FormControl>
-
-          {/* Section for user selection - only available for admins */}
-          {isAdmin() && (
-            <Box sx={{ mt: 3, mb: 2 }}>
-              <Divider sx={{ mb: 2 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Utente della prenotazione
-                </Typography>
-              </Divider>
-              
-              <Alert severity="info" sx={{ mb: 2 }}>
-                In qualità di amministratore, puoi effettuare prenotazioni per altri utenti o a tuo nome.
-              </Alert>
-              
-              <FormControl fullWidth>
-                <Select
-                  value={useCurrentUser ? 'current' : 'other'}
-                  onChange={(e) => handleUserSelectionChange(e.target.value === 'current')}
-                >
-                  <MenuItem value="current">Prenota a mio nome ({currentUser?.name || currentUser?.username})</MenuItem>
-                  <MenuItem value="other">Prenota per un altro utente</MenuItem>
-                </Select>
-              </FormControl>
-              
-              {!useCurrentUser && (
-                <FormControl fullWidth margin="normal" required error={!!errors.userId}>
-                  <InputLabel id="user-select-label">Seleziona utente</InputLabel>
-                  <Select
-                    labelId="user-select-label"
-                    name="userId"
-                    value={formData.userId || ''}
-                    label="Seleziona utente"
-                    onChange={handleChange}
-                  >
-                    <MenuItem value="">Seleziona utente</MenuItem>
-                    {users.map(user => (
-                      <MenuItem key={user.id} value={user.id}>
-                        {user.name || user.username || `${user.firstName} ${user.lastName}`}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.userId && <FormHelperText>{errors.userId}</FormHelperText>}
-                </FormControl>
-              )}
-            </Box>
-          )}
-          
-          {/* Date/time selection */}
-          <Box 
-            sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
-              gap: 2, 
-              mt: 1 
-            }}
-          >
-            <TextField
-              label="Data/Ora Inizio"
-              name="start"
-              type="datetime-local"
-              fullWidth
-              value={formatDateForInput(formData.start)}
-              onChange={handleDateChange}
-              InputLabelProps={{ shrink: true }}
-              required
-              error={!!errors.start}
-              helperText={errors.start}
-            />
-            <TextField
-              label="Data/Ora Fine"
-              name="end"
-              type="datetime-local"
-              fullWidth
-              value={formatDateForInput(formData.end)}
-              onChange={handleDateChange}
-              InputLabelProps={{ shrink: true }}
-              required
-              error={!!errors.end}
-              helperText={errors.end}
-            />
-          </Box>
-          
-          {/* Pulsante per verificare conflitti */}
-          <Box sx={{ mt: 1, mb: 2 }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={checkConflicts}
-              disabled={isChecking || !formData.resourceId || !formData.start || !formData.end}
-              fullWidth
-              startIcon={isChecking ? <CircularProgress size={20} /> : null}
-            >
-              {isChecking ? 'Verifica in corso...' : 'Verifica disponibilità'}
-            </Button>
-          </Box>
-          
-          {/* Messaggio di validazione */}
-          {validationMessage && (
-            <Alert 
-              severity={validationMessage.type} 
-              sx={{ mt: 1, mb: 2 }}
-            >
-              {validationMessage.text}
-            </Alert>
-          )}
-          
-          <TextField
-            label="Descrizione"
-            name="description"
-            fullWidth
-            multiline
-            rows={4}
-            value={formData.description || ''}
-            onChange={handleChange}
-            margin="normal"
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>
-          Annulla
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleSubmit}
-          disabled={isChecking}
-        >
-          {formData.id ? 'Aggiorna' : 'Conferma'}
-        </Button>
-        {formData.id && (
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={() => onDelete(formData.id)}
-            disabled={isChecking}
-          >
-            Elimina
-          </Button>
-        )}
-      </DialogActions>
+      {isReadOnly ? renderReadOnlyView() : renderEditForm()}
     </Dialog>
   );
 };

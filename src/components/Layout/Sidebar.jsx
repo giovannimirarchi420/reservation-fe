@@ -6,6 +6,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import ListAltIcon from '@mui/icons-material/ListAlt'; // Nuova icona per Le mie prenotazioni
 import {AuthContext} from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
@@ -51,6 +52,17 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
                 <EventIcon />
               </ListItemIcon>
               <ListItemText primary="Calendario" />
+            </ListItem>
+            <ListItem
+                button
+                selected={currentSection === 'mybookings'}
+                onClick={() => onSectionChange('mybookings')}
+                sx={{ cursor: 'pointer' }}
+            >
+              <ListItemIcon>
+                <ListAltIcon />
+              </ListItemIcon>
+              <ListItemText primary="Le mie prenotazioni" />
             </ListItem>
             <ListItem
                 button
