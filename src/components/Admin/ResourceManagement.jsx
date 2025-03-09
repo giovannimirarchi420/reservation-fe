@@ -68,7 +68,7 @@ const ResourceManagement = () => {
     const matchesType = filterType === '' || resource.typeId === parseInt(filterType);
 
     const matchesStatus = filterStatus === '' ||
-        resource.status === parseInt(filterStatus);
+        resource.status === filterStatus;
 
     return matchesSearch && matchesType && matchesStatus;
   });
