@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Calendar, momentLocalizer} from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/it';
@@ -32,12 +32,14 @@ import EventItem from './EventItem';
 import {createEvent, deleteEvent, fetchEvents, updateEvent} from '../../services/bookingService';
 import {fetchResources} from '../../services/resourceService';
 import {getResourceTypeColor} from '../../utils/colorUtils';
+import {AuthContext} from '../../context/AuthContext';
 
 // Configura moment.js per l'italiano
 moment.locale('it');
 const localizer = momentLocalizer(moment);
 
 const BookingCalendar = () => {
+  const { currentUser } = useContext(AuthContext);
   const [currentView, setCurrentView] = useState('week');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedResource, setSelectedResource] = useState(null);
@@ -81,7 +83,7 @@ const BookingCalendar = () => {
       start: slotInfo.start,
       end: slotInfo.end,
       description: '',
-      userId: 1
+      userId: currentUser?.id // Usa l'ID dell'utente corrente come default
     });
     setIsBookingModalOpen(true);
   };
@@ -239,7 +241,14 @@ const BookingCalendar = () => {
                     variant="contained"
                     color="primary"
                     onClick={() => {
-                      setSelectedEvent(null);
+                      setSelectedEvent({
+                        title: '',
+                        resourceId: '',
+                        start: new Date(),
+                        end: new Date(new Date().getTime() + 60 * 60 * 1000),
+                        description: '',
+                        userId: currentUser?.id // Imposta l'ID dell'utente corrente come default
+                      });
                       setIsBookingModalOpen(true);
                     }}
                     startIcon={<AddIcon />}

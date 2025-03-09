@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {
     Box,
     Button,
@@ -11,12 +11,17 @@ import {
     InputLabel,
     MenuItem,
     Select,
-    TextField
+    TextField,
+    Typography,
+    Divider,
+    Alert
 } from '@mui/material';
 import {fetchUsers} from '../../services/userService';
 import {formatDateForInput} from '../../utils/dateUtils';
+import {AuthContext} from '../../context/AuthContext';
 
 const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) => {
+  const { currentUser, isAdmin } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     title: '',
     resourceId: '',
@@ -27,24 +32,33 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   });
   const [users, setUsers] = useState([]);
   const [errors, setErrors] = useState({});
+  const [useCurrentUser, setUseCurrentUser] = useState(true);
 
-  // Carica utenti
+  // Carica utenti solo se l'utente corrente è admin
   useEffect(() => {
     const loadUsers = async () => {
-      try {
-        const usersData = await fetchUsers();
-        setUsers(usersData);
-      } catch (error) {
-        console.error('Error loading users:', error);
+      if (isAdmin()) {
+        try {
+          const usersData = await fetchUsers();
+          setUsers(usersData);
+        } catch (error) {
+          console.error('Error loading users:', error);
+        }
       }
     };
     
     loadUsers();
-  }, []);
+  }, [isAdmin]);
 
   // Popola il form quando viene selezionato un evento
   useEffect(() => {
     if (booking) {
+      // Se l'utente è admin e l'ID utente della prenotazione non è l'utente corrente,
+      // imposta useCurrentUser a false
+      const bookingForOtherUser = isAdmin() && booking.userId && booking.userId !== currentUser?.id;
+      
+      setUseCurrentUser(!bookingForOtherUser);
+      
       setFormData({
         id: booking.id,
         title: booking.title || '',
@@ -52,12 +66,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         start: booking.start,
         end: booking.end,
         description: booking.description || '',
-        userId: booking.userId || (users.length > 0 ? users[0].id : '')
+        userId: booking.userId || currentUser?.id || ''
       });
     } else {
       resetForm();
     }
-  }, [booking, users]);
+  }, [booking, currentUser, isAdmin]);
 
   const resetForm = () => {
     setFormData({
@@ -66,8 +80,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       start: new Date(),
       end: new Date(new Date().getTime() + 60 * 60 * 1000),
       description: '',
-      userId: users.length > 0 ? users[0].id : ''
+      userId: currentUser?.id || ''
     });
+    setUseCurrentUser(true);
     setErrors({});
   };
 
@@ -93,6 +108,24 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       ...formData,
       [name]: new Date(value)
     });
+  };
+
+  const handleUserSelectionChange = (useCurrentUserValue) => {
+    setUseCurrentUser(useCurrentUserValue);
+    
+    if (useCurrentUserValue) {
+      // Se l'utente decide di usare il proprio account, imposta userId al currentUser.id
+      setFormData({
+        ...formData,
+        userId: currentUser?.id || ''
+      });
+    } else {
+      // Altrimenti, resetta userId a vuoto o mantieni il valore attuale se non vuoto
+      setFormData({
+        ...formData,
+        userId: formData.userId !== currentUser?.id ? formData.userId : ''
+      });
+    }
   };
 
   const validateForm = () => {
@@ -125,6 +158,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleSubmit = () => {
+    // Assicurati che userId sia impostato correttamente prima di validare
+    if (useCurrentUser && currentUser) {
+      formData.userId = currentUser.id;
+    }
+    
     if (validateForm()) {
       onSave(formData);
     }
@@ -171,25 +209,53 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
           </FormControl>
 
-          <FormControl fullWidth margin="normal" required error={!!errors.userId}>
-            <InputLabel id="user-select-label">Utente</InputLabel>
-            <Select
-              labelId="user-select-label"
-              name="userId"
-              value={formData.userId || ''}
-              label="Utente"
-              onChange={handleChange}
-            >
-              {users.map(user => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.userId && <FormHelperText>{errors.userId}</FormHelperText>}
-          </FormControl>
+          {/* Section for user selection - only available for admins */}
+          {isAdmin() && (
+            <Box sx={{ mt: 3, mb: 2 }}>
+              <Divider sx={{ mb: 2 }}>
+                <Typography variant="caption" color="text.secondary">
+                  Utente della prenotazione
+                </Typography>
+              </Divider>
+              
+              <Alert severity="info" sx={{ mb: 2 }}>
+                In qualità di amministratore, puoi effettuare prenotazioni per altri utenti o a tuo nome.
+              </Alert>
+              
+              <FormControl fullWidth>
+                <Select
+                  value={useCurrentUser ? 'current' : 'other'}
+                  onChange={(e) => handleUserSelectionChange(e.target.value === 'current')}
+                >
+                  <MenuItem value="current">Prenota a mio nome ({currentUser?.name || currentUser?.username})</MenuItem>
+                  <MenuItem value="other">Prenota per un altro utente</MenuItem>
+                </Select>
+              </FormControl>
+              
+              {!useCurrentUser && (
+                <FormControl fullWidth margin="normal" required error={!!errors.userId}>
+                  <InputLabel id="user-select-label">Seleziona utente</InputLabel>
+                  <Select
+                    labelId="user-select-label"
+                    name="userId"
+                    value={formData.userId || ''}
+                    label="Seleziona utente"
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="">Seleziona utente</MenuItem>
+                    {users.map(user => (
+                      <MenuItem key={user.id} value={user.id}>
+                        {user.name || user.username || `${user.firstName} ${user.lastName}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.userId && <FormHelperText>{errors.userId}</FormHelperText>}
+                </FormControl>
+              )}
+            </Box>
+          )}
           
-          {/* Sostituito Grid con Box utilizzando CSS Grid */}
+          {/* Date/time selection */}
           <Box 
             sx={{ 
               display: 'grid', 

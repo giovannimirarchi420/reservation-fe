@@ -4,6 +4,7 @@ import MainLayout from './components/Layout/MainLayout';
 import BookingCalendar from './components/Booking/BookingCalendar';
 import AdminPanel from './components/Admin/AdminPanel';
 import LoginPage from './components/Auth/LoginPage';
+import ProfileManagement from './components/Profile/ProfileManagement';
 import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 
@@ -39,6 +40,9 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
                 break;
             case 'admin':
                 navigate('/admin');
+                break;
+            case 'profile':
+                navigate('/profile');
                 break;
             default:
                 navigate('/');
@@ -86,6 +90,16 @@ const App = () => {
                             element={<AdminPanel />}
                             currentSection="admin"
                             requiredRole="admin"
+                        />
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <LayoutWrapper
+                            element={<ProfileManagement />}
+                            currentSection="profile"
+                            requiredRole="user"
                         />
                     }
                 />
