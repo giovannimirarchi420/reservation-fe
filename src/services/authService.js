@@ -77,7 +77,7 @@ export const getUserInfo = () => {
         console.log(keycloak.tokenParsed)
         return {
             id: keycloak.tokenParsed.sub,
-            name: keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username,
+            name: keycloak.tokenParsed.preferred_username,
             email: keycloak.tokenParsed.email,
             firstName: keycloak.tokenParsed.given_name,
             lastName: keycloak.tokenParsed.family_name,

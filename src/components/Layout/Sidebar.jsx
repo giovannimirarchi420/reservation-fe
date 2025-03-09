@@ -5,6 +5,7 @@ import EventIcon from '@mui/icons-material/Event';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import {AuthContext} from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
@@ -27,17 +28,19 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
         <Toolbar />
         <Box sx={{ overflow: 'auto' }}>
           <List>
-            <ListItem
-                button
-                selected={currentSection === 'dashboard'}
-                onClick={() => onSectionChange('dashboard')}
-                sx={{ cursor: 'pointer' }}
-            >
-              <ListItemIcon>
-                <DashboardIcon />
-              </ListItemIcon>
-              <ListItemText primary="Dashboard" />
-            </ListItem>
+            {isAdmin && (
+                <ListItem
+                    button
+                    selected={currentSection === 'dashboard'}
+                    onClick={() => onSectionChange('dashboard')}
+                    sx={{ cursor: 'pointer' }}
+                >
+                  <ListItemIcon>
+                    <BarChartIcon />
+                  </ListItemIcon>
+                  <ListItemText primary="Dashboard" />
+                </ListItem>
+              )}
             <ListItem
                 button
                 selected={currentSection === 'calendar'}

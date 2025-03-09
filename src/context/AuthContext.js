@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
     if(!keycloak.didInitialize){
       keycloak.init({
         onLoad: 'login-required', // Changed from 'check-sso' to 'login-required'
-        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+        //silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
         pkceMethod: 'S256', // For better security
         enableLogging: process.env.NODE_ENV !== 'production', // Log only in development
         checkLoginIframe: false // Disable iframe checking to prevent issues with redirects

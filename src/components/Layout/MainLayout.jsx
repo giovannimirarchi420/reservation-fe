@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {Box} from '@mui/material';
 import AppHeader from './AppHeader';
 import Sidebar from './Sidebar';
+import Footer from './Footer';
 
 const MainLayout = ({ children, currentSection, onSectionChange }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -16,7 +17,7 @@ const MainLayout = ({ children, currentSection, onSectionChange }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppHeader 
         onMenuClick={handleDrawerToggle} 
       />
@@ -28,9 +29,11 @@ const MainLayout = ({ children, currentSection, onSectionChange }) => {
         onSectionChange={handleSectionChange}
       />
       
-      <Box component="main" sx={{ flexGrow: 1, pt: 8 }}>
+      <Box component="main" sx={{ flexGrow: 1, pt: 8, pb: 3 }}>
         {children}
       </Box>
+      
+      <Footer />
     </Box>
   );
 };

@@ -5,6 +5,7 @@ import BookingCalendar from './components/Booking/BookingCalendar';
 import AdminPanel from './components/Admin/AdminPanel';
 import LoginPage from './components/Auth/LoginPage';
 import ProfileManagement from './components/Profile/ProfileManagement';
+import Dashboard from './components/Dashboard/Dashboard';
 import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
@@ -47,7 +48,12 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
     }
 
     if (requiredRole && !isAuthorized(requiredRole)) {
-        return <Navigate to="/" replace />;
+        // Se l'utente sta tentando di accedere alla dashboard ma non è admin, reindirizza al calendario
+        if (currentSection === 'dashboard') {
+            return <Navigate to="/calendar" replace />;
+        }
+        // Per altre sezioni admin-only, reindirizza alla home
+        return <Navigate to="/calendar" replace />;
     }
 
     const handleSectionChange = (section) => {
@@ -89,9 +95,9 @@ const App = () => {
                             path="/"
                             element={
                                 <LayoutWrapper
-                                    element={<BookingCalendar />}
+                                    element={<Dashboard />}
                                     currentSection="dashboard"
-                                    requiredRole="user"
+                                    requiredRole="admin"
                                 />
                             }
                         />
@@ -128,7 +134,7 @@ const App = () => {
                         {/* Rotta per gestire i reindirizzamenti da Keycloak */}
                         <Route path="/callback" element={<Navigate to="/" replace />} />
                         {/* Rotta fallback */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
+                        <Route path="*" element={<Navigate to="/calendar" replace />} />
                     </Routes>
                     
                     {/* Componente per visualizzare le notifiche di errore */}
