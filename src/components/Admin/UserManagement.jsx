@@ -1,36 +1,63 @@
 import React, {useEffect, useState} from 'react';
-import {Box, Button, CircularProgress, Grid, InputAdornment, MenuItem, TextField, Typography} from '@mui/material';
+import {
+  Box,
+  Button, 
+  CircularProgress,
+  Grid,
+  InputAdornment,
+  MenuItem,
+  TextField,
+  Typography,
+  Snackbar,
+  Alert
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import UserCard from '../Users/UserCard';
 import UserForm from '../Users/UserForm';
 import {createUser, deleteUser, fetchUsers, updateUser} from '../../services/userService';
+import useApiError from '../../hooks/useApiError';
 
 const UserManagement = () => {
+  const { withErrorHandling } = useApiError();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
+  const [notification, setNotification] = useState(null);
+
+  // Mostra una notifica
+  const showNotification = (message, severity = 'success') => {
+    setNotification({ message, severity });
+    
+    // Rimuovi la notifica dopo 6 secondi
+    setTimeout(() => {
+      setNotification(null);
+    }, 6000);
+  };
 
   // Carica utenti
   useEffect(() => {
     const loadUsers = async () => {
       setIsLoading(true);
       try {
-        const usersData = await fetchUsers();
-        setUsers(usersData);
-      } catch (error) {
-        console.error('Error loading users:', error);
+        await withErrorHandling(async () => {
+          const usersData = await fetchUsers();
+          setUsers(usersData);
+        }, {
+          errorMessage: 'Impossibile caricare la lista degli utenti',
+          showError: true
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadUsers();
-  }, []);
+  }, [withErrorHandling]);
 
   // Filtra utenti in base alla ricerca e al ruolo
   const filteredUsers = users.filter(user => {
@@ -59,33 +86,62 @@ const UserManagement = () => {
   };
 
   const handleSaveUser = async (userData) => {
-    try {
+    const result = await withErrorHandling(async () => {
       if (userData.id) {
         // Aggiorna un utente esistente
         const updatedUser = await updateUser(userData.id, userData);
-        setUsers(users.map(user =>
-            user.id === updatedUser.id ? updatedUser : user
-        ));
+        return { updated: true, user: updatedUser };
       } else {
         // Crea un nuovo utente
         const newUser = await createUser(userData);
-        setUsers([...users, newUser]);
+        return { updated: false, user: newUser };
+      }
+    }, {
+      errorMessage: userData.id 
+        ? `Impossibile aggiornare l'utente "${userData.username}"` 
+        : `Impossibile creare l'utente "${userData.username}"`,
+      showError: true
+    });
+
+    if (result) {
+      if (result.updated) {
+        // Aggiorna utenti esistenti
+        setUsers(users.map(user =>
+            user.id === result.user.id ? result.user : user
+        ));
+        showNotification(`Utente "${result.user.username}" aggiornato con successo`);
+      } else {
+        // Aggiungi nuovo utente
+        setUsers([...users, result.user]);
+        showNotification(`Utente "${result.user.username}" creato con successo`);
       }
       setIsUserModalOpen(false);
-    } catch (error) {
-      console.error('Error saving user:', error);
-      alert('Errore durante il salvataggio dell\'utente: ' + (error.message || 'Controlla i dati inseriti'));
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    try {
+    // Trova il nome dell'utente prima di eliminarlo
+    const userToDelete = users.find(u => u.id === userId);
+    const userName = userToDelete ? (userToDelete.username || `${userToDelete.firstName} ${userToDelete.lastName}`) : 'selezionato';
+
+    const confirmation = window.confirm(`Sei sicuro di voler eliminare l'utente "${userName}"? Questa azione non può essere annullata.`);
+    
+    if (!confirmation) {
+      return;
+    }
+
+    const success = await withErrorHandling(async () => {
       await deleteUser(userId);
+      return true;
+    }, {
+      errorMessage: `Impossibile eliminare l'utente "${userName}"`,
+      showError: true
+    });
+
+    if (success) {
       setUsers(users.filter(user => user.id !== userId));
       setIsUserModalOpen(false);
-    } catch (error) {
-      console.error('Error deleting user:', error);
-      alert('Errore durante l\'eliminazione dell\'utente');
+      showNotification(`Utente "${userName}" eliminato con successo`);
     }
   };
 
@@ -174,6 +230,24 @@ const UserManagement = () => {
             onSave={handleSaveUser}
             onDelete={handleDeleteUser}
         />
+
+        {/* Notifica per le operazioni completate con successo */}
+        <Snackbar
+          open={!!notification}
+          autoHideDuration={6000}
+          onClose={() => setNotification(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          {notification && (
+            <Alert
+              onClose={() => setNotification(null)}
+              severity={notification.severity}
+              sx={{ width: '100%' }}
+            >
+              {notification.message}
+            </Alert>
+          )}
+        </Snackbar>
       </Box>
   );
 };

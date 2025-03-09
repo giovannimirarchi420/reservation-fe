@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { BrowserRouter as Router, Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import MainLayout from './components/Layout/MainLayout';
 import BookingCalendar from './components/Booking/BookingCalendar';
@@ -7,6 +7,26 @@ import LoginPage from './components/Auth/LoginPage';
 import ProfileManagement from './components/Profile/ProfileManagement';
 import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
+import { ErrorProvider, useError } from './context/ErrorContext';
+import ErrorNotification from './components/Common/ErrorNotification';
+
+// Inizializzazione del gestore errori globale
+const ErrorInitializer = ({ children }) => {
+  const { handleApiError } = useError();
+  
+  useEffect(() => {
+    // Inietta il gestore degli errori nell'ambiente globale
+    // Sarà accessibile dai moduli dei servizi API
+    window.__errorHandler = handleApiError;
+    
+    return () => {
+      // Rimuovi il gestore degli errori quando il componente viene smontato
+      delete window.__errorHandler;
+    };
+  }, [handleApiError]);
+  
+  return children;
+};
 
 // Componente wrapper per le rotte con layout
 const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
@@ -60,55 +80,62 @@ const App = () => {
     const { currentUser } = useContext(AuthContext);
 
     return (
-        <Router>
-            <Routes>
-                <Route path="/login" element={currentUser ? <Navigate to="/" replace /> : <LoginPage />} />
-                <Route
-                    path="/"
-                    element={
-                        <LayoutWrapper
-                            element={<BookingCalendar />}
-                            currentSection="dashboard"
-                            requiredRole="user"
+        <ErrorProvider>
+            <ErrorInitializer>
+                <Router>
+                    <Routes>
+                        <Route path="/login" element={currentUser ? <Navigate to="/" replace /> : <LoginPage />} />
+                        <Route
+                            path="/"
+                            element={
+                                <LayoutWrapper
+                                    element={<BookingCalendar />}
+                                    currentSection="dashboard"
+                                    requiredRole="user"
+                                />
+                            }
                         />
-                    }
-                />
-                <Route
-                    path="/calendar"
-                    element={
-                        <LayoutWrapper
-                            element={<BookingCalendar />}
-                            currentSection="calendar"
-                            requiredRole="user"
+                        <Route
+                            path="/calendar"
+                            element={
+                                <LayoutWrapper
+                                    element={<BookingCalendar />}
+                                    currentSection="calendar"
+                                    requiredRole="user"
+                                />
+                            }
                         />
-                    }
-                />
-                <Route
-                    path="/admin"
-                    element={
-                        <LayoutWrapper
-                            element={<AdminPanel />}
-                            currentSection="admin"
-                            requiredRole="admin"
+                        <Route
+                            path="/admin"
+                            element={
+                                <LayoutWrapper
+                                    element={<AdminPanel />}
+                                    currentSection="admin"
+                                    requiredRole="admin"
+                                />
+                            }
                         />
-                    }
-                />
-                <Route
-                    path="/profile"
-                    element={
-                        <LayoutWrapper
-                            element={<ProfileManagement />}
-                            currentSection="profile"
-                            requiredRole="user"
+                        <Route
+                            path="/profile"
+                            element={
+                                <LayoutWrapper
+                                    element={<ProfileManagement />}
+                                    currentSection="profile"
+                                    requiredRole="user"
+                                />
+                            }
                         />
-                    }
-                />
-                {/* Rotta per gestire i reindirizzamenti da Keycloak */}
-                <Route path="/callback" element={<Navigate to="/" replace />} />
-                {/* Rotta fallback */}
-                <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-        </Router>
+                        {/* Rotta per gestire i reindirizzamenti da Keycloak */}
+                        <Route path="/callback" element={<Navigate to="/" replace />} />
+                        {/* Rotta fallback */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                    
+                    {/* Componente per visualizzare le notifiche di errore */}
+                    <ErrorNotification />
+                </Router>
+            </ErrorInitializer>
+        </ErrorProvider>
     );
 };
 

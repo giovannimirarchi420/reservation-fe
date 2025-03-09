@@ -12,20 +12,21 @@ import {
   InputAdornment,
   Paper,
   TextField,
-  Typography
+  Typography,
+  Alert,
+  Snackbar
 } from '@mui/material';
 import { AuthContext } from '../../context/AuthContext';
 import { Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
 import { updateProfile } from '../../services/userService';
 
 const ProfileManagement = () => {
-  const { currentUser, loading } = useContext(AuthContext);
+  const { currentUser, setCurrentUser, loading } = useContext(AuthContext);
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [successMessage, setSuccessMessage] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
-  
+  const [notification, setNotification] = useState(null);
+
   const [profileData, setProfileData] = useState({
     firstName: '',
     lastName: '',
@@ -71,15 +72,21 @@ const ProfileManagement = () => {
       }
     }
     setIsEditing(!isEditing);
-    setErrorMessage('');
-    setSuccessMessage('');
   };
 
+  // Mostra una notifica
+  const showNotification = (message, severity = 'success') => {
+    setNotification({ message, severity });
+    
+    // Rimuovi la notifica dopo 6 secondi
+    setTimeout(() => {
+      setNotification(null);
+    }, 6000);
+  };
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-    setErrorMessage('');
-    setSuccessMessage('');
 
     try {
       // Prepare data for API
@@ -101,18 +108,16 @@ const ProfileManagement = () => {
       }
 
       // Call API to update profile
-      await updateProfile(updatedData);
+      let user = await updateProfile(updatedData);
       
-      setSuccessMessage('Profilo aggiornato con successo!');
-      setIsEditing(false);
-
-      // In un'app reale, qui dovremmo aggiornare il contesto dell'utente
-      // con i nuovi dati, ma poiché stiamo lavorando con un mock,
-      // questo passaggio viene omesso
+      if(user.id){
+        showNotification('Profilo aggiornato con succeso')
+        setIsEditing(false);
+        setCurrentUser(user)
+      }
 
     } catch (error) {
       console.error('Error updating profile:', error);
-      setErrorMessage('Errore durante l\'aggiornamento del profilo: ' + (error.message || 'Si prega di riprovare'));
     } finally {
       setIsSaving(false);
     }
@@ -151,18 +156,6 @@ const ProfileManagement = () => {
             {isEditing ? "Annulla" : "Modifica Profilo"}
           </Button>
         </Box>
-
-        {successMessage && (
-          <Box sx={{ mb: 2, p: 2, bgcolor: 'success.light', borderRadius: 1 }}>
-            <Typography color="success.dark">{successMessage}</Typography>
-          </Box>
-        )}
-
-        {errorMessage && (
-          <Box sx={{ mb: 2, p: 2, bgcolor: 'error.light', borderRadius: 1 }}>
-            <Typography color="error.dark">{errorMessage}</Typography>
-          </Box>
-        )}
 
         <form onSubmit={handleSubmit}>
           <Grid container spacing={3}>
@@ -303,6 +296,24 @@ const ProfileManagement = () => {
           </Grid>
         </form>
       </Paper>
+      
+      {/* Notifica per le operazioni completate con successo */}
+      <Snackbar
+        open={!!notification}
+        autoHideDuration={6000}
+        onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        {notification && (
+          <Alert
+            onClose={() => setNotification(null)}
+            severity={notification.severity}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        )}
+      </Snackbar>
     </Box>
   );
 };

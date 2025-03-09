@@ -9,7 +9,21 @@ import keycloak from '../config/keycloak.js';
  * @returns {Promise} Promessa con l'esito del login
  */
 export const login = (options = {}) => {
-    return keycloak.login(options);
+    return new Promise((resolve, reject) => {
+        try {
+            keycloak.login(options)
+                .then(result => {
+                    resolve(result);
+                })
+                .catch(error => {
+                    console.error('Errore durante il login:', error);
+                    reject(new Error('Impossibile completare il login. Verifica le tue credenziali e riprova.'));
+                });
+        } catch (error) {
+            console.error('Errore critico durante il login:', error);
+            reject(new Error('Si è verificato un errore durante l\'accesso. Si prega di riprovare.'));
+        }
+    });
 };
 
 /**
@@ -18,9 +32,24 @@ export const login = (options = {}) => {
  * @returns {Promise} Promessa con l'esito del logout
  */
 export const logout = (options = {}) => {
-    // Rimuovi i token salvati
-    clearTokens();
-    return keycloak.logout(options);
+    return new Promise((resolve, reject) => {
+        try {
+            // Rimuovi i token salvati
+            clearTokens();
+
+            keycloak.logout(options)
+                .then(result => {
+                    resolve(result);
+                })
+                .catch(error => {
+                    console.error('Errore durante il logout:', error);
+                    reject(new Error('Impossibile completare il logout. Riprova più tardi.'));
+                });
+        } catch (error) {
+            console.error('Errore critico durante il logout:', error);
+            reject(new Error('Si è verificato un errore durante la disconnessione. Si prega di chiudere il browser.'));
+        }
+    });
 };
 
 /**
@@ -45,10 +74,13 @@ export const getToken = () => {
  */
 export const getUserInfo = () => {
     if (keycloak.tokenParsed) {
+        console.log(keycloak.tokenParsed)
         return {
             id: keycloak.tokenParsed.sub,
             name: keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username,
             email: keycloak.tokenParsed.email,
+            firstName: keycloak.tokenParsed.given_name,
+            lastName: keycloak.tokenParsed.family_name,
             // Alcune implementazioni Keycloak potrebbero avere il ruolo in formati diversi
             role: keycloak.tokenParsed.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
             // Crea un avatar dalle iniziali del nome
@@ -96,7 +128,9 @@ export const updateToken = () => {
             })
             .catch(error => {
                 console.error('Errore durante l\'aggiornamento del token', error);
-                reject(error);
+                const authError = new Error('La sessione è scaduta. Effettua nuovamente il login.');
+                authError.type = 'session_expired';
+                reject(authError);
             });
     });
 };
@@ -110,10 +144,18 @@ export const updateToken = () => {
  */
 const saveTokens = (token, refreshToken) => {
     if (token) {
-        localStorage.setItem('token', token);
+        try {
+            localStorage.setItem('token', token);
+        } catch (e) {
+            console.error('Impossibile salvare il token nel localStorage:', e);
+        }
     }
     if (refreshToken) {
-        localStorage.setItem('refreshToken', refreshToken);
+        try {
+            localStorage.setItem('refreshToken', refreshToken);
+        } catch (e) {
+            console.error('Impossibile salvare il refresh token nel localStorage:', e);
+        }
     }
 };
 
@@ -121,8 +163,12 @@ const saveTokens = (token, refreshToken) => {
  * Rimuove i token dal localStorage
  */
 const clearTokens = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('refreshToken');
+    try {
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+    } catch (e) {
+        console.error('Impossibile rimuovere i token dal localStorage:', e);
+    }
 };
 
 /**
@@ -143,6 +189,19 @@ const createAvatarFromName = (name) => {
     return '';
 };
 
+/**
+ * Controlla la validità del token corrente
+ * @returns {boolean} true se il token è valido, false altrimenti
+ */
+export const isTokenValid = () => {
+    try {
+        return keycloak.isTokenExpired() === false;
+    } catch (error) {
+        console.error('Errore nel controllare la validità del token:', error);
+        return false;
+    }
+};
+
 export default {
     login,
     logout,
@@ -151,5 +210,6 @@ export default {
     getUserInfo,
     hasRole,
     getAuthHeader,
-    updateToken
+    updateToken,
+    isTokenValid
 };

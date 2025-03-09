@@ -9,7 +9,9 @@ import {
   TextField,
   Tooltip,
   Typography,
-  MenuItem
+  MenuItem,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -25,8 +27,10 @@ import {
   ResourceStatus
 } from '../../services/resourceService';
 import {createResourceType, fetchResourceTypes} from '../../services/resourceTypeService';
+import useApiError from '../../hooks/useApiError';
 
 const ResourceManagement = ({ onSwitchToResourceType }) => {
+  const { withErrorHandling } = useApiError();
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,27 +40,41 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   const [filterType, setFilterType] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [needsRefresh, setNeedsRefresh] = useState(false);
+  const [notification, setNotification] = useState(null);
+
+  // Mostra una notifica
+  const showNotification = (message, severity = 'success') => {
+    setNotification({ message, severity });
+    
+    // Rimuovi la notifica dopo 6 secondi
+    setTimeout(() => {
+      setNotification(null);
+    }, 6000);
+  };
 
   // Carica risorse e tipi di risorsa
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const [resourcesData, resourceTypesData] = await Promise.all([
-          fetchResources(),
-          fetchResourceTypes()
-        ]);
-        setResources(resourcesData);
-        setResourceTypes(resourceTypesData);
-      } catch (error) {
-        console.error('Error loading resources:', error);
+        await withErrorHandling(async () => {
+          const [resourcesData, resourceTypesData] = await Promise.all([
+            fetchResources(),
+            fetchResourceTypes()
+          ]);
+          setResources(resourcesData);
+          setResourceTypes(resourceTypesData);
+        }, {
+          errorMessage: 'Impossibile caricare le risorse',
+          showError: true
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, [needsRefresh]);
+  }, [needsRefresh, withErrorHandling]);
 
   // Filtra risorse in base alla ricerca, al tipo e allo stato
   const filteredResources = resources.filter(resource => {
@@ -84,40 +102,63 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   };
 
   const handleSaveResource = async (resourceData) => {
-    try {
-      // Assicurati che status e typeId siano numeri
-      const preparedData = {
-        ...resourceData,
-        status: Number(resourceData.status),
-        typeId: Number(resourceData.typeId)
-      };
+    // Assicurati che status e typeId siano numeri
+    const preparedData = {
+      ...resourceData,
+      status: Number(resourceData.status),
+      typeId: Number(resourceData.typeId)
+    };
 
+    const result = await withErrorHandling(async () => {
       if (preparedData.id) {
         // Aggiorna una risorsa esistente
         const updatedResource = await updateResource(preparedData.id, preparedData);
-        setResources(resources.map(resource =>
-            resource.id === updatedResource.id ? updatedResource : resource
-        ));
+        return { updated: true, resource: updatedResource };
       } else {
         // Crea una nuova risorsa
         const newResource = await createResource(preparedData);
-        setResources([...resources, newResource]);
+        return { updated: false, resource: newResource };
+      }
+    }, {
+      errorMessage: preparedData.id 
+        ? `Impossibile aggiornare la risorsa "${preparedData.name}"` 
+        : `Impossibile creare la risorsa "${preparedData.name}"`,
+      showError: true
+    });
+
+    if (result) {
+      if (result.updated) {
+        // Aggiorna risorse esistenti
+        setResources(resources.map(resource =>
+            resource.id === result.resource.id ? result.resource : resource
+        ));
+        showNotification(`Risorsa "${result.resource.name}" aggiornata con successo`);
+      } else {
+        // Aggiungi nuova risorsa
+        setResources([...resources, result.resource]);
+        showNotification(`Risorsa "${result.resource.name}" creata con successo`);
       }
       setIsResourceModalOpen(false);
-    } catch (error) {
-      console.error('Error saving resource:', error);
-      alert('Errore nel salvataggio della risorsa: ' + (error.message || 'Controlla i dati inseriti'));
     }
   };
 
   const handleDeleteResource = async (resourceId) => {
-    try {
+    // Trova il nome della risorsa prima di eliminarla
+    const resourceToDelete = resources.find(r => r.id === resourceId);
+    const resourceName = resourceToDelete ? resourceToDelete.name : 'selezionata';
+
+    const success = await withErrorHandling(async () => {
       await deleteResource(resourceId);
+      return true;
+    }, {
+      errorMessage: `Impossibile eliminare la risorsa "${resourceName}"`,
+      showError: true
+    });
+
+    if (success) {
       setResources(resources.filter(resource => resource.id !== resourceId));
       setIsResourceModalOpen(false);
-    } catch (error) {
-      console.error('Error deleting resource:', error);
-      alert('Errore nell\'eliminazione della risorsa');
+      showNotification(`Risorsa "${resourceName}" eliminata con successo`);
     }
   };
 
@@ -128,7 +169,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
 
   // Label per gli stati
   const getStatusLabel = (statusCode) => {
-    switch (Number(statusCode)) {
+    switch (statusCode) {
       case ResourceStatus.ACTIVE:
         return 'Attivo';
       case ResourceStatus.MAINTENANCE:
@@ -257,6 +298,24 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
             onSave={handleSaveResource}
             onDelete={handleDeleteResource}
         />
+
+        {/* Notifica per le operazioni completate con successo */}
+        <Snackbar
+          open={!!notification}
+          autoHideDuration={6000}
+          onClose={() => setNotification(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          {notification && (
+            <Alert
+              onClose={() => setNotification(null)}
+              severity={notification.severity}
+              sx={{ width: '100%' }}
+            >
+              {notification.message}
+            </Alert>
+          )}
+        </Snackbar>
       </Box>
   );
 };

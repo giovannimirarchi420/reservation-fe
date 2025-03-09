@@ -14,14 +14,19 @@ import {
     TextField,
     Typography,
     Divider,
-    Alert
+    Alert,
+    CircularProgress,
+    Snackbar
 } from '@mui/material';
 import {fetchUsers} from '../../services/userService';
 import {formatDateForInput} from '../../utils/dateUtils';
 import {AuthContext} from '../../context/AuthContext';
+import useApiError from '../../hooks/useApiError';
+import {checkEventConflicts} from '../../services/bookingService';
 
 const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) => {
   const { currentUser, isAdmin } = useContext(AuthContext);
+  const { withErrorHandling, notifyFormError } = useApiError();
   const [formData, setFormData] = useState({
     title: '',
     resourceId: '',
@@ -33,22 +38,25 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   const [users, setUsers] = useState([]);
   const [errors, setErrors] = useState({});
   const [useCurrentUser, setUseCurrentUser] = useState(true);
+  const [isChecking, setIsChecking] = useState(false);
+  const [validationMessage, setValidationMessage] = useState(null);
 
   // Carica utenti solo se l'utente corrente è admin
   useEffect(() => {
     const loadUsers = async () => {
       if (isAdmin()) {
-        try {
+        await withErrorHandling(async () => {
           const usersData = await fetchUsers();
           setUsers(usersData);
-        } catch (error) {
-          console.error('Error loading users:', error);
-        }
+        }, {
+          errorMessage: 'Impossibile caricare la lista degli utenti',
+          showError: true
+        });
       }
     };
     
     loadUsers();
-  }, [isAdmin]);
+  }, [isAdmin, withErrorHandling]);
 
   // Popola il form quando viene selezionato un evento
   useEffect(() => {
@@ -84,6 +92,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     });
     setUseCurrentUser(true);
     setErrors({});
+    setValidationMessage(null);
   };
 
   const handleChange = (e) => {
@@ -100,6 +109,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         [name]: undefined
       });
     }
+    
+    // Reset del messaggio di validazione quando l'utente modifica qualcosa
+    setValidationMessage(null);
   };
 
   const handleDateChange = (e) => {
@@ -108,6 +120,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       ...formData,
       [name]: new Date(value)
     });
+    
+    // Reset del messaggio di validazione quando l'utente modifica le date
+    setValidationMessage(null);
   };
 
   const handleUserSelectionChange = (useCurrentUserValue) => {
@@ -126,6 +141,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         userId: formData.userId !== currentUser?.id ? formData.userId : ''
       });
     }
+    
+    // Reset del messaggio di validazione
+    setValidationMessage(null);
   };
 
   const validateForm = () => {
@@ -157,14 +175,75 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  // Verifica conflitti di prenotazione
+  const checkConflicts = async () => {
+    if (!formData.resourceId || !formData.start || !formData.end) {
+      return false;
+    }
+    
+    setIsChecking(true);
+    
+    try {
+      const result = await withErrorHandling(async () => {
+        return await checkEventConflicts(
+          formData.resourceId,
+          formData.start,
+          formData.end,
+          formData.id
+        );
+      }, {
+        errorMessage: 'Impossibile verificare la disponibilità della risorsa',
+        showError: true,
+        rethrowError: true
+      });
+      
+      if (result) {
+        // Verifica il formato della risposta del server
+        if (result.success === false) {
+          // Se success è false, c'è un conflitto
+          setValidationMessage({
+            type: 'error',
+            text: result.message || 'La risorsa non è disponibile nel periodo selezionato'
+          });
+          return false;
+        } else {
+          // Se success è true o non è definito (compatibilità con versioni precedenti)
+          setValidationMessage({
+            type: 'success',
+            text: 'La risorsa è disponibile nel periodo selezionato'
+          });
+          return true;
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Error checking conflicts:', error);
+      return false;
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
+  const handleSubmit = async () => {
     // Assicurati che userId sia impostato correttamente prima di validare
     if (useCurrentUser && currentUser) {
       formData.userId = currentUser.id;
     }
     
     if (validateForm()) {
-      onSave(formData);
+      // Prima verifica i conflitti
+      const noConflicts = await checkConflicts();
+      
+      if (noConflicts || window.confirm('Ci potrebbero essere conflitti con altre prenotazioni. Vuoi continuare?')) {
+        onSave(formData);
+      }
+    } else {
+      // Notifica errori di form
+      const errorFields = Object.keys(errors);
+      if (errorFields.length > 0) {
+        notifyFormError(`Per favore correggi i campi con errori: ${errorFields.join(', ')}`);
+      }
     }
   };
 
@@ -290,6 +369,30 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             />
           </Box>
           
+          {/* Pulsante per verificare conflitti */}
+          <Box sx={{ mt: 1, mb: 2 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={checkConflicts}
+              disabled={isChecking || !formData.resourceId || !formData.start || !formData.end}
+              fullWidth
+              startIcon={isChecking ? <CircularProgress size={20} /> : null}
+            >
+              {isChecking ? 'Verifica in corso...' : 'Verifica disponibilità'}
+            </Button>
+          </Box>
+          
+          {/* Messaggio di validazione */}
+          {validationMessage && (
+            <Alert 
+              severity={validationMessage.type} 
+              sx={{ mt: 1, mb: 2 }}
+            >
+              {validationMessage.text}
+            </Alert>
+          )}
+          
           <TextField
             label="Descrizione"
             name="description"
@@ -310,6 +413,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
           variant="contained" 
           color="primary" 
           onClick={handleSubmit}
+          disabled={isChecking}
         >
           {formData.id ? 'Aggiorna' : 'Conferma'}
         </Button>
@@ -318,6 +422,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             variant="contained" 
             color="error" 
             onClick={() => onDelete(formData.id)}
+            disabled={isChecking}
           >
             Elimina
           </Button>

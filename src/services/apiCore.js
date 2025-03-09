@@ -15,6 +15,9 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api
  * @returns {Promise<any>} - API response
  */
 export const apiRequest = async (endpoint, method = 'GET', data = null, options = {}) => {
+  // La funzione per gestire gli errori verrà iniettata dall'esterno quando questo modulo verrà utilizzato
+  const errorHandler = window.__errorHandler || ((error) => { throw error; });
+  
   try {
     const url = `${API_BASE_URL}${endpoint}`;
     
@@ -59,21 +62,42 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
         } catch (refreshError) {
           console.error('Error refreshing token', refreshError);
           authService.logout(); // Logout if refresh fails
-          throw new Error('Session expired, please log in again');
+          
+          // Crea un errore strutturato per la sessione scaduta
+          const sessionError = new Error('Sessione scaduta, effettua nuovamente il login');
+          sessionError.status = 401;
+          sessionError.details = refreshError.message;
+          return errorHandler(sessionError);
         }
       }
 
+      // Clona la risposta per evitare "Body has already been consumed"
+      const responseClone = response.clone();
+      
       let errorData;
       try {
         // Try to read response body as JSON
         errorData = await response.json();
       } catch (e) {
-        // If not JSON, use an object with response text
-        errorData = { message: await response.text() };
+        try {
+          // Se non è un JSON, prova a leggere come testo dalla risposta clonata
+          const textContent = await responseClone.text();
+          errorData = { message: textContent || `Errore ${response.status}: ${response.statusText}` };
+        } catch (textError) {
+          // Se anche la lettura del testo fallisce, usa il messaggio di stato HTTP
+          errorData = { message: `Errore ${response.status}: ${response.statusText}` };
+        }
       }
 
-      const errorMessage = errorData.message || `Error ${response.status}: ${response.statusText}`;
-      throw new Error(errorMessage);
+      // Crea un errore strutturato con i dettagli della risposta HTTP
+      const apiError = new Error(errorData.message || `Errore ${response.status}: ${response.statusText}`);
+      apiError.status = response.status;
+      apiError.statusText = response.statusText;
+      apiError.details = errorData;
+      apiError.endpoint = endpoint;
+      
+      // Gestisci l'errore attraverso il gestore centralizzato
+      return errorHandler(apiError);
     }
 
     // Check if response is empty
@@ -85,7 +109,14 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
     }
   } catch (error) {
     console.error(`Error in API request to ${endpoint}:`, error);
-    throw error;
+    
+    // Crea un errore strutturato per problemi di connessione
+    const networkError = new Error(error.message || 'Errore di connessione al server');
+    networkError.originalError = error;
+    networkError.endpoint = endpoint;
+    
+    // Gestisci l'errore attraverso il gestore centralizzato
+    return errorHandler(networkError);
   }
 };
 

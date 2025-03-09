@@ -1,5 +1,3 @@
-// This fix applies to your src/components/Booking/BookingCalendar.jsx file
-
 import React, { useContext, useEffect, useState } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -35,6 +33,7 @@ import { createEvent, deleteEvent, fetchEvents, updateEvent } from '../../servic
 import { fetchResources } from '../../services/resourceService';
 import { getResourceTypeColor } from '../../utils/colorUtils';
 import { AuthContext } from '../../context/AuthContext';
+import useApiError from '../../hooks/useApiError';
 
 // Configura moment.js per l'italiano
 moment.locale('it');
@@ -42,6 +41,7 @@ const localizer = momentLocalizer(moment);
 
 const BookingCalendar = () => {
   const { currentUser } = useContext(AuthContext);
+  const { withErrorHandling } = useApiError();
   const [currentView, setCurrentView] = useState('week');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedResource, setSelectedResource] = useState(null);
@@ -56,28 +56,31 @@ const BookingCalendar = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const [eventsData, resourcesData] = await Promise.all([
-          fetchEvents(),
-          fetchResources()
-        ]);
-        
-        const processedEvents = eventsData.map(event => ({
-          ...event,
-          start: new Date(event.start),
-          end: new Date(event.end)
-        }));
-        
-        setEvents(processedEvents);
-        setResources(resourcesData);
-      } catch (error) {
-        console.error('Error loading data:', error);
+        await withErrorHandling(async () => {
+          const [eventsData, resourcesData] = await Promise.all([
+            fetchEvents(),
+            fetchResources()
+          ]);
+          
+          const processedEvents = eventsData.map(event => ({
+            ...event,
+            start: new Date(event.start),
+            end: new Date(event.end)
+          }));
+          
+          setEvents(processedEvents);
+          setResources(resourcesData);
+        }, {
+          errorMessage: 'Impossibile caricare i dati del calendario',
+          showError: true
+        });
       } finally {
         setIsLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [withErrorHandling]);
 
   // Filtra gli eventi in base alla risorsa selezionata
   const filteredEvents = selectedResource
@@ -105,57 +108,67 @@ const BookingCalendar = () => {
 
   // Salva una prenotazione
   const handleSaveBooking = async (bookingData) => {
-    try {
-      // Assicurati che bookingData.start e bookingData.end siano oggetti Date
-      const processedBookingData = {
-        ...bookingData,
-        start: bookingData.start instanceof Date ? bookingData.start : new Date(bookingData.start),
-        end: bookingData.end instanceof Date ? bookingData.end : new Date(bookingData.end),
-      };
-      
+    // Assicurati che bookingData.start e bookingData.end siano oggetti Date
+    const processedBookingData = {
+      ...bookingData,
+      start: bookingData.start instanceof Date ? bookingData.start : new Date(bookingData.start),
+      end: bookingData.end instanceof Date ? bookingData.end : new Date(bookingData.end),
+    };
+    
+    const result = await withErrorHandling(async () => {
       if (processedBookingData.id) {
         // Aggiorna un evento esistente
         const updatedEvent = await updateEvent(processedBookingData.id, processedBookingData);
         // Assicurati che le date nella risposta siano oggetti Date
-        const processedUpdatedEvent = {
+        return {
           ...updatedEvent,
           start: new Date(updatedEvent.start),
           end: new Date(updatedEvent.end)
         };
-        
-        setEvents(events.map(event =>
-            event.id === processedUpdatedEvent.id ? processedUpdatedEvent : event
-        ));
       } else {
         // Crea un nuovo evento
         const newEvent = await createEvent(processedBookingData);
         // Assicurati che le date nella risposta siano oggetti Date
-        const processedNewEvent = {
+        return {
           ...newEvent,
           start: new Date(newEvent.start),
           end: new Date(newEvent.end)
         };
-        
-        setEvents([...events, processedNewEvent]);
+      }
+    }, {
+      errorMessage: processedBookingData.id
+        ? 'Impossibile aggiornare la prenotazione'
+        : 'Impossibile creare la prenotazione',
+      showError: true
+    });
+    
+    if (result) {
+      if (processedBookingData.id) {
+        // Aggiorna l'evento nella lista
+        setEvents(events.map(event => event.id === result.id ? result : event));
+      } else {
+        // Aggiungi il nuovo evento alla lista
+        setEvents([...events, result]);
       }
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
-    } catch (error) {
-      console.error('Error saving booking:', error);
-      // Qui potrebbe essere visualizzato un messaggio di errore
     }
   };
 
   // Elimina una prenotazione
   const handleDeleteBooking = async (eventId) => {
-    try {
+    const success = await withErrorHandling(async () => {
       await deleteEvent(eventId);
+      return true;
+    }, {
+      errorMessage: 'Impossibile eliminare la prenotazione',
+      showError: true
+    });
+    
+    if (success) {
       setEvents(events.filter(event => event.id !== eventId));
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
-    } catch (error) {
-      console.error('Error deleting booking:', error);
-      // Qui potrebbe essere visualizzato un messaggio di errore
     }
   };
 
