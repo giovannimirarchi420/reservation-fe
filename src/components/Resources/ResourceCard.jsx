@@ -16,90 +16,106 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
-  const [anchorEl, setAnchorEl] = React.useState(null);
+    const [anchorEl, setAnchorEl] = React.useState(null);
 
-  const handleOpenMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
+    const handleOpenMenu = (event) => {
+        setAnchorEl(event.currentTarget);
+    };
 
-  const handleCloseMenu = () => {
-    setAnchorEl(null);
-  };
+    const handleCloseMenu = () => {
+        setAnchorEl(null);
+    };
 
-  const handleEdit = () => {
-    handleCloseMenu();
-    onEdit();
-  };
+    const handleEdit = () => {
+        handleCloseMenu();
+        onEdit();
+    };
 
-  const handleDelete = () => {
-    handleCloseMenu();
-    onDelete();
-  };
+    const handleDelete = () => {
+        handleCloseMenu();
+        onDelete();
+    };
 
-  return (
-    <Card>
-      <CardContent>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-          <Typography variant="h6">{resource.name}</Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {resourceType && (
-              <Chip 
-                label={resourceType.name} 
-                size="small"
-                sx={{ 
-                  mr: 1, 
-                  backgroundColor: resourceType.color, 
-                  color: 'white',
-                  fontWeight: 'bold' 
-                }}
-              />
-            )}
-            <IconButton size="small" onClick={handleOpenMenu}>
-              <MoreVertIcon />
-            </IconButton>
-          </Box>
-        </Box>
-        
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          <b>Specifiche:</b> {resource.specs}
-        </Typography>
-        
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          <b>Ubicazione:</b> {resource.location}
-        </Typography>
-        
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, alignItems: 'center' }}>
-          <Chip 
-            label={resource.status === 'active' ? 'Attivo' : 'Manutenzione'} 
-            color={resource.status === 'active' ? 'success' : 'warning'}
-            size="small"
-          />
-          <Typography variant="caption" color="text.secondary">
-            ID: {resource.id}
-          </Typography>
-        </Box>
-      </CardContent>
+    // Funzione per determinare etichetta e colore in base allo stato numerico
+    const getStatusInfo = (statusCode) => {
+        switch (statusCode) {
+            case "ACTIVE":
+                return { label: 'Attivo', color: 'success' };
+            case "MAINTENANCE":
+                return { label: 'Manutenzione', color: 'warning' };
+            case "UNAVAILABLE":
+                return { label: 'Non disponibile', color: 'error' };
+            default:
+                return { label: 'Sconosciuto', color: 'default' };
+        }
+    };
 
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleCloseMenu}
-      >
-        <MenuItem onClick={handleEdit}>
-          <ListItemIcon>
-            <EditIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText>Modifica</ListItemText>
-        </MenuItem>
-        <MenuItem onClick={handleDelete}>
-          <ListItemIcon>
-            <DeleteIcon fontSize="small" color="error" />
-          </ListItemIcon>
-          <ListItemText primary="Elimina" primaryTypographyProps={{ color: 'error' }} />
-        </MenuItem>
-      </Menu>
-    </Card>
-  );
+    const statusInfo = getStatusInfo(resource.status);
+
+    return (
+        <Card>
+            <CardContent>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="h6">{resource.name}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        {resourceType && (
+                            <Chip
+                                label={resourceType.name}
+                                size="small"
+                                sx={{
+                                    mr: 1,
+                                    backgroundColor: resourceType.color,
+                                    color: 'white',
+                                    fontWeight: 'bold'
+                                }}
+                            />
+                        )}
+                        <IconButton size="small" onClick={handleOpenMenu}>
+                            <MoreVertIcon />
+                        </IconButton>
+                    </Box>
+                </Box>
+
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <b>Specifiche:</b> {resource.specs}
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <b>Ubicazione:</b> {resource.location}
+                </Typography>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, alignItems: 'center' }}>
+                    <Chip
+                        label={statusInfo.label}
+                        color={statusInfo.color}
+                        size="small"
+                    />
+                    <Typography variant="caption" color="text.secondary">
+                        ID: {resource.id}
+                    </Typography>
+                </Box>
+            </CardContent>
+
+            <Menu
+                anchorEl={anchorEl}
+                open={Boolean(anchorEl)}
+                onClose={handleCloseMenu}
+            >
+                <MenuItem onClick={handleEdit}>
+                    <ListItemIcon>
+                        <EditIcon fontSize="small" />
+                    </ListItemIcon>
+                    <ListItemText>Modifica</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={handleDelete}>
+                    <ListItemIcon>
+                        <DeleteIcon fontSize="small" color="error" />
+                    </ListItemIcon>
+                    <ListItemText primary="Elimina" primaryTypographyProps={{ color: 'error' }} />
+                </MenuItem>
+            </Menu>
+        </Card>
+    );
 };
 
 export default ResourceCard;

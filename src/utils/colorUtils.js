@@ -41,32 +41,39 @@ export const getRandomColor = () => {
  */
 export const getContrastTextColor = (backgroundColor) => {
   // Rimuovi il carattere # se presente
-  const hex = backgroundColor.replace('#', '');
-  
+  const hex = backgroundColor?.replace('#', '') || '';
+
+  // Controllo di sicurezza
+  if (hex.length !== 6) {
+    return 'black';
+  }
+
   // Converti hex in RGB
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-  
+
   // Calcola la luminosità percepita (formula approssimata)
   const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  
+
   // Restituisci 'white' se il colore di sfondo è scuro, altrimenti 'black'
   return brightness > 128 ? 'black' : 'white';
 };
 
 /**
  * Determina se una risorsa è disponibile in base allo stato
- * @param {string} status - Stato della risorsa
+ * @param {number|string} status - Stato della risorsa (0=ACTIVE, 1=MAINTENANCE, 2=UNAVAILABLE)
  * @returns {string} Colore che rappresenta lo stato
  */
 export const getStatusColor = (status) => {
-  switch (status) {
-    case 'active':
+  const statusCode = Number(status);
+
+  switch (statusCode) {
+    case 0:  // ACTIVE
       return '#4caf50'; // Verde
-    case 'maintenance':
+    case 1:  // MAINTENANCE
       return '#ff9800'; // Arancione
-    case 'unavailable':
+    case 2:  // UNAVAILABLE
       return '#f44336'; // Rosso
     default:
       return '#9e9e9e'; // Grigio

@@ -1,24 +1,27 @@
 import React, {useEffect, useState} from 'react';
 import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    InputLabel,
-    MenuItem,
-    Select,
-    TextField
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField
 } from '@mui/material';
 
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    username: '',
     email: '',
-    role: 'user',
-    avatar: ''
+    firstName: '',
+    lastName: '',
+    password: '',
+    avatar: '',
+    roles: ['USER']
   });
   const [errors, setErrors] = useState({});
 
@@ -27,10 +30,13 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     if (user) {
       setFormData({
         id: user.id,
-        name: user.name || '',
+        username: user.username || user.name || '',
         email: user.email || '',
-        role: user.role || 'user',
-        avatar: user.avatar || ''
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        password: '',  // Per motivi di sicurezza, non precompilare la password
+        avatar: user.avatar || '',
+        roles: user.roles || (user.role === 'admin' ? ['ADMIN'] : ['USER'])
       });
     } else {
       resetForm();
@@ -39,10 +45,13 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   const resetForm = () => {
     setFormData({
-      name: '',
+      username: '',
       email: '',
-      role: 'user',
-      avatar: ''
+      firstName: '',
+      lastName: '',
+      password: '',
+      avatar: '',
+      roles: ['USER']
     });
     setErrors({});
   };
@@ -53,7 +62,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       ...formData,
       [name]: value
     });
-    
+
     // Rimuovi errori quando l'utente modifica il campo
     if (errors[name]) {
       setErrors({
@@ -63,19 +72,42 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
+  const handleRoleChange = (e) => {
+    const value = e.target.value;
+    // Garantisci che roles sia sempre un array
+    const roles = Array.isArray(value) ? value : [value];
+    setFormData({
+      ...formData,
+      roles
+    });
+  };
+
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.name) {
-      newErrors.name = 'Il nome è obbligatorio';
+
+    if (!formData.username) {
+      newErrors.username = 'Il nome utente è obbligatorio';
     }
-    
+
     if (!formData.email) {
       newErrors.email = 'L\'email è obbligatoria';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Formato email non valido';
     }
-    
+
+    if (!formData.firstName) {
+      newErrors.firstName = 'Il nome è obbligatorio';
+    }
+
+    if (!formData.lastName) {
+      newErrors.lastName = 'Il cognome è obbligatorio';
+    }
+
+    // Richiedi la password solo per i nuovi utenti
+    if (!formData.id && !formData.password) {
+      newErrors.password = 'La password è obbligatoria per i nuovi utenti';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -84,102 +116,145 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     if (validateForm()) {
       // Genera avatar dalle iniziali se non specificato
       let userData = { ...formData };
-      
+
       if (!userData.avatar) {
-        const nameParts = userData.name.split(' ');
-        if (nameParts.length >= 2) {
-          userData.avatar = `${nameParts[0][0]}${nameParts[1][0]}`;
-        } else if (nameParts.length === 1) {
-          userData.avatar = `${nameParts[0][0]}`;
-        }
+        const firstInitial = userData.firstName ? userData.firstName[0] : '';
+        const lastInitial = userData.lastName ? userData.lastName[0] : '';
+        userData.avatar = `${firstInitial}${lastInitial}`.toUpperCase();
       }
-      
+
+      // Se è un aggiornamento e la password è vuota, rimuovila
+      if (userData.id && !userData.password) {
+        const { password, ...dataWithoutPassword } = userData;
+        userData = dataWithoutPassword;
+      }
+
       onSave(userData);
     }
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose}
-      maxWidth="sm"
-      fullWidth
-    >
-      <DialogTitle>{formData.id ? 'Modifica Utente' : 'Nuovo Utente'}</DialogTitle>
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <TextField
-            label="Nome Completo"
-            name="name"
-            fullWidth
-            value={formData.name}
-            onChange={handleChange}
-            margin="normal"
-            required
-            error={!!errors.name}
-            helperText={errors.name}
-          />
-          
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            fullWidth
-            value={formData.email}
-            onChange={handleChange}
-            margin="normal"
-            required
-            error={!!errors.email}
-            helperText={errors.email}
-          />
-          
-          <FormControl fullWidth margin="normal" required>
-            <InputLabel id="user-role-label">Ruolo</InputLabel>
-            <Select
-              labelId="user-role-label"
-              name="role"
-              value={formData.role || 'user'}
-              label="Ruolo"
-              onChange={handleChange}
-            >
-              <MenuItem value="user">Utente</MenuItem>
-              <MenuItem value="admin">Amministratore</MenuItem>
-            </Select>
-          </FormControl>
-          
-          <TextField
-            label="Iniziali Avatar (opzionale)"
-            name="avatar"
-            fullWidth
-            value={formData.avatar}
-            onChange={handleChange}
-            margin="normal"
-            helperText="Lascia vuoto per generare automaticamente dalle iniziali del nome"
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>
-          Annulla
-        </Button>
-        <Button 
-          variant="contained" 
-          color="primary" 
-          onClick={handleSubmit}
-        >
-          {formData.id ? 'Aggiorna' : 'Conferma'}
-        </Button>
-        {formData.id && (
-          <Button 
-            variant="contained" 
-            color="error" 
-            onClick={() => onDelete(formData.id)}
-          >
-            Elimina
+      <Dialog
+          open={open}
+          onClose={onClose}
+          maxWidth="sm"
+          fullWidth
+      >
+        <DialogTitle>{formData.id ? 'Modifica Utente' : 'Nuovo Utente'}</DialogTitle>
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <TextField
+                label="Nome Utente"
+                name="username"
+                fullWidth
+                value={formData.username}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.username}
+                helperText={errors.username}
+            />
+
+            <TextField
+                label="Email"
+                name="email"
+                type="email"
+                fullWidth
+                value={formData.email}
+                onChange={handleChange}
+                margin="normal"
+                required
+                error={!!errors.email}
+                helperText={errors.email}
+            />
+
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <TextField
+                  label="Nome"
+                  name="firstName"
+                  fullWidth
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                  error={!!errors.firstName}
+                  helperText={errors.firstName}
+              />
+
+              <TextField
+                  label="Cognome"
+                  name="lastName"
+                  fullWidth
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  margin="normal"
+                  required
+                  error={!!errors.lastName}
+                  helperText={errors.lastName}
+              />
+            </Box>
+
+            <TextField
+                label={formData.id ? "Password (lascia vuoto per non modificare)" : "Password"}
+                name="password"
+                type="password"
+                fullWidth
+                value={formData.password}
+                onChange={handleChange}
+                margin="normal"
+                required={!formData.id}
+                error={!!errors.password}
+                helperText={errors.password}
+            />
+
+            <FormControl fullWidth margin="normal" required>
+              <InputLabel id="user-role-label">Ruolo</InputLabel>
+              <Select
+                  labelId="user-role-label"
+                  name="roles"
+                  value={formData.roles || ['USER']}
+                  label="Ruolo"
+                  onChange={handleRoleChange}
+                  multiple
+              >
+                <MenuItem value="USER">Utente</MenuItem>
+                <MenuItem value="ADMIN">Amministratore</MenuItem>
+              </Select>
+            </FormControl>
+
+            <TextField
+                label="Iniziali Avatar (opzionale)"
+                name="avatar"
+                fullWidth
+                value={formData.avatar}
+                onChange={handleChange}
+                margin="normal"
+                helperText="Lascia vuoto per generare automaticamente dalle iniziali del nome e cognome"
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose}>
+            Annulla
           </Button>
-        )}
-      </DialogActions>
-    </Dialog>
+          <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSubmit}
+          >
+            {formData.id ? 'Aggiorna' : 'Conferma'}
+          </Button>
+          {formData.id && (
+              <Button
+                  variant="contained"
+                  color="error"
+                  onClick={() => onDelete(formData.id)}
+              >
+                Elimina
+              </Button>
+          )}
+        </DialogActions>
+      </Dialog>
   );
 };
 
