@@ -677,8 +677,8 @@ const BookingCalendar = () => {
                     slotGroupEventLimit={16}
                     timeslots={4}
                     step={15}
-                    min={moment().hour(8).minute(0).toDate()}
-                    max={moment().hour(20).minute(0).toDate()}
+                    min={moment().hour(0).minute(0).toDate()}
+                    max={moment().hour(23).minute(59).toDate()}
                     messages={{
                       today: 'Oggi',
                       previous: 'Precedente',
