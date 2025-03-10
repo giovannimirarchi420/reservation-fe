@@ -288,7 +288,15 @@ const MyBookingsPage = () => {
                         color="primary" 
                         size="small"
                         sx={{ mt: 1 }}
-                        onClick={() => window.open('/calendar', '_self')}
+                        onClick={() => {
+                          // Memorizza i dati della prenotazione nel localStorage per il passaggio tra pagine
+                          localStorage.setItem('viewBookingInCalendar', JSON.stringify({
+                            date: booking.start,
+                            id: booking.id,
+                            resourceId: booking.resourceId
+                          }));
+                          window.open('/calendar', '_self');
+                        }}
                       >
                         Vedi nel calendario
                       </Button>

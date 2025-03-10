@@ -71,7 +71,38 @@ const BookingCalendar = () => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [calendarHeight, setCalendarHeight] = useState('100%');
-  
+  const [bookingToHighlight, setBookingToHighlight] = useState(null);
+
+  // Controlla se c'è una prenotazione da visualizzare dal localStorage
+  useEffect(() => {
+    const bookingData = localStorage.getItem('viewBookingInCalendar');
+    if (bookingData) {
+      try {
+        const parsedData = JSON.parse(bookingData);
+        // Imposta la data selezionata dalla prenotazione
+        if (parsedData.date) {
+          const bookingDate = new Date(parsedData.date);
+          setSelectedDate(bookingDate);
+          // Imposta la vista giornaliera per una migliore visualizzazione della prenotazione
+          setCurrentView('day');
+        }
+        // Salva l'ID della prenotazione per evidenziarla
+        if (parsedData.id) {
+          setBookingToHighlight(parsedData.id);
+        }
+        // Imposta il filtro sulla risorsa se è presente
+        if (parsedData.resourceId) {
+          setSelectedResource(parsedData.resourceId);
+        }
+        // Rimuovi i dati dal localStorage dopo averli utilizzati
+        localStorage.removeItem('viewBookingInCalendar');
+      } catch (error) {
+        console.error('Errore nel parsing dei dati della prenotazione:', error);
+        localStorage.removeItem('viewBookingInCalendar');
+      }
+    }
+  }, []);
+
   // Carica eventi e risorse
   useEffect(() => {
     const loadData = async () => {
@@ -103,6 +134,17 @@ const BookingCalendar = () => {
           
           setEvents(processedEvents);
           setResources(resourcesData);
+          
+          // Se c'è una prenotazione da evidenziare, apri il modal dei dettagli
+          if (bookingToHighlight) {
+            const bookingToShow = processedEvents.find(event => event.id === bookingToHighlight);
+            if (bookingToShow) {
+              setSelectedEvent(bookingToShow);
+              setIsBookingModalOpen(true);
+              // Resetta dopo l'apertura
+              setBookingToHighlight(null);
+            }
+          }
         }, {
           errorMessage: 'Impossibile caricare i dati del calendario',
           showError: true
@@ -113,7 +155,7 @@ const BookingCalendar = () => {
     };
 
     loadData();
-  }, [withErrorHandling]);
+  }, [withErrorHandling, bookingToHighlight]);
 
   // Aggiorna l'altezza del calendario in base alla vista corrente
   useEffect(() => {
@@ -250,13 +292,16 @@ const BookingCalendar = () => {
     const compactMode = overlappingCount >= 2;
     const extremeCompactMode = overlappingCount >= 4;
     
+    // Controlla se è l'evento che deve essere evidenziato
+    const isHighlighted = bookingToHighlight === event.id;
+    
     return {
       style: {
         backgroundColor,
         borderRadius: '3px',
         opacity: 0.9,
         color: 'white',
-        border: '1px solid ' + backgroundColor,
+        border: isHighlighted ? '2px solid #ff5722' : '1px solid ' + backgroundColor, // Bordo più evidente per eventi evidenziati
         display: 'block',
         overflow: 'hidden',
         fontSize: extremeCompactMode ? '0.65rem' : (compactMode ? '0.7rem' : '0.75rem'),
@@ -265,13 +310,14 @@ const BookingCalendar = () => {
         textOverflow: 'ellipsis',
         marginTop: '1px',
         marginBottom: '1px',
-        boxShadow: '0 1px 2px rgba(0,0,0,0.2)',
+        boxShadow: isHighlighted ? '0 0 8px rgba(255, 87, 34, 0.8)' : '0 1px 2px rgba(0,0,0,0.2)', // Ombra più evidente per eventi evidenziati
         // Imposta un'altezza minima in base al numero di eventi sovrapposti
         minHeight: extremeCompactMode ? '16px' : (compactMode ? '18px' : '20px'),
         // Aggiungi un attributo data- che il componente EventItem può leggere
         '--overlapping-count': overlappingCount,
         '--compact-mode': compactMode ? 'true' : 'false',
-        '--extreme-compact-mode': extremeCompactMode ? 'true' : 'false'
+        '--extreme-compact-mode': extremeCompactMode ? 'true' : 'false',
+        '--is-highlighted': isHighlighted ? 'true' : 'false'
       }
     };
   };
@@ -288,6 +334,7 @@ const BookingCalendar = () => {
     const style = event.style || {};
     const compactMode = style['--compact-mode'] === 'true';
     const extremeCompactMode = style['--extreme-compact-mode'] === 'true';
+    const isHighlighted = style['--is-highlighted'] === 'true';
     
     // In modalità compatta estrema, mostra tutto in un'unica riga
     if (extremeCompactMode) {
@@ -296,12 +343,14 @@ const BookingCalendar = () => {
           p: 0.25, 
           minHeight: '100%',
           fontSize: 'inherit',
-          lineHeight: 1
+          lineHeight: 1,
+          fontWeight: isHighlighted ? 'bold' : 'normal',
+          backgroundColor: isHighlighted ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
         }}>
           <Typography 
             variant="caption" 
             sx={{ 
-              fontWeight: 'bold',
+              fontWeight: isHighlighted ? 'bold' : 'bold',
               fontSize: 'inherit',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -322,7 +371,9 @@ const BookingCalendar = () => {
           p: 0.25, 
           minHeight: '100%',
           fontSize: 'inherit',
-          lineHeight: 1
+          lineHeight: 1,
+          fontWeight: isHighlighted ? 'bold' : 'normal',
+          backgroundColor: isHighlighted ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
         }}>
           <Typography 
             variant="caption" 
@@ -357,7 +408,9 @@ const BookingCalendar = () => {
         p: 0.5, 
         minHeight: '100%',
         fontSize: 'inherit',
-        lineHeight: 1.1
+        lineHeight: 1.1,
+        fontWeight: isHighlighted ? 'bold' : 'normal',
+        backgroundColor: isHighlighted ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
       }}>
         <Typography 
           variant="caption" 
