@@ -19,9 +19,11 @@ import {
 import { AuthContext } from '../../context/AuthContext';
 import { Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
 import { updateProfile } from '../../services/userService';
+import useApiError from '../../hooks/useApiError';
 
 const ProfileManagement = () => {
   const { currentUser, setCurrentUser, loading } = useContext(AuthContext);
+  const { withErrorHandling } = useApiError(); // Aggiungi il hook useApiError
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -107,17 +109,19 @@ const ProfileManagement = () => {
         updatedData.avatar = profileData.avatar;
       }
 
-      // Call API to update profile
-      let user = await updateProfile(updatedData);
+      // Utilizzo di withErrorHandling
+      const user = await withErrorHandling(async () => {
+        return await updateProfile(updatedData);
+      }, {
+        errorMessage: 'Impossibile aggiornare il profilo',
+        showError: true
+      });
       
-      if(user.id){
-        showNotification('Profilo aggiornato con succeso')
+      if(user && user.id) {
+        showNotification('Profilo aggiornato con successo');
         setIsEditing(false);
-        setCurrentUser(user)
+        setCurrentUser(user);
       }
-
-    } catch (error) {
-      console.error('Error updating profile:', error);
     } finally {
       setIsSaving(false);
     }

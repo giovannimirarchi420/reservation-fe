@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   CircularProgress,
-  Divider,
   Grid,
   InputAdornment,
   TextField,
@@ -26,7 +25,7 @@ import {
   updateResource,
   ResourceStatus
 } from '../../services/resourceService';
-import {createResourceType, fetchResourceTypes} from '../../services/resourceTypeService';
+import {fetchResourceTypes} from '../../services/resourceTypeService';
 import useApiError from '../../hooks/useApiError';
 
 const ResourceManagement = ({ onSwitchToResourceType }) => {
@@ -165,20 +164,6 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   // Modificato per reindirizzare alla gestione dei tipi di risorsa
   const handleAddResourceType = () => {
     onSwitchToResourceType();
-  };
-
-  // Label per gli stati
-  const getStatusLabel = (statusCode) => {
-    switch (statusCode) {
-      case ResourceStatus.ACTIVE:
-        return 'Attivo';
-      case ResourceStatus.MAINTENANCE:
-        return 'Manutenzione';
-      case ResourceStatus.UNAVAILABLE:
-        return 'Non disponibile';
-      default:
-        return 'Sconosciuto';
-    }
   };
 
   return (

@@ -41,29 +41,45 @@ const Dashboard = () => {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        await withErrorHandling(async () => {
-          const [eventsData, resourcesData, resourceTypesData] = await Promise.all([
-            fetchEvents(),
-            fetchResources(),
-            fetchResourceTypes()
-          ]);
-          
-          const processedEvents = eventsData.map(event => ({
-            ...event,
-            start: new Date(event.start),
-            end: new Date(event.end)
-          }));
-          
-          setEvents(processedEvents);
-          setResources(resourcesData);
-          setResourceTypes(resourceTypesData);
-          
-          // Calcola le statistiche
-          calculateStats(processedEvents, resourcesData);
+        // Utilizziamo withErrorHandling per ogni chiamata API individuale
+        // in modo da gestire meglio gli errori parziali
+        const eventsData = await withErrorHandling(async () => {
+          return await fetchEvents();
         }, {
-          errorMessage: 'Impossibile caricare i dati della dashboard',
-          showError: true
-        });
+          errorMessage: 'Impossibile caricare i dati delle prenotazioni',
+          showError: true,
+          rethrowError: false
+        }) || [];
+
+        const resourcesData = await withErrorHandling(async () => {
+          return await fetchResources();
+        }, {
+          errorMessage: 'Impossibile caricare i dati delle risorse',
+          showError: true,
+          rethrowError: false
+        }) || [];
+
+        const resourceTypesData = await withErrorHandling(async () => {
+          return await fetchResourceTypes();
+        }, {
+          errorMessage: 'Impossibile caricare i tipi di risorse',
+          showError: true,
+          rethrowError: false
+        }) || [];
+        
+        // Processiamo i dati anche se alcune chiamate API hanno fallito
+        const processedEvents = eventsData.map(event => ({
+          ...event,
+          start: new Date(event.start),
+          end: new Date(event.end)
+        }));
+        
+        setEvents(processedEvents);
+        setResources(resourcesData);
+        setResourceTypes(resourceTypesData);
+        
+        // Calcola le statistiche
+        calculateStats(processedEvents, resourcesData);
       } finally {
         setIsLoading(false);
       }
@@ -175,7 +191,7 @@ const Dashboard = () => {
         year: monthYear
       });
     }
-    console.log(data)
+    
     return data;
   };
 

@@ -49,32 +49,40 @@ const MyBookingsPage = () => {
     const loadUserBookings = async () => {
       setIsLoading(true);
       try {
-        await withErrorHandling(async () => {
-          const [eventsData, resourcesData] = await Promise.all([
-            fetchMyEvents(),
-            fetchResources()
-          ]);
-          
-          // Arricchisci i dati degli eventi con informazioni sulla risorsa
-          const processedEvents = eventsData.map(event => {
-            const resource = resourcesData.find(r => r.id === event.resourceId);
-            return {
-              ...event,
-              start: new Date(event.start),
-              end: new Date(event.end),
-              resourceName: resource ? resource.name : 'Risorsa sconosciuta'
-            };
-          });
-          
-          setBookings(processedEvents);
-          setResources(resourcesData);
-          
-          // Calcola le statistiche
-          calculateStats(processedEvents);
+        // Utilizziamo withErrorHandling per ogni chiamata API individuale
+        // per gestire meglio gli errori parziali
+        const eventsData = await withErrorHandling(async () => {
+          return await fetchMyEvents();
         }, {
-          errorMessage: 'Impossibile caricare le prenotazioni',
-          showError: true
+          errorMessage: 'Impossibile caricare le tue prenotazioni',
+          showError: true,
+          rethrowError: false
+        }) || [];
+
+        const resourcesData = await withErrorHandling(async () => {
+          return await fetchResources();
+        }, {
+          errorMessage: 'Impossibile caricare le risorse',
+          showError: true,
+          rethrowError: false
+        }) || [];
+          
+        // Arricchisci i dati degli eventi con informazioni sulla risorsa
+        const processedEvents = eventsData.map(event => {
+          const resource = resourcesData.find(r => r.id === event.resourceId);
+          return {
+            ...event,
+            start: new Date(event.start),
+            end: new Date(event.end),
+            resourceName: resource ? resource.name : 'Risorsa sconosciuta'
+          };
         });
+        
+        setBookings(processedEvents);
+        setResources(resourcesData);
+        
+        // Calcola le statistiche
+        calculateStats(processedEvents);
       } finally {
         setIsLoading(false);
       }
