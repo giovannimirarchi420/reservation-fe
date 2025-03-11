@@ -1,29 +1,30 @@
 import React, {useContext, useEffect, useState} from 'react';
 import {
-    Box,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    FormControl,
-    FormHelperText,
-    InputLabel,
-    MenuItem,
-    Select,
-    TextField,
-    Typography,
-    Divider,
-    Alert,
-    CircularProgress,
-    Snackbar,
-    Paper
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControl,
+  FormHelperText,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  Typography,
+  Divider,
+  Alert,
+  CircularProgress,
+  Snackbar,
+  Paper
 } from '@mui/material';
 import {fetchUsers} from '../../services/userService';
 import {formatDateForInput, formatDate} from '../../utils/dateUtils';
 import {AuthContext} from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
 import {checkEventConflicts} from '../../services/bookingService';
+import {ResourceStatus} from '../../services/resourceService';
 
 const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) => {
   const { currentUser, isAdmin } = useContext(AuthContext);
@@ -42,6 +43,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   const [isChecking, setIsChecking] = useState(false);
   const [validationMessage, setValidationMessage] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+
+  // Filtra le risorse disponibili (solo quelle ACTIVE)
+  const activeResources = resources.filter(resource => resource.status === ResourceStatus.ACTIVE);
 
   // Carica utenti solo se l'utente corrente è admin
   useEffect(() => {
@@ -380,13 +384,16 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 onChange={handleChange}
               >
                 <MenuItem value="">Seleziona risorsa</MenuItem>
-                {resources.map(resource => (
+                {activeResources.map(resource => (
                   <MenuItem key={resource.id} value={resource.id}>
                     {resource.name} - {resource.specs}
                   </MenuItem>
                 ))}
               </Select>
               {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
+              {activeResources.length === 0 && (
+                <FormHelperText>Non ci sono risorse attive disponibili per la prenotazione</FormHelperText>
+              )}
             </FormControl>
 
             {/* Section for user selection - only available for admins */}
@@ -514,7 +521,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             variant="contained" 
             color="primary" 
             onClick={handleSubmit}
-            disabled={isChecking}
+            disabled={isChecking || activeResources.length === 0}
           >
             {formData.id ? 'Aggiorna' : 'Conferma'}
           </Button>
