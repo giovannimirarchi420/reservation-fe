@@ -1,0 +1,92 @@
+/* Stili base per gli eventi */
+.rbc-event {
+    min-height: 16px !important;
+    margin-bottom: 1px !important;
+    transition: height 0.2s ease, background-color 0.2s ease;
+  }
+  
+  /* Migliora la visibilità degli eventi in vista mese */
+  .rbc-month-view .rbc-event {
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    margin-top: 1px !important;
+  }
+  
+  /* Riduce lo spazio tra gli slot temporali per avere più spazio per gli eventi */
+  .rbc-timeslot-group {
+    min-height: 40px;
+  }
+  
+  /* Maggiore contrasto per gli eventi selezionati */
+  .rbc-selected {
+    filter: brightness(85%) !important;
+    box-shadow: 0 0 0 2px #888 !important;
+    z-index: 10 !important;
+  }
+  
+  /* Aumenta l'altezza minima della cella in vista mese per contenere più eventi */
+  .rbc-month-row {
+    min-height: 90px;
+  }
+  
+  /* Fix per evitare la sovrapposizione con il footer in vista mensile */
+  .rbc-month-view {
+    min-height: 0 !important;
+    overflow: auto !important;
+  }
+  
+  /* Stile per il popup di "mostra altri" */
+  .rbc-overlay {
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    padding: 10px;
+    border-radius: 4px;
+  }
+  
+  /* Rendi gli eventi al passaggio del mouse più evidenti */
+  .rbc-event:hover {
+    filter: brightness(90%);
+    z-index: 5 !important;
+  }
+  
+  /* Riduci ulteriormente lo spazio nella vista mensile */
+  .rbc-month-view .rbc-event {
+    padding: 1px !important;
+  }
+  
+  /* Permetti agli eventi di essere molto compatti nella vista mensile */
+  .rbc-month-view .rbc-event-content {
+    padding: 0 !important;
+    height: auto !important;
+    min-height: 14px !important;
+  }
+  
+  /* Rimuovi il padding all'interno del contenitore degli eventi nella vista mensile */
+  .rbc-month-view .rbc-events-container {
+    margin-right: 0 !important;
+    padding-right: 0 !important;
+  }
+  
+  /* Ridimensiona correttamente il calendario in tutte le viste */
+  .rbc-calendar {
+    height: 100% !important;
+    max-height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  
+  /* Abilita lo scrolling quando necessario in vista mensile */
+  .rbc-month-view {
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 0 !important;
+    overflow: auto !important;
+  }
+  
+  /* Assicura che i contenitori interni nella vista mensile non crescano troppo */
+  .rbc-month-view .rbc-month-header,
+  .rbc-month-view .rbc-month-row {
+    flex-shrink: 0 !important;
+  }

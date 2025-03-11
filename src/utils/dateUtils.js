@@ -36,9 +36,7 @@ export const formatDate = (date, format = 'DD/MM/YYYY HH:mm') => {
  */
 export const getHoursDifference = (startDate, endDate) => {
   if (!startDate || !endDate) return 0;
-  const start = moment(startDate);
-  const end = moment(endDate);
-  return end.diff(start, 'hours', true);
+  return moment(endDate).diff(moment(startDate), 'hours', true);
 };
 
 /**
@@ -63,33 +61,25 @@ export const timePeriodsOverlap = (start1, end1, start2, end2) => {
  * @param {Date} date - Data di riferimento
  * @returns {Date} Inizio della settimana (lunedì)
  */
-export const getWeekStart = (date) => {
-  return moment(date).startOf('isoWeek').toDate();
-};
+export const getWeekStart = (date) => moment(date).startOf('isoWeek').toDate();
 
 /**
  * Ottiene la fine della settimana dalla data specificata
  * @param {Date} date - Data di riferimento
  * @returns {Date} Fine della settimana (domenica)
  */
-export const getWeekEnd = (date) => {
-  return moment(date).endOf('isoWeek').toDate();
-};
+export const getWeekEnd = (date) => moment(date).endOf('isoWeek').toDate();
 
 /**
  * Ottiene l'inizio del mese dalla data specificata
  * @param {Date} date - Data di riferimento
  * @returns {Date} Inizio del mese
  */
-export const getMonthStart = (date) => {
-  return moment(date).startOf('month').toDate();
-};
+export const getMonthStart = (date) => moment(date).startOf('month').toDate();
 
 /**
  * Ottiene la fine del mese dalla data specificata
  * @param {Date} date - Data di riferimento
  * @returns {Date} Fine del mese
  */
-export const getMonthEnd = (date) => {
-  return moment(date).endOf('month').toDate();
-};
+export const getMonthEnd = (date) => moment(date).endOf('month').toDate();

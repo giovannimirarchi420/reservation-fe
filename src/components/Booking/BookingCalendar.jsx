@@ -34,31 +34,12 @@ import { createEvent, deleteEvent, fetchEvents, updateEvent } from '../../servic
 import { fetchResources } from '../../services/resourceService';
 import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
+import { RESOURCE_COLORS } from '../../utils/colorUtils';
+import '../../styles/calendarStyles.css';
 
 // Configura moment.js per l'italiano
 moment.locale('it');
 const localizer = momentLocalizer(moment);
-
-// Colori per le risorse - usiamo un set di colori distinti
-const RESOURCE_COLORS = [
-  '#8E24AA', // Purple
-  '#1E88E5', // Blue
-  '#43A047', // Green 
-  '#E53935', // Red
-  '#FB8C00', // Orange
-  '#00ACC1', // Cyan
-  '#3949AB', // Indigo
-  '#7CB342', // Light Green
-  '#C0CA33', // Lime
-  '#FDD835', // Yellow
-  '#6D4C41', // Brown
-  '#546E7A', // Blue Grey
-  '#D81B60', // Pink
-  '#5E35B1', // Deep Purple
-  '#039BE5', // Light Blue
-  '#00897B', // Teal
-  '#F4511E', // Deep Orange
-];
 
 const BookingCalendar = () => {
   const { currentUser } = useContext(AuthContext);
@@ -466,112 +447,6 @@ const BookingCalendar = () => {
       </Box>
     );
   };
-
-  // CSS personalizzato per migliorare la visualizzazione degli eventi
-  useEffect(() => {
-    // Aggiungi stili personalizzati per gestire meglio gli eventi sovrapposti
-    const styleElement = document.createElement('style');
-    styleElement.innerHTML = `
-      /* Stili base per gli eventi */
-      .rbc-event {
-        min-height: 16px !important;
-        margin-bottom: 1px !important;
-        transition: height 0.2s ease, background-color 0.2s ease;
-      }
-      
-      /* Migliora la visibilità degli eventi in vista mese */
-      .rbc-month-view .rbc-event {
-        border: 1px solid rgba(0, 0, 0, 0.2) !important;
-        margin-top: 1px !important;
-      }
-      
-      /* Riduce lo spazio tra gli slot temporali per avere più spazio per gli eventi */
-      .rbc-timeslot-group {
-        min-height: 40px;
-      }
-      
-      /* Maggiore contrasto per gli eventi selezionati */
-      .rbc-selected {
-        filter: brightness(85%) !important;
-        box-shadow: 0 0 0 2px #888 !important;
-        z-index: 10 !important;
-      }
-      
-      /* Aumenta l'altezza minima della cella in vista mese per contenere più eventi */
-      .rbc-month-row {
-        min-height: 90px;
-      }
-      
-      /* Fix per evitare la sovrapposizione con il footer in vista mensile */
-      .rbc-month-view {
-        min-height: 0 !important;
-        overflow: auto !important;
-      }
-      
-      /* Stile per il popup di "mostra altri" */
-      .rbc-overlay {
-        z-index: 1000;
-        background: white;
-        border: 1px solid #ddd;
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        padding: 10px;
-        border-radius: 4px;
-      }
-      
-      /* Rendi gli eventi al passaggio del mouse più evidenti */
-      .rbc-event:hover {
-        filter: brightness(90%);
-        z-index: 5 !important;
-      }
-      
-      /* Riduci ulteriormente lo spazio nella vista mensile */
-      .rbc-month-view .rbc-event {
-        padding: 1px !important;
-      }
-      
-      /* Permetti agli eventi di essere molto compatti nella vista mensile */
-      .rbc-month-view .rbc-event-content {
-        padding: 0 !important;
-        height: auto !important;
-        min-height: 14px !important;
-      }
-      
-      /* Rimuovi il padding all'interno del contenitore degli eventi nella vista mensile */
-      .rbc-month-view .rbc-events-container {
-        margin-right: 0 !important;
-        padding-right: 0 !important;
-      }
-      
-      /* Ridimensiona correttamente il calendario in tutte le viste */
-      .rbc-calendar {
-        height: 100% !important;
-        max-height: 100% !important;
-        display: flex !important;
-        flex-direction: column !important;
-      }
-      
-      /* Abilita lo scrolling quando necessario in vista mensile */
-      .rbc-month-view {
-        flex: 1 !important;
-        display: flex !important;
-        flex-direction: column !important;
-        min-height: 0 !important;
-        overflow: auto !important;
-      }
-      
-      /* Assicura che i contenitori interni nella vista mensile non crescano troppo */
-      .rbc-month-view .rbc-month-header,
-      .rbc-month-view .rbc-month-row {
-        flex-shrink: 0 !important;
-      }
-    `;
-    document.head.appendChild(styleElement);
-    
-    return () => {
-      // Rimuovi gli stili personalizzati quando il componente viene smontato
-      document.head.removeChild(styleElement);
-    };
-  }, []);
 
   return (
       <Box sx={{ p: 3, height: 'calc(100vh - 64px)' }}>

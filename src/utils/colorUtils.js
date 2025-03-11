@@ -41,3 +41,23 @@ export const getContrastTextColor = (backgroundColor) => {
   // Restituisci 'white' se il colore di sfondo è scuro, altrimenti 'black'
   return brightness > 128 ? 'black' : 'white';
 };
+
+export const RESOURCE_COLORS = [
+  '#8E24AA', // Purple
+  '#1E88E5', // Blue
+  '#43A047', // Green 
+  '#E53935', // Red
+  '#FB8C00', // Orange
+  '#00ACC1', // Cyan
+  '#3949AB', // Indigo
+  '#7CB342', // Light Green
+  '#C0CA33', // Lime
+  '#FDD835', // Yellow
+  '#6D4C41', // Brown
+  '#546E7A', // Blue Grey
+  '#D81B60', // Pink
+  '#5E35B1', // Deep Purple
+  '#039BE5', // Light Blue
+  '#00897B', // Teal
+  '#F4511E', // Deep Orange
+];
