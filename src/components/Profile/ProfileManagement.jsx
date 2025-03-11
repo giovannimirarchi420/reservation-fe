@@ -7,23 +7,29 @@ import {
   CardContent,
   CircularProgress,
   Divider,
-  Grid,
+  Paper,
+  Stack,
   IconButton,
   InputAdornment,
-  Paper,
   TextField,
   Typography,
   Alert,
   Snackbar
 } from '@mui/material';
 import { AuthContext } from '../../context/AuthContext';
-import { Edit as EditIcon, Save as SaveIcon, Cancel as CancelIcon, Visibility as VisibilityIcon, VisibilityOff as VisibilityOffIcon } from '@mui/icons-material';
+import { 
+  Edit as EditIcon, 
+  Save as SaveIcon, 
+  Cancel as CancelIcon, 
+  Visibility as VisibilityIcon, 
+  VisibilityOff as VisibilityOffIcon 
+} from '@mui/icons-material';
 import { updateProfile } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
 
 const ProfileManagement = () => {
   const { currentUser, setCurrentUser, loading } = useContext(AuthContext);
-  const { withErrorHandling } = useApiError(); // Aggiungi il hook useApiError
+  const { withErrorHandling } = useApiError();
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -162,8 +168,20 @@ const ProfileManagement = () => {
         </Box>
 
         <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: { xs: 2, md: 0 } }}>
+          <Stack 
+            direction={{ xs: 'column', md: 'row' }} 
+            spacing={3}
+            alignItems={{ xs: 'center', md: 'flex-start' }}
+          >
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                width: { xs: '100%', md: '30%' }, 
+                maxWidth: '300px'
+              }}
+            >
               <Avatar
                 sx={{
                   width: 120,
@@ -202,11 +220,11 @@ const ProfileManagement = () => {
                   </Typography>
                 </CardContent>
               </Card>
-            </Grid>
+            </Box>
 
-            <Grid item xs={12} md={8}>
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
+            <Box sx={{ flexGrow: 1 }}>
+              <Stack spacing={2}>
+                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                   <TextField
                     label="Nome"
                     name="firstName"
@@ -217,8 +235,6 @@ const ProfileManagement = () => {
                     required={isEditing}
                     margin="normal"
                   />
-                </Grid>
-                <Grid item xs={12} sm={6}>
                   <TextField
                     label="Cognome"
                     name="lastName"
@@ -227,63 +243,55 @@ const ProfileManagement = () => {
                     fullWidth
                     disabled={!isEditing}
                     required={isEditing}
-                    margin="normal"
                   />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Email"
-                    name="email"
-                    type="email"
-                    value={profileData.email}
-                    onChange={handleChange}
-                    fullWidth
-                    disabled={!isEditing}
-                    required={isEditing}
-                    margin="normal"
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Nome Utente"
-                    name="username"
-                    value={profileData.username}
-                    onChange={handleChange}
-                    fullWidth
-                    disabled={!isEditing}
-                    required={isEditing}
-                    margin="normal"
-                  />
-                </Grid>
+                </Stack>
+                
+                <TextField
+                  label="Email"
+                  name="email"
+                  type="email"
+                  value={profileData.email}
+                  onChange={handleChange}
+                  fullWidth
+                  disabled={!isEditing}
+                  required={isEditing}
+                />
+                
+                <TextField
+                  label="Nome Utente"
+                  name="username"
+                  value={profileData.username}
+                  onChange={handleChange}
+                  fullWidth
+                  disabled={!isEditing}
+                  required={isEditing}
+                />
 
                 {isEditing && (
-                  <Grid item xs={12}>
-                    <TextField
-                      label="Nuova Password (lascia vuoto per mantenere attuale)"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      value={profileData.password}
-                      onChange={handleChange}
-                      fullWidth
-                      margin="normal"
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position="end">
-                            <IconButton
-                              onClick={() => setShowPassword(!showPassword)}
-                              edge="end"
-                            >
-                              {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                            </IconButton>
-                          </InputAdornment>
-                        )
-                      }}
-                    />
-                  </Grid>
+                  <TextField
+                    label="Nuova Password (lascia vuoto per mantenere attuale)"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={profileData.password}
+                    onChange={handleChange}
+                    fullWidth
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            onClick={() => setShowPassword(!showPassword)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }}
+                  />
                 )}
 
                 {isEditing && (
-                  <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
                     <Button
                       type="submit"
                       variant="contained"
@@ -293,11 +301,11 @@ const ProfileManagement = () => {
                     >
                       {isSaving ? 'Salvataggio...' : 'Salva Modifiche'}
                     </Button>
-                  </Grid>
+                  </Box>
                 )}
-              </Grid>
-            </Grid>
-          </Grid>
+              </Stack>
+            </Box>
+          </Stack>
         </form>
       </Paper>
       

@@ -3,7 +3,7 @@ import {
   Box,
   Button, 
   CircularProgress,
-  Grid,
+  Stack,
   InputAdornment,
   MenuItem,
   TextField,
@@ -159,7 +159,7 @@ const UserManagement = () => {
           </Button>
         </Box>
 
-        <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
           <TextField
               placeholder="Cerca utenti..."
               variant="outlined"
@@ -195,32 +195,31 @@ const UserManagement = () => {
             <MenuItem value="ADMIN">Amministratore</MenuItem>
             <MenuItem value="USER">Utente</MenuItem>
           </TextField>
-        </Box>
+        </Stack>
 
         {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
             </Box>
         ) : (
-            <Grid container spacing={3}>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', lg: 'repeat(3, 1fr)' }, gap: 3 }}>
               {filteredUsers.length === 0 ? (
-                  <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
+                  <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
                       Nessun utente trovato.
                     </Typography>
                   </Box>
               ) : (
                   filteredUsers.map(user => (
-                      <Grid item xs={12} md={6} lg={4} key={user.id}>
-                        <UserCard
-                            user={user}
-                            onEdit={() => handleEditUser(user)}
-                            onDelete={() => handleDeleteUser(user.id)}
-                        />
-                      </Grid>
+                      <UserCard
+                          key={user.id}
+                          user={user}
+                          onEdit={() => handleEditUser(user)}
+                          onDelete={() => handleDeleteUser(user.id)}
+                      />
                   ))
               )}
-            </Grid>
+            </Box>
         )}
 
         <UserForm

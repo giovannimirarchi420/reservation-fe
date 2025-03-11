@@ -13,9 +13,11 @@ import {
   MenuItem,
   Select,
   Snackbar,
+  Stack,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Alert
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -202,171 +204,158 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   };
 
   return (
-      <Dialog
-          open={open}
-          onClose={onClose}
-          maxWidth="sm"
-          fullWidth
-      >
-        <DialogTitle>{formData.id ? 'Modifica Utente' : 'Nuovo Utente'}</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 2 }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle>{formData.id ? 'Modifica Utente' : 'Nuovo Utente'}</DialogTitle>
+      <DialogContent>
+        <Box sx={{ pt: 2 }}>
+          <TextField
+            label="Nome Utente"
+            name="username"
+            fullWidth
+            value={formData.username}
+            onChange={handleChange}
+            margin="normal"
+            required
+            error={!!errors.username}
+            helperText={errors.username}
+          />
+
+          <TextField
+            label="Email"
+            name="email"
+            type="email"
+            fullWidth
+            value={formData.email}
+            onChange={handleChange}
+            margin="normal"
+            required
+            error={!!errors.email}
+            helperText={errors.email}
+          />
+
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
             <TextField
-                label="Nome Utente"
-                name="username"
-                fullWidth
-                value={formData.username}
-                onChange={handleChange}
-                margin="normal"
-                required
-                error={!!errors.username}
-                helperText={errors.username}
+              label="Nome"
+              name="firstName"
+              fullWidth
+              value={formData.firstName}
+              onChange={handleChange}
+              required
+              error={!!errors.lastName}
+              helperText={errors.lastName}
             />
+          </Stack>
 
-            <TextField
-                label="Email"
-                name="email"
-                type="email"
-                fullWidth
-                value={formData.email}
-                onChange={handleChange}
-                margin="normal"
-                required
-                error={!!errors.email}
-                helperText={errors.email}
-            />
+          <TextField
+            label={formData.id ? "Password (lascia vuoto per non modificare)" : "Password"}
+            name="password"
+            type={showPassword ? "text" : "password"}
+            fullWidth
+            value={formData.password}
+            onChange={handleChange}
+            margin="normal"
+            required={!formData.id}
+            error={!!errors.password}
+            helperText={errors.password}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <Stack direction="row">
+                    <Tooltip title="Genera password">
+                      <IconButton
+                        onClick={() => generateRandomPassword()}
+                        edge="end"
+                      >
+                        <VpnKeyIcon />
+                      </IconButton>
+                    </Tooltip>
 
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                  label="Nome"
-                  name="firstName"
-                  fullWidth
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  margin="normal"
-                  required
-                  error={!!errors.firstName}
-                  helperText={errors.firstName}
-              />
+                    <Tooltip title="Copia password">
+                      <IconButton
+                        onClick={copyPasswordToClipboard}
+                        edge="end"
+                        color={copiedToClipboard ? "success" : "default"}
+                      >
+                        {copiedToClipboard ? <CheckCircleIcon /> : <ContentCopyIcon />}
+                      </IconButton>
+                    </Tooltip>
 
-              <TextField
-                  label="Cognome"
-                  name="lastName"
-                  fullWidth
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  margin="normal"
-                  required
-                  error={!!errors.lastName}
-                  helperText={errors.lastName}
-              />
-            </Box>
+                    <Tooltip title={showPassword ? "Nascondi password" : "Mostra password"}>
+                      <IconButton
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                </InputAdornment>
+              ),
+            }}
+          />
 
-            <TextField
-                label={formData.id ? "Password (lascia vuoto per non modificare)" : "Password"}
-                name="password"
-                type={showPassword ? "text" : "password"}
-                fullWidth
-                value={formData.password}
-                onChange={handleChange}
-                margin="normal"
-                required={!formData.id}
-                error={!!errors.password}
-                helperText={errors.password}
-                InputProps={{
-                  endAdornment: (
-                      <InputAdornment position="end">
-                        <Box sx={{ display: 'flex' }}>
-                          <Tooltip title="Genera password">
-                            <IconButton
-                                onClick={() => generateRandomPassword()}
-                                edge="end"
-                            >
-                              <VpnKeyIcon />
-                            </IconButton>
-                          </Tooltip>
+          <FormControl fullWidth margin="normal" required>
+            <InputLabel id="user-role-label">Ruolo</InputLabel>
+            <Select
+              labelId="user-role-label"
+              name="roles"
+              value={formData.roles || ['USER']}
+              label="Ruolo"
+              onChange={handleRoleChange}
+              multiple
+            >
+              <MenuItem value="USER">Utente</MenuItem>
+              <MenuItem value="ADMIN">Amministratore</MenuItem>
+            </Select>
+          </FormControl>
 
-                          <Tooltip title="Copia password">
-                            <IconButton
-                                onClick={copyPasswordToClipboard}
-                                edge="end"
-                                color={copiedToClipboard ? "success" : "default"}
-                            >
-                              {copiedToClipboard ? <CheckCircleIcon /> : <ContentCopyIcon />}
-                            </IconButton>
-                          </Tooltip>
-
-                          <Tooltip title={showPassword ? "Nascondi password" : "Mostra password"}>
-                            <IconButton
-                                onClick={() => setShowPassword(!showPassword)}
-                                edge="end"
-                            >
-                              {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                            </IconButton>
-                          </Tooltip>
-                        </Box>
-                      </InputAdornment>
-                  ),
-                }}
-            />
-
-            <FormControl fullWidth margin="normal" required>
-              <InputLabel id="user-role-label">Ruolo</InputLabel>
-              <Select
-                  labelId="user-role-label"
-                  name="roles"
-                  value={formData.roles || ['USER']}
-                  label="Ruolo"
-                  onChange={handleRoleChange}
-                  multiple
-              >
-                <MenuItem value="USER">Utente</MenuItem>
-                <MenuItem value="ADMIN">Amministratore</MenuItem>
-              </Select>
-            </FormControl>
-
-            <TextField
-                label="Iniziali Avatar (opzionale)"
-                name="avatar"
-                fullWidth
-                value={formData.avatar}
-                onChange={handleChange}
-                margin="normal"
-                helperText="Lascia vuoto per generare automaticamente dalle iniziali del nome e cognome"
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={onClose}>
-            Annulla
-          </Button>
+          <TextField
+            label="Iniziali Avatar (opzionale)"
+            name="avatar"
+            fullWidth
+            value={formData.avatar}
+            onChange={handleChange}
+            margin="normal"
+            helperText="Lascia vuoto per generare automaticamente dalle iniziali del nome e cognome"
+          />
+        </Box>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>
+          Annulla
+        </Button>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+        >
+          {formData.id ? 'Aggiorna' : 'Conferma'}
+        </Button>
+        {formData.id && (
           <Button
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit}
+            variant="contained"
+            color="error"
+            onClick={() => onDelete(formData.id)}
           >
-            {formData.id ? 'Aggiorna' : 'Conferma'}
+            Elimina
           </Button>
-          {formData.id && (
-              <Button
-                  variant="contained"
-                  color="error"
-                  onClick={() => onDelete(formData.id)}
-              >
-                Elimina
-              </Button>
-          )}
-        </DialogActions>
+        )}
+      </DialogActions>
 
-        {/* Feedback per la copia */}
-        <Snackbar
-            open={showSnackbar}
-            autoHideDuration={2000}
-            onClose={handleCloseSnackbar}
-            message="Password copiata negli appunti"
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-        />
-      </Dialog>
+      {/* Feedback per la copia */}
+      <Snackbar
+        open={showSnackbar}
+        autoHideDuration={2000}
+        onClose={handleCloseSnackbar}
+        message="Password copiata negli appunti"
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      />
+    </Dialog>
   );
 };
 

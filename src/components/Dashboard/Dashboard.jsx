@@ -5,7 +5,7 @@ import {
   CardContent, 
   CircularProgress, 
   Divider, 
-  Grid, 
+  Stack,
   Paper, 
   Typography,
   useTheme 
@@ -227,91 +227,71 @@ const Dashboard = () => {
       <Typography variant="h5" sx={{ mb: 3 }}>Dashboard Risorse</Typography>
       
       {/* Statistiche principali */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.primary.main, color: 'white' }}>
-            <CardContent>
-              <Typography variant="h6">Prenotazioni Totali</Typography>
-              <Typography variant="h3">{stats.totalReservations}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.success.main, color: 'white' }}>
-            <CardContent>
-              <Typography variant="h6">Risorse Attive</Typography>
-              <Typography variant="h3">{stats.activeResources}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.info.main, color: 'white' }}>
-            <CardContent>
-              <Typography variant="h6">Prenotazioni Future</Typography>
-              <Typography variant="h3">{stats.upcomingReservations}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.secondary.main, color: 'white' }}>
-            <CardContent>
-              <Typography variant="h6">Tasso di Utilizzo</Typography>
-              <Typography variant="h3">{stats.utilizationRate}%</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 3 }}>
+        <Card sx={{ bgcolor: theme.palette.primary.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Typography variant="h6">Prenotazioni Totali</Typography>
+            <Typography variant="h3">{stats.totalReservations}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ bgcolor: theme.palette.success.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Typography variant="h6">Risorse Attive</Typography>
+            <Typography variant="h3">{stats.activeResources}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ bgcolor: theme.palette.info.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Typography variant="h6">Prenotazioni Future</Typography>
+            <Typography variant="h3">{stats.upcomingReservations}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ bgcolor: theme.palette.secondary.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Typography variant="h6">Tasso di Utilizzo</Typography>
+            <Typography variant="h3">{stats.utilizationRate}%</Typography>
+          </CardContent>
+        </Card>
+      </Stack>
       
       {/* Prima riga di grafici */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} md={8}>
-          <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Trend Prenotazioni</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <ReservationsTrendChart data={getReservationTrendData()} />
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper elevation={2} sx={{ p: 2, height: '100%' }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Stato Risorse</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <ResourceStatusChart data={getResourceStatusData()} />
-          </Paper>
-        </Grid>
-      </Grid>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
+        <Paper elevation={2} sx={{ p: 2, flex: { md: 2 } }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Trend Prenotazioni</Typography>
+          <Divider sx={{ mb: 2 }} />
+          <ReservationsTrendChart data={getReservationTrendData()} />
+        </Paper>
+        <Paper elevation={2} sx={{ p: 2, flex: { md: 1 } }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Stato Risorse</Typography>
+          <Divider sx={{ mb: 2 }} />
+          <ResourceStatusChart data={getResourceStatusData()} />
+        </Paper>
+      </Stack>
       
       {/* Seconda riga di contenuti */}
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={2} sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Prenotazioni per Risorsa</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <ReservationsByResourceChart data={getReservationsByResourceData()} />
-          </Paper>
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Paper elevation={2} sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Prossime Prenotazioni</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <UpcomingReservations reservations={getUpcomingReservations()} />
-          </Paper>
-        </Grid>
-      </Grid>
+      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+        <Paper elevation={2} sx={{ p: 2, flex: 1 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Prenotazioni per Risorsa</Typography>
+          <Divider sx={{ mb: 2 }} />
+          <ReservationsByResourceChart data={getReservationsByResourceData()} />
+        </Paper>
+        <Paper elevation={2} sx={{ p: 2, flex: 1 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Prossime Prenotazioni</Typography>
+          <Divider sx={{ mb: 2 }} />
+          <UpcomingReservations reservations={getUpcomingReservations()} />
+        </Paper>
+      </Stack>
       
       {/* Tabella di utilizzo risorse */}
-      <Grid container sx={{ mt: 3 }}>
-        <Grid item xs={12}>
-          <Paper elevation={2} sx={{ p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>Utilizzo Risorse</Typography>
-            <Divider sx={{ mb: 2 }} />
-            <ResourceUtilizationTable 
-              resources={resources} 
-              events={events} 
-              resourceTypes={resourceTypes} 
-            />
-          </Paper>
-        </Grid>
-      </Grid>
+      <Paper elevation={2} sx={{ p: 2, mt: 3 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>Utilizzo Risorse</Typography>
+        <Divider sx={{ mb: 2 }} />
+        <ResourceUtilizationTable 
+          resources={resources} 
+          events={events} 
+          resourceTypes={resourceTypes} 
+        />
+      </Paper>
     </Box>
   );
 };

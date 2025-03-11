@@ -7,8 +7,8 @@ import {
   Chip,
   CircularProgress,
   Divider,
-  Grid,
   Paper,
+  Stack,
   Tab,
   Tabs,
   Typography,
@@ -174,52 +174,48 @@ const MyBookingsPage = () => {
       <Typography variant="h5" sx={{ mb: 3 }}>Le mie prenotazioni</Typography>
       
       {/* Statistiche principali */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.primary.main, color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Totali</Typography>
-                <CalendarTodayIcon />
-              </Box>
-              <Typography variant="h3">{stats.total}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.success.main, color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Future</Typography>
-                <EventAvailableIcon />
-              </Box>
-              <Typography variant="h3">{stats.future}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.info.main, color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Questo mese</Typography>
-                <CalendarTodayIcon />
-              </Box>
-              <Typography variant="h3">{stats.thisMonth}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ bgcolor: theme.palette.secondary.main, color: 'white' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="h6">Completate</Typography>
-                <EventBusyIcon />
-              </Box>
-              <Typography variant="h3">{stats.past}</Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      <Stack 
+        direction={{ xs: 'column', sm: 'row' }} 
+        spacing={3} 
+        sx={{ mb: 3 }}
+      >
+        <Card sx={{ bgcolor: theme.palette.primary.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Totali</Typography>
+              <CalendarTodayIcon />
+            </Box>
+            <Typography variant="h3">{stats.total}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ bgcolor: theme.palette.success.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Future</Typography>
+              <EventAvailableIcon />
+            </Box>
+            <Typography variant="h3">{stats.future}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ bgcolor: theme.palette.info.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Questo mese</Typography>
+              <CalendarTodayIcon />
+            </Box>
+            <Typography variant="h3">{stats.thisMonth}</Typography>
+          </CardContent>
+        </Card>
+        <Card sx={{ bgcolor: theme.palette.secondary.main, color: 'white', flex: 1 }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">Completate</Typography>
+              <EventBusyIcon />
+            </Box>
+            <Typography variant="h3">{stats.past}</Typography>
+          </CardContent>
+        </Card>
+      </Stack>
       
       {/* Tabs per scegliere tra prenotazioni future e passate */}
       <Paper sx={{ mb: 3 }}>
@@ -255,9 +251,12 @@ const MyBookingsPage = () => {
             <React.Fragment key={booking.id}>
               {index > 0 && <Divider />}
               <Box sx={{ p: 3 }}>
-                <Grid container spacing={2}>
+                <Stack 
+                  direction={{ xs: 'column', md: 'row' }} 
+                  spacing={2}
+                >
                   {/* Data e ora */}
-                  <Grid item xs={12} md={3}>
+                  <Box sx={{ width: { xs: '100%', md: '25%' } }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                       {formatDate(booking.start, 'dddd D MMMM YYYY')}
                     </Typography>
@@ -267,10 +266,10 @@ const MyBookingsPage = () => {
                     <Typography variant="body2" color="text.secondary">
                       Durata: {calculateDuration(booking.start, booking.end)} ore
                     </Typography>
-                  </Grid>
+                  </Box>
                   
                   {/* Titolo e risorsa */}
-                  <Grid item xs={12} md={6}>
+                  <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                     <Typography variant="h6">{booking.title}</Typography>
                     <Typography variant="body1" sx={{ mt: 1 }}>
                       <strong>Risorsa:</strong> {booking.resourceName}
@@ -280,10 +279,17 @@ const MyBookingsPage = () => {
                         {booking.description}
                       </Typography>
                     )}
-                  </Grid>
+                  </Box>
                   
                   {/* Stato */}
-                  <Grid item xs={12} md={3} sx={{ display: 'flex', flexDirection: 'column', alignItems: { xs: 'flex-start', md: 'flex-end' } }}>
+                  <Box 
+                    sx={{ 
+                      width: { xs: '100%', md: '25%' },
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: { xs: 'flex-start', md: 'flex-end' } 
+                    }}
+                  >
                     <Chip
                       label={activeTab === 0 ? 'Futura' : 'Completata'}
                       color={activeTab === 0 ? 'primary' : 'default'}
@@ -309,8 +315,8 @@ const MyBookingsPage = () => {
                         Vedi nel calendario
                       </Button>
                     </Box>
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Stack>
               </Box>
             </React.Fragment>
           ))

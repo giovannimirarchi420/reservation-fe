@@ -3,14 +3,14 @@ import {
   Box,
   Button,
   CircularProgress,
-  Grid,
   InputAdornment,
   TextField,
   Tooltip,
   Typography,
   MenuItem,
   Snackbar,
-  Alert
+  Alert,
+  Stack
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -180,14 +180,20 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
           </Button>
         </Box>
 
-        <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+        <Stack 
+          direction={{ xs: 'column', sm: 'row' }} 
+          spacing={2} 
+          sx={{ mb: 3 }}
+          alignItems="flex-start"
+          flexWrap="wrap"
+        >
           <TextField
               placeholder="Cerca risorse..."
               variant="outlined"
               size="small"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              sx={{ flexGrow: 1, minWidth: '200px' }}
+              sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 'auto' } }}
               InputProps={{
                 startAdornment: (
                     <InputAdornment position="start">
@@ -197,7 +203,13 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
               }}
           />
 
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Box sx={{ 
+            display: 'flex', 
+            gap: 1, 
+            alignItems: 'center', 
+            flexWrap: 'wrap',
+            width: { xs: '100%', sm: 'auto' }
+          }}>
             <TextField
                 select
                 label="Tipo"
@@ -246,33 +258,40 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
               </Button>
             </Tooltip>
           </Box>
-        </Box>
+        </Stack>
 
         {isLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />
             </Box>
         ) : (
-            <Grid container spacing={3}>
+            <Box sx={{ 
+              display: 'grid', 
+              gridTemplateColumns: { 
+                xs: '1fr', 
+                sm: 'repeat(2, 1fr)', 
+                lg: 'repeat(3, 1fr)' 
+              }, 
+              gap: 3 
+            }}>
               {filteredResources.length === 0 ? (
-                  <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
+                  <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
                       Nessuna risorsa trovata.
                     </Typography>
                   </Box>
               ) : (
                   filteredResources.map(resource => (
-                      <Grid item xs={12} md={6} lg={4} key={resource.id}>
-                        <ResourceCard
-                            resource={resource}
-                            resourceType={resourceTypes.find(t => t.id === resource.type)}
-                            onEdit={() => handleEditResource(resource)}
-                            onDelete={() => handleDeleteResource(resource.id)}
-                        />
-                      </Grid>
+                      <ResourceCard
+                          key={resource.id}
+                          resource={resource}
+                          resourceType={resourceTypes.find(t => t.id === resource.type)}
+                          onEdit={() => handleEditResource(resource)}
+                          onDelete={() => handleDeleteResource(resource.id)}
+                      />
                   ))
               )}
-            </Grid>
+            </Box>
         )}
 
         <ResourceForm
