@@ -4,10 +4,7 @@
 import apiRequest from './apiCore';
 
 /**
- * Mappa di valori numerici per gli stati delle risorse
- * 0 = ACTIVE
- * 1 = MAINTENANCE
- * 2 = UNAVAILABLE
+ * Stati delle risorse come enumerazione
  */
 export const ResourceStatus = {
   ACTIVE: "ACTIVE",
@@ -21,11 +18,18 @@ export const ResourceStatus = {
  * @returns {Promise<Array>} List of resources
  */
 export const fetchResources = (filters = {}) => {
-  let queryParams = '';
-  if (filters.status !== undefined) queryParams += `status=${filters.status}`;
-  if (filters.typeId) queryParams += `${queryParams ? '&' : ''}typeId=${filters.typeId}`;
+  const queryParams = [];
+  
+  if (filters.status !== undefined) {
+    queryParams.push(`status=${filters.status}`);
+  }
+  
+  if (filters.typeId) {
+    queryParams.push(`typeId=${filters.typeId}`);
+  }
 
-  return apiRequest(`/resources${queryParams ? '?' + queryParams : ''}`);
+  const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+  return apiRequest(`/resources${queryString}`);
 };
 
 /**
@@ -44,7 +48,7 @@ export const createResource = (resourceData) => {
   // Assicurati che lo stato sia un numero
   const preparedData = {
     ...resourceData,
-    status: Number(resourceData.status)
+    status: resourceData.status
   };
 
   return apiRequest('/resources', 'POST', preparedData);
@@ -69,11 +73,11 @@ export const updateResource = (id, resourceData) => {
 /**
  * Update resource status
  * @param {number} id - Resource ID
- * @param {number} status - New status (0=ACTIVE, 1=MAINTENANCE, 2=UNAVAILABLE)
+ * @param {string} status - New status (ACTIVE, MAINTENANCE, UNAVAILABLE)
  * @returns {Promise<Object>} Updated resource
  */
 export const updateResourceStatus = (id, status) =>
-    apiRequest(`/resources/${id}/status?status=${Number(status)}`, 'PATCH');
+  apiRequest(`/resources/${id}/status?status=${status}`, 'PATCH');
 
 /**
  * Delete a resource
@@ -88,4 +92,4 @@ export const deleteResource = (id) => apiRequest(`/resources/${id}`, 'DELETE');
  * @returns {Promise<Array>} Found resources
  */
 export const searchResources = (query) =>
-    apiRequest(`/resources/search?query=${encodeURIComponent(query)}`);
+  apiRequest(`/resources/search?query=${encodeURIComponent(query)}`);

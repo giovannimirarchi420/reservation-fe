@@ -190,6 +190,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
 
   // Verifica conflitti di prenotazione
   const checkConflicts = async () => {
+
+    if(!validateForm()) {
+      return;
+    }
+
     if (!formData.resourceId || !formData.start || !formData.end) {
       return false;
     }
@@ -212,11 +217,17 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       
       if (result) {
         // Verifica il formato della risposta del server
-        if (result.success === false) {
-          // Se success è false, c'è un conflitto
+        if (result.data === false) {
+          // Se data è false, c'è un conflitto
           setValidationMessage({
             type: 'error',
             text: result.message || 'La risorsa non è disponibile nel periodo selezionato'
+          });
+          return false;
+        } else if (result.success === false) {
+          setValidationMessage({
+            type: 'error',
+            text: result.message || 'Errore nella verifica dei conflitti, riprova più tardi'
           });
           return false;
         } else {

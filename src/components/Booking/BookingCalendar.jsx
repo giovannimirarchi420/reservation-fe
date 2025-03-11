@@ -15,7 +15,9 @@ import {
     ToggleButton,
     ToggleButtonGroup,
     Tooltip,
-    Typography
+    Typography,
+    Snackbar,
+    Alert
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -72,6 +74,18 @@ const BookingCalendar = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [calendarHeight, setCalendarHeight] = useState('100%');
   const [bookingToHighlight, setBookingToHighlight] = useState(null);
+  // Stato per la notifica
+  const [notification, setNotification] = useState(null);
+
+  // Mostra una notifica
+  const showNotification = (message, severity = 'success') => {
+    setNotification({ message, severity });
+    
+    // Rimuovi la notifica dopo 6 secondi
+    setTimeout(() => {
+      setNotification(null);
+    }, 6000);
+  };
 
   // Controlla se c'è una prenotazione da visualizzare dal localStorage
   useEffect(() => {
@@ -215,6 +229,7 @@ const BookingCalendar = () => {
       } else {
         // Crea un nuovo evento
         const newEvent = await createEvent(processedBookingData);
+        console.log(newEvent)
         // Assicurati che le date nella risposta siano oggetti Date
         return {
           ...newEvent,
@@ -229,17 +244,20 @@ const BookingCalendar = () => {
       showError: true
     });
     
-    if (result) {
+    //The BE does not return any status field if the call went good and the new/updated event has been returned.
+    if (result && !result.status) {
       // Aggiungi il nome della risorsa al risultato
       const resourceName = resources.find(r => r.id === result.resourceId)?.name || 'Risorsa sconosciuta';
       const enrichedResult = { ...result, resourceName };
-      
+    
       if (processedBookingData.id) {
         // Aggiorna l'evento nella lista
         setEvents(events.map(event => event.id === enrichedResult.id ? enrichedResult : event));
+        showNotification(`Prenotazione "${enrichedResult.title}" aggiornata con successo`);
       } else {
         // Aggiungi il nuovo evento alla lista
         setEvents([...events, enrichedResult]);
+        showNotification(`Prenotazione "${enrichedResult.title}" creata con successo`);
       }
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
@@ -248,6 +266,10 @@ const BookingCalendar = () => {
 
   // Elimina una prenotazione
   const handleDeleteBooking = async (eventId) => {
+    // Trova l'evento prima di eliminarlo per mostrare il titolo nella notifica
+    const eventToDelete = events.find(e => e.id === eventId);
+    const eventTitle = eventToDelete ? eventToDelete.title : 'selezionata';
+    
     const success = await withErrorHandling(async () => {
       await deleteEvent(eventId);
       return true;
@@ -260,6 +282,7 @@ const BookingCalendar = () => {
       setEvents(events.filter(event => event.id !== eventId));
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
+      showNotification(`Prenotazione "${eventTitle}" eliminata con successo`, 'info');
     }
   };
 
@@ -768,6 +791,24 @@ const BookingCalendar = () => {
             onDelete={handleDeleteBooking}
             resources={resources}
         />
+
+        {/* Notifica per le operazioni completate con successo */}
+        <Snackbar
+          open={!!notification}
+          autoHideDuration={6000}
+          onClose={() => setNotification(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          {notification && (
+            <Alert
+              onClose={() => setNotification(null)}
+              severity={notification.severity}
+              sx={{ width: '100%' }}
+            >
+              {notification.message}
+            </Alert>
+          )}
+        </Snackbar>
       </Box>
   );
 };

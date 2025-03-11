@@ -2,24 +2,6 @@
  * Utility per la gestione dei colori
  */
 
-// Mappa di colori per tipi di risorse
-const resourceTypeColors = {
-  1: '#1976d2', // Server - Blu
-  2: '#4caf50', // GPU - Verde
-  3: '#ff9800'  // Switch P4 - Arancione
-};
-
-// Colore di fallback
-const defaultColor = '#9c27b0'; // Viola
-
-/**
- * Ottiene il colore associato a un tipo di risorsa
- * @param {number} typeId - ID del tipo di risorsa
- * @returns {string} Codice colore esadecimale
- */
-export const getResourceTypeColor = (typeId) => {
-  return resourceTypeColors[typeId] || defaultColor;
-};
 
 /**
  * Genera un colore casuale
@@ -58,24 +40,4 @@ export const getContrastTextColor = (backgroundColor) => {
 
   // Restituisci 'white' se il colore di sfondo è scuro, altrimenti 'black'
   return brightness > 128 ? 'black' : 'white';
-};
-
-/**
- * Determina se una risorsa è disponibile in base allo stato
- * @param {number|string} status - Stato della risorsa (0=ACTIVE, 1=MAINTENANCE, 2=UNAVAILABLE)
- * @returns {string} Colore che rappresenta lo stato
- */
-export const getStatusColor = (status) => {
-  const statusCode = Number(status);
-
-  switch (statusCode) {
-    case 0:  // ACTIVE
-      return '#4caf50'; // Verde
-    case 1:  // MAINTENANCE
-      return '#ff9800'; // Arancione
-    case 2:  // UNAVAILABLE
-      return '#f44336'; // Rosso
-    default:
-      return '#9e9e9e'; // Grigio
-  }
 };

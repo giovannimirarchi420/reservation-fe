@@ -9,22 +9,28 @@ import apiRequest from './apiCore';
  * @returns {Promise<Array>} List of events
  */
 export const fetchEvents = (filters = {}) => {
-  let queryParams = '';
-  if (filters.resourceId) queryParams += `resourceId=${filters.resourceId}`;
+  const queryParams = [];
+  
+  if (filters.resourceId) {
+    queryParams.push(`resourceId=${filters.resourceId}`);
+  }
+  
   if (filters.startDate) {
     const startDateStr = filters.startDate instanceof Date 
       ? filters.startDate.toISOString() 
       : filters.startDate;
-    queryParams += `${queryParams ? '&' : ''}startDate=${encodeURIComponent(startDateStr)}`;
+    queryParams.push(`startDate=${encodeURIComponent(startDateStr)}`);
   }
+  
   if (filters.endDate) {
     const endDateStr = filters.endDate instanceof Date 
       ? filters.endDate.toISOString() 
       : filters.endDate;
-    queryParams += `${queryParams ? '&' : ''}endDate=${encodeURIComponent(endDateStr)}`;
+    queryParams.push(`endDate=${encodeURIComponent(endDateStr)}`);
   }
   
-  return apiRequest(`/events${queryParams ? '?' + queryParams : ''}`);
+  const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+  return apiRequest(`/events${queryString}`);
 };
 
 /**
@@ -74,8 +80,15 @@ export const checkEventConflicts = (resourceId, start, end, eventId = null) => {
   const startStr = start instanceof Date ? start.toISOString() : start;
   const endStr = end instanceof Date ? end.toISOString() : end;
   
-  let url = `/events/check-conflicts?resourceId=${resourceId}&start=${encodeURIComponent(startStr)}&end=${encodeURIComponent(endStr)}`;
-  if (eventId) url += `&eventId=${eventId}`;
+  const queryParams = [
+    `resourceId=${resourceId}`,
+    `start=${encodeURIComponent(startStr)}`,
+    `end=${encodeURIComponent(endStr)}`
+  ];
   
-  return apiRequest(url);
+  if (eventId) {
+    queryParams.push(`eventId=${eventId}`);
+  }
+  
+  return apiRequest(`/events/check-conflicts?${queryParams.join('&')}`);
 };
