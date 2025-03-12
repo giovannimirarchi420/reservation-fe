@@ -1,11 +1,21 @@
 import React from 'react';
-import { Box, Container, Link, Typography, useTheme, Stack, IconButton, Tooltip } from '@mui/material';
+import { useTranslation } from 'react-i18next';
+import {
+  Box,
+  Container,
+  Link,
+  Typography,
+  useTheme,
+  Stack,
+  IconButton,
+  Tooltip
+} from '@mui/material';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
-import CodeIcon from '@mui/icons-material/Code';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const Footer = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const currentYear = new Date().getFullYear();
 
@@ -28,13 +38,13 @@ const Footer = () => {
         >
           {/* Copyright */}
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-            © {currentYear} Controllo Accesso Risorse Cloud
+            © {currentYear} {t('footer.title')}
           </Typography>
           
           {/* Developer info with social links */}
           <Stack direction="row" alignItems="center" spacing={1}>
             <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-              Sviluppato da Giovanni Mirarchi
+              {t('footer.developedBy')} Giovanni Mirarchi
             </Typography>
             
             <Tooltip title="GitHub" arrow>
@@ -79,7 +89,7 @@ const Footer = () => {
               }}
               href="#"
             >
-              Privacy Policy
+              {t('footer.privacyPolicy')}
             </Typography>
             <Typography 
               component={Link} 
@@ -92,9 +102,9 @@ const Footer = () => {
               }}
               href="#"
             >
-              Termini di Servizio
+              {t('footer.termsOfService')}
             </Typography>
-            <Tooltip title="Informazioni sul sistema" arrow>
+            <Tooltip title={t('footer.systemInfo')} arrow>
               <IconButton 
                 size="small"
                 sx={{ color: 'text.secondary' }}

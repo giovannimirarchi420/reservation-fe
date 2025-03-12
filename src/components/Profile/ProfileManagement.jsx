@@ -1,4 +1,5 @@
 import React, { useContext, useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Avatar,
   Box,
@@ -28,6 +29,7 @@ import { updateProfile } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
 
 const ProfileManagement = () => {
+  const { t } = useTranslation();
   const { currentUser, setCurrentUser, loading } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
   const [isEditing, setIsEditing] = useState(false);
@@ -82,11 +84,11 @@ const ProfileManagement = () => {
     setIsEditing(!isEditing);
   };
 
-  // Mostra una notifica
+  // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
     
-    // Rimuovi la notifica dopo 6 secondi
+    // Remove the notification after 6 seconds
     setTimeout(() => {
       setNotification(null);
     }, 6000);
@@ -115,16 +117,16 @@ const ProfileManagement = () => {
         updatedData.avatar = profileData.avatar;
       }
 
-      // Utilizzo di withErrorHandling
+      // Use withErrorHandling
       const user = await withErrorHandling(async () => {
         return await updateProfile(updatedData);
       }, {
-        errorMessage: 'Impossibile aggiornare il profilo',
+        errorMessage: t('profile.unableToUpdateProfile'),
         showError: true
       });
       
       if(user && user.id) {
-        showNotification('Profilo aggiornato con successo');
+        showNotification(t('profile.profileUpdatedSuccess'));
         setIsEditing(false);
         setCurrentUser(user);
       }
@@ -145,7 +147,7 @@ const ProfileManagement = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h6" color="error">
-          Utente non autenticato
+          {t('profile.userNotAuthenticated')}
         </Typography>
       </Box>
     );
@@ -155,7 +157,7 @@ const ProfileManagement = () => {
     <Box sx={{ p: 3 }}>
       <Paper elevation={2} sx={{ p: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-          <Typography variant="h5">Il Mio Profilo</Typography>
+          <Typography variant="h5">{t('profile.title')}</Typography>
           <Button
             variant={isEditing ? "outlined" : "contained"}
             color={isEditing ? "error" : "primary"}
@@ -163,7 +165,7 @@ const ProfileManagement = () => {
             onClick={handleToggleEdit}
             disabled={isSaving}
           >
-            {isEditing ? "Annulla" : "Modifica Profilo"}
+            {isEditing ? t('profile.cancel') : t('profile.editProfile')}
           </Button>
         </Box>
 
@@ -196,13 +198,13 @@ const ProfileManagement = () => {
 
               {isEditing && (
                 <TextField
-                  label="Iniziali Avatar"
+                  label={t('profile.avatarInitials')}
                   name="avatar"
                   value={profileData.avatar}
                   onChange={handleChange}
                   fullWidth
                   margin="normal"
-                  helperText="Massimo 2 caratteri"
+                  helperText={t('profile.maxTwoCharacters')}
                   inputProps={{ maxLength: 2 }}
                 />
               )}
@@ -210,13 +212,15 @@ const ProfileManagement = () => {
               <Card sx={{ width: '100%', mt: 2 }}>
                 <CardContent>
                   <Typography variant="subtitle1" gutterBottom>
-                    <strong>Ruolo:</strong> {currentUser.role === 'admin' ? 'Amministratore' : 'Utente'}
+                    <strong>{t('profile.role')}:</strong> {currentUser.role === 'admin' 
+                      ? t('profile.administrator') 
+                      : t('profile.user')}
                   </Typography>
                   
                   <Divider sx={{ my: 1 }} />
                   
                   <Typography variant="subtitle1" gutterBottom>
-                    <strong>ID Utente:</strong> {currentUser.id}
+                    <strong>{t('profile.userId')}:</strong> {currentUser.id}
                   </Typography>
                 </CardContent>
               </Card>
@@ -226,7 +230,7 @@ const ProfileManagement = () => {
               <Stack spacing={2}>
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                   <TextField
-                    label="Nome"
+                    label={t('profile.firstName')}
                     name="firstName"
                     value={profileData.firstName}
                     onChange={handleChange}
@@ -236,7 +240,7 @@ const ProfileManagement = () => {
                     margin="normal"
                   />
                   <TextField
-                    label="Cognome"
+                    label={t('profile.lastName')}
                     name="lastName"
                     value={profileData.lastName}
                     onChange={handleChange}
@@ -247,7 +251,7 @@ const ProfileManagement = () => {
                 </Stack>
                 
                 <TextField
-                  label="Email"
+                  label={t('profile.email')}
                   name="email"
                   type="email"
                   value={profileData.email}
@@ -258,7 +262,7 @@ const ProfileManagement = () => {
                 />
                 
                 <TextField
-                  label="Nome Utente"
+                  label={t('profile.username')}
                   name="username"
                   value={profileData.username}
                   onChange={handleChange}
@@ -269,7 +273,7 @@ const ProfileManagement = () => {
 
                 {isEditing && (
                   <TextField
-                    label="Nuova Password (lascia vuoto per mantenere attuale)"
+                    label={t('profile.newPassword')}
                     name="password"
                     type={showPassword ? "text" : "password"}
                     value={profileData.password}
@@ -299,7 +303,7 @@ const ProfileManagement = () => {
                       startIcon={<SaveIcon />}
                       disabled={isSaving}
                     >
-                      {isSaving ? 'Salvataggio...' : 'Salva Modifiche'}
+                      {isSaving ? t('profile.saving') : t('profile.saveChanges')}
                     </Button>
                   </Box>
                 )}
@@ -309,7 +313,7 @@ const ProfileManagement = () => {
         </form>
       </Paper>
       
-      {/* Notifica per le operazioni completate con successo */}
+      {/* Notification for successful operations */}
       <Snackbar
         open={!!notification}
         autoHideDuration={6000}

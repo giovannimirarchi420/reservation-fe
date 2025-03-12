@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Box, 
   Card, 
@@ -23,6 +24,7 @@ import useApiError from '../../hooks/useApiError';
 import moment from 'moment';
 
 const Dashboard = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { withErrorHandling } = useApiError();
   const [events, setEvents] = useState([]);
@@ -46,7 +48,7 @@ const Dashboard = () => {
         const eventsData = await withErrorHandling(async () => {
           return await fetchEvents();
         }, {
-          errorMessage: 'Impossibile caricare i dati delle prenotazioni',
+          errorMessage: t('errors.unableToLoadBookingData'),
           showError: true,
           rethrowError: false
         }) || [];
@@ -54,7 +56,7 @@ const Dashboard = () => {
         const resourcesData = await withErrorHandling(async () => {
           return await fetchResources();
         }, {
-          errorMessage: 'Impossibile caricare i dati delle risorse',
+          errorMessage: t('errors.unableToLoadResourceData'),
           showError: true,
           rethrowError: false
         }) || [];
@@ -62,7 +64,7 @@ const Dashboard = () => {
         const resourceTypesData = await withErrorHandling(async () => {
           return await fetchResourceTypes();
         }, {
-          errorMessage: 'Impossibile caricare i tipi di risorse',
+          errorMessage: t('errors.unableToLoadResourceTypes'),
           showError: true,
           rethrowError: false
         }) || [];
@@ -86,7 +88,7 @@ const Dashboard = () => {
     };
 
     loadData();
-  }, [withErrorHandling]);
+  }, [withErrorHandling, t]);
 
   // Calcola le statistiche principali
   const calculateStats = (eventsData, resourcesData) => {
@@ -160,9 +162,9 @@ const Dashboard = () => {
     });
     
     return [
-      { name: 'Attive', value: statusCounts[ResourceStatus.ACTIVE], color: '#4caf50' },
-      { name: 'In manutenzione', value: statusCounts[ResourceStatus.MAINTENANCE], color: '#ff9800' },
-      { name: 'Non disponibili', value: statusCounts[ResourceStatus.UNAVAILABLE], color: '#f44336' }
+      { name: t('statusChart.active'), value: statusCounts[ResourceStatus.ACTIVE], color: '#4caf50' },
+      { name: t('statusChart.inMaintenance'), value: statusCounts[ResourceStatus.MAINTENANCE], color: '#ff9800' },
+      { name: t('statusChart.notAvailable'), value: statusCounts[ResourceStatus.UNAVAILABLE], color: '#f44336' }
     ];
   };
 
@@ -209,7 +211,7 @@ const Dashboard = () => {
         const resource = resources.find(r => r.id === event.resourceId);
         return {
           ...event,
-          resourceName: resource ? resource.name : 'Risorsa sconosciuta'
+          resourceName: resource ? resource.name : t('resourceCard.unknown')
         };
       });
   };
@@ -224,31 +226,31 @@ const Dashboard = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Dashboard Risorse</Typography>
+      <Typography variant="h5" sx={{ mb: 3 }}>{t('dashboard.title')}</Typography>
       
       {/* Statistiche principali */}
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 3 }}>
         <Card sx={{ bgcolor: theme.palette.primary.main, color: 'white', flex: 1 }}>
           <CardContent>
-            <Typography variant="h6">Prenotazioni Totali</Typography>
+            <Typography variant="h6">{t('dashboard.totalBookings')}</Typography>
             <Typography variant="h3">{stats.totalReservations}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ bgcolor: theme.palette.success.main, color: 'white', flex: 1 }}>
           <CardContent>
-            <Typography variant="h6">Risorse Attive</Typography>
+            <Typography variant="h6">{t('dashboard.activeResources')}</Typography>
             <Typography variant="h3">{stats.activeResources}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ bgcolor: theme.palette.info.main, color: 'white', flex: 1 }}>
           <CardContent>
-            <Typography variant="h6">Prenotazioni Future</Typography>
+            <Typography variant="h6">{t('dashboard.futureBookings')}</Typography>
             <Typography variant="h3">{stats.upcomingReservations}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ bgcolor: theme.palette.secondary.main, color: 'white', flex: 1 }}>
           <CardContent>
-            <Typography variant="h6">Tasso di Utilizzo</Typography>
+            <Typography variant="h6">{t('dashboard.utilizationRate')}</Typography>
             <Typography variant="h3">{stats.utilizationRate}%</Typography>
           </CardContent>
         </Card>
@@ -257,12 +259,12 @@ const Dashboard = () => {
       {/* Prima riga di grafici */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ mb: 3 }}>
         <Paper elevation={2} sx={{ p: 2, flex: { md: 2 } }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Trend Prenotazioni</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>{t('dashboard.bookingTrends')}</Typography>
           <Divider sx={{ mb: 2 }} />
           <ReservationsTrendChart data={getReservationTrendData()} />
         </Paper>
         <Paper elevation={2} sx={{ p: 2, flex: { md: 1 } }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Stato Risorse</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>{t('dashboard.resourceStatus')}</Typography>
           <Divider sx={{ mb: 2 }} />
           <ResourceStatusChart data={getResourceStatusData()} />
         </Paper>
@@ -271,12 +273,12 @@ const Dashboard = () => {
       {/* Seconda riga di contenuti */}
       <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
         <Paper elevation={2} sx={{ p: 2, flex: 1 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Prenotazioni per Risorsa</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>{t('dashboard.bookingsPerResource')}</Typography>
           <Divider sx={{ mb: 2 }} />
           <ReservationsByResourceChart data={getReservationsByResourceData()} />
         </Paper>
         <Paper elevation={2} sx={{ p: 2, flex: 1 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Prossime Prenotazioni</Typography>
+          <Typography variant="h6" sx={{ mb: 2 }}>{t('dashboard.upcomingBookings')}</Typography>
           <Divider sx={{ mb: 2 }} />
           <UpcomingReservations reservations={getUpcomingReservations()} />
         </Paper>
@@ -284,7 +286,7 @@ const Dashboard = () => {
       
       {/* Tabella di utilizzo risorse */}
       <Paper elevation={2} sx={{ p: 2, mt: 3 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Utilizzo Risorse</Typography>
+        <Typography variant="h6" sx={{ mb: 2 }}>{t('dashboard.resourceUtilization')}</Typography>
         <Divider sx={{ mb: 2 }} />
         <ResourceUtilizationTable 
           resources={resources} 
