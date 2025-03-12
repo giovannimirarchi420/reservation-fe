@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Badge,
   Box,
@@ -8,8 +9,6 @@ import {
   ListItem,
   ListItemAvatar,
   ListItemText,
-  Menu,
-  MenuItem,
   Popover,
   Tooltip,
   Typography,
@@ -28,6 +27,7 @@ import {
 import { useNotification } from '../../hooks/useNotification';
 
 const NotificationMenu = () => {
+  const { t } = useTranslation();
   const { 
     notifications, 
     unreadNotifications, 
@@ -67,7 +67,7 @@ const NotificationMenu = () => {
   const getNotificationIcon = (type) => {
     if (!type) return <InfoIcon color="info" />;
     
-    // Normalizza il tipo convertendolo in lowercase
+    // Normalize the type by converting to lowercase
     const normalizedType = String(type).toLowerCase();
     
     switch (normalizedType) {
@@ -85,16 +85,16 @@ const NotificationMenu = () => {
   
   // Format timestamp to relative time (e.g., "2 hours ago")
   const formatTimeAgo = (timestamp) => {
-    if (!timestamp) return 'Data sconosciuta';
+    if (!timestamp) return t('notificationMenu.unknownDate');
     
     try {
       const now = new Date();
-      // Gestisce sia timestamp come oggetti Date, stringhe ISO o numeri
+      // Handle timestamp as Date objects, ISO strings or numbers
       const notificationTime = new Date(timestamp);
       
-      // Verifica se la data è valida
+      // Check if the date is valid
       if (isNaN(notificationTime.getTime())) {
-        return 'Data non valida';
+        return t('notificationMenu.invalidDate');
       }
       
       const diffMs = now - notificationTime;
@@ -104,23 +104,23 @@ const NotificationMenu = () => {
       const diffDay = Math.floor(diffHour / 24);
       
       if (diffDay > 0) {
-        return `${diffDay} ${diffDay === 1 ? 'giorno' : 'giorni'} fa`;
+        return `${diffDay} ${diffDay === 1 ? t('notificationMenu.dayAgo') : t('notificationMenu.daysAgo')}`;
       } else if (diffHour > 0) {
-        return `${diffHour} ${diffHour === 1 ? 'ora' : 'ore'} fa`;
+        return `${diffHour} ${diffHour === 1 ? t('notificationMenu.hourAgo') : t('notificationMenu.hoursAgo')}`;
       } else if (diffMin > 0) {
-        return `${diffMin} ${diffMin === 1 ? 'minuto' : 'minuti'} fa`;
+        return `${diffMin} ${diffMin === 1 ? t('notificationMenu.minuteAgo') : t('notificationMenu.minutesAgo')}`;
       } else {
-        return 'appena ora';
+        return t('notificationMenu.justNow');
       }
     } catch (error) {
-      console.error('Errore nella formattazione della data:', error);
-      return 'Data non valida';
+      console.error('Error formatting date:', error);
+      return t('notificationMenu.invalidDate');
     }
   };
   
   return (
     <>
-      <Tooltip title="Notifiche">
+      <Tooltip title={t('notificationMenu.notifications')}>
         <IconButton
           color="inherit"
           onClick={handleOpenMenu}
@@ -153,14 +153,14 @@ const NotificationMenu = () => {
         }}
       >
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography variant="h6">Notifiche</Typography>
+          <Typography variant="h6">{t('notificationMenu.notifications')}</Typography>
           {unreadNotifications.length > 0 && (
             <Button 
               size="small" 
               startIcon={<DoneAllIcon />}
               onClick={handleMarkAllAsRead}
             >
-              Segna tutte come lette
+              {t('notificationMenu.markAllAsRead')}
             </Button>
           )}
         </Box>
@@ -169,18 +169,18 @@ const NotificationMenu = () => {
         
         {loading ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="text.secondary">Caricamento notifiche...</Typography>
+            <Typography color="text.secondary">{t('notificationMenu.loadingNotifications')}</Typography>
           </Box>
         ) : error ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="error">Errore nel caricamento delle notifiche</Typography>
+            <Typography color="error">{t('notificationMenu.errorLoadingNotifications')}</Typography>
             <Button size="small" sx={{ mt: 1 }} onClick={refresh}>
-              Riprova
+              {t('notificationMenu.tryAgain')}
             </Button>
           </Box>
         ) : notifications.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
-            <Typography color="text.secondary">Nessuna notifica</Typography>
+            <Typography color="text.secondary">{t('notificationMenu.noNotifications')}</Typography>
           </Box>
         ) : (
           <List sx={{ p: 0 }}>
@@ -248,7 +248,7 @@ const NotificationMenu = () => {
                   handleCloseMenu();
                 }}
               >
-                Vedi tutte le notifiche
+                {t('notificationMenu.viewAllNotifications')}
               </Button>
             </Box>
           </>

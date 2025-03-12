@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Box, 
   List, 
@@ -12,13 +13,14 @@ import EventIcon from '@mui/icons-material/Event';
 import { formatDate } from '../../utils/dateUtils';
 
 const UpcomingReservations = ({ reservations }) => {
+  const { t } = useTranslation();
   
-  // Se non ci sono prenotazioni, mostra un messaggio
+  // If there are no reservations, show a message
   if (!reservations || reservations.length === 0) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
         <Typography variant="body1" color="text.secondary">
-          Nessuna prenotazione imminente
+          {t('upcomingReservations.noUpcomingBookings')}
         </Typography>
       </Box>
     );
@@ -50,10 +52,10 @@ const UpcomingReservations = ({ reservations }) => {
                   {reservation.resourceName}
                 </Typography>
                 <Typography component="span" variant="body2" sx={{ display: 'block' }}>
-                  Data: {formatDate(reservation.start)}
+                  {t('upcomingReservations.date')}: {formatDate(reservation.start)}
                 </Typography>
                 <Typography component="span" variant="body2">
-                  Utente: {reservation.userName || 'N/D'}
+                  {t('upcomingReservations.user')}: {reservation.userName || t('upcomingReservations.na')}
                 </Typography>
               </React.Fragment>
             }

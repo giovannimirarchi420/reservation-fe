@@ -1,4 +1,5 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -19,14 +20,15 @@ import {
   Snackbar,
   Paper
 } from '@mui/material';
-import {fetchUsers} from '../../services/userService';
-import {formatDateForInput, formatDate} from '../../utils/dateUtils';
-import {AuthContext} from '../../context/AuthContext';
+import { fetchUsers } from '../../services/userService';
+import { formatDateForInput, formatDate } from '../../utils/dateUtils';
+import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
-import {checkEventConflicts} from '../../services/bookingService';
-import {ResourceStatus} from '../../services/resourceService';
+import { checkEventConflicts } from '../../services/bookingService';
+import { ResourceStatus } from '../../services/resourceService';
 
 const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) => {
+  const { t } = useTranslation();
   const { currentUser, isAdmin } = useContext(AuthContext);
   const { withErrorHandling, notifyFormError } = useApiError();
   const [formData, setFormData] = useState({
@@ -44,10 +46,10 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   const [validationMessage, setValidationMessage] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
 
-  // Filtra le risorse disponibili (solo quelle ACTIVE)
+  // Filter available resources (only ACTIVE ones)
   const activeResources = resources.filter(resource => resource.status === ResourceStatus.ACTIVE);
 
-  // Carica utenti solo se l'utente corrente è admin
+  // Load users only if current user is admin
   useEffect(() => {
     const loadUsers = async () => {
       if (isAdmin()) {
@@ -55,25 +57,25 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
           const usersData = await fetchUsers();
           setUsers(usersData);
         }, {
-          errorMessage: 'Impossibile caricare la lista degli utenti',
+          errorMessage: t('errors.unableToLoadUserList'),
           showError: true
         });
       }
     };
     
     loadUsers();
-  }, [isAdmin, withErrorHandling]);
+  }, [isAdmin, withErrorHandling, t]);
 
-  // Popola il form quando viene selezionato un evento
+  // Populate form when an event is selected
   useEffect(() => {
     if (booking) {
-      // Determina se l'utente ha diritto di modificare questa prenotazione
+      // Determine if user has rights to modify this booking
       const isOwnBooking = booking.userId === currentUser?.id;
       const canEdit = isOwnBooking || isAdmin();
       setIsReadOnly(!canEdit);
       
-      // Se l'utente è admin e l'ID utente della prenotazione non è l'utente corrente,
-      // imposta useCurrentUser a false
+      // If user is admin and the booking's user ID is not the current user,
+      // set useCurrentUser to false
       const bookingForOtherUser = isAdmin() && booking.userId && booking.userId !== currentUser?.id;
       setUseCurrentUser(!bookingForOtherUser);
       
@@ -115,7 +117,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       [name]: value
     });
     
-    // Rimuovi errori quando l'utente modifica il campo
+    // Remove errors when user modifies the field
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -123,7 +125,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       });
     }
     
-    // Reset del messaggio di validazione quando l'utente modifica qualcosa
+    // Reset validation message when user changes something
     setValidationMessage(null);
   };
 
@@ -136,7 +138,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       [name]: new Date(value)
     });
     
-    // Reset del messaggio di validazione quando l'utente modifica le date
+    // Reset validation message when user changes dates
     setValidationMessage(null);
   };
 
@@ -146,20 +148,20 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     setUseCurrentUser(useCurrentUserValue);
     
     if (useCurrentUserValue) {
-      // Se l'utente decide di usare il proprio account, imposta userId al currentUser.id
+      // If the user decides to use their own account, set userId to currentUser.id
       setFormData({
         ...formData,
         userId: currentUser?.id || ''
       });
     } else {
-      // Altrimenti, resetta userId a vuoto o mantieni il valore attuale se non vuoto
+      // Otherwise, reset userId to empty or keep current value if not empty
       setFormData({
         ...formData,
         userId: formData.userId !== currentUser?.id ? formData.userId : ''
       });
     }
     
-    // Reset del messaggio di validazione
+    // Reset validation message
     setValidationMessage(null);
   };
 
@@ -167,34 +169,33 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     const newErrors = {};
     
     if (!formData.title) {
-      newErrors.title = 'Il titolo è obbligatorio';
+      newErrors.title = t('bookingForm.titleRequired');
     }
     
     if (!formData.resourceId) {
-      newErrors.resourceId = 'La risorsa è obbligatoria';
+      newErrors.resourceId = t('bookingForm.resourceRequired');
     }
     
     if (!formData.start) {
-      newErrors.start = 'La data di inizio è obbligatoria';
+      newErrors.start = t('bookingForm.startDateRequired');
     }
     
     if (!formData.end) {
-      newErrors.end = 'La data di fine è obbligatoria';
+      newErrors.end = t('bookingForm.endDateRequired');
     } else if (formData.end <= formData.start) {
-      newErrors.end = 'La data di fine deve essere successiva alla data di inizio';
+      newErrors.end = t('bookingForm.endDateAfterStart');
     }
     
     if (!formData.userId) {
-      newErrors.userId = 'L\'utente è obbligatorio';
+      newErrors.userId = t('bookingForm.userRequired');
     }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Verifica conflitti di prenotazione
+  // Check for booking conflicts
   const checkConflicts = async () => {
-
     if(!validateForm()) {
       return;
     }
@@ -214,31 +215,31 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
           formData.id
         );
       }, {
-        errorMessage: 'Impossibile verificare la disponibilità della risorsa',
+        errorMessage: t('bookingForm.unableToCheckAvailability'),
         showError: true,
         rethrowError: true
       });
       
       if (result) {
-        // Verifica il formato della risposta del server
+        // Check the format of the server response
         if (result.data === false) {
-          // Se data è false, c'è un conflitto
+          // If data is false, there's a conflict
           setValidationMessage({
             type: 'error',
-            text: result.message || 'La risorsa non è disponibile nel periodo selezionato'
+            text: result.message || t('bookingForm.resourceUnavailable')
           });
           return false;
         } else if (result.success === false) {
           setValidationMessage({
             type: 'error',
-            text: result.message || 'Errore nella verifica dei conflitti, riprova più tardi'
+            text: result.message || t('bookingForm.checkConflictsError')
           });
           return false;
         } else {
-          // Se success è true o non è definito (compatibilità con versioni precedenti)
+          // If success is true or undefined (compatibility with previous versions)
           setValidationMessage({
             type: 'success',
-            text: 'La risorsa è disponibile nel periodo selezionato'
+            text: t('bookingForm.resourceAvailable')
           });
           return true;
         }
@@ -254,37 +255,37 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleSubmit = async () => {
-    // Assicurati che userId sia impostato correttamente prima di validare
+    // Make sure userId is set correctly before validating
     if (useCurrentUser && currentUser) {
       formData.userId = currentUser.id;
     }
     
     if (validateForm()) {
-      // Prima verifica i conflitti
+      // First check for conflicts
       const noConflicts = await checkConflicts();
       
-      if (noConflicts || window.confirm('Ci potrebbero essere conflitti con altre prenotazioni. Vuoi continuare?')) {
+      if (noConflicts || window.confirm(t('bookingForm.confirmConflictContinue'))) {
         onSave(formData);
       }
     } else {
-      // Notifica errori di form
+      // Notify form errors
       const errorFields = Object.keys(errors);
       if (errorFields.length > 0) {
-        notifyFormError(`Per favore correggi i campi con errori: ${errorFields.join(', ')}`);
+        notifyFormError(`${t('bookingForm.correctErrorFields')} ${errorFields.join(', ')}`);
       }
     }
   };
 
-  // Trova il nome della risorsa in base all'ID
+  // Find resource name by ID
   const getResourceName = (resourceId) => {
     const resource = resources.find(r => r.id === resourceId);
-    return resource ? resource.name : 'Risorsa sconosciuta';
+    return resource ? resource.name : t('bookingForm.unknownResource');
   };
 
-  // Trova il nome dell'utente in base all'ID
+  // Find user name by ID
   const getUserName = (userId) => {
     if (userId === currentUser?.id) {
-      return `${currentUser.firstName} ${currentUser.lastName}` || currentUser.username || 'Tu';
+      return `${currentUser.firstName} ${currentUser.lastName}` || currentUser.username || t('bookingForm.you');
     }
     
     const user = users.find(u => u.id === userId);
@@ -292,22 +293,22 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       if (user.firstName && user.lastName) {
         return `${user.firstName} ${user.lastName}`;
       }
-      return user.username || user.name || 'Utente';
+      return user.username || user.name || t('userManagement.user');
     }
     
-    return 'Utente sconosciuto';
+    return t('bookingForm.unknownUser');
   };
 
-  // Renderizza la visualizzazione di sola lettura
+  // Render read-only view
   const renderReadOnlyView = () => {
-    // Ottieni il nome della risorsa
+    // Get resource name
     const resourceName = getResourceName(formData.resourceId);
-    // Ottieni il nome dell'utente
+    // Get user name
     const userName = getUserName(formData.userId);
     
     return (
       <>
-        <DialogTitle>Dettagli Prenotazione</DialogTitle>
+        <DialogTitle>{t('bookingForm.bookingDetails')}</DialogTitle>
         <DialogContent>
           <Paper elevation={0} variant="outlined" sx={{ p: 3, mb: 2, mt: 1 }}>
             <Typography variant="h6" gutterBottom>{formData.title}</Typography>
@@ -315,12 +316,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             <Divider sx={{ my: 2 }} />
             
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Risorsa</Typography>
+              <Typography variant="subtitle2" color="text.secondary">{t('bookingForm.resource')}</Typography>
               <Typography variant="body1">{resourceName}</Typography>
             </Box>
             
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Periodo</Typography>
+              <Typography variant="subtitle2" color="text.secondary">{t('bookingForm.period')}</Typography>
               <Typography variant="body1">
                 {formatDate(formData.start, 'dddd D MMMM YYYY')}
               </Typography>
@@ -330,40 +331,40 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             </Box>
             
             <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">Prenotato da</Typography>
+              <Typography variant="subtitle2" color="text.secondary">{t('bookingForm.bookedBy')}</Typography>
               <Typography variant="body1">{userName}</Typography>
             </Box>
             
             {formData.description && (
               <Box sx={{ mb: 2 }}>
-                <Typography variant="subtitle2" color="text.secondary">Descrizione</Typography>
+                <Typography variant="subtitle2" color="text.secondary">{t('bookingForm.description')}</Typography>
                 <Typography variant="body1">{formData.description}</Typography>
               </Box>
             )}
           </Paper>
           
           <Alert severity="info">
-            Stai visualizzando una prenotazione creata da un altro utente. Non è possibile modificarla.
+            {t('bookingForm.viewingOtherBooking')}
           </Alert>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>
-            Chiudi
+            {t('bookingForm.close')}
           </Button>
         </DialogActions>
       </>
     );
   };
 
-  // Renderizza il form di modifica
+  // Render edit form
   const renderEditForm = () => {
     return (
       <>
-        <DialogTitle>{formData.id ? 'Modifica Prenotazione' : 'Nuova Prenotazione'}</DialogTitle>
+        <DialogTitle>{formData.id ? t('bookingForm.editBooking') : t('bookingForm.newBooking')}</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <TextField
-              label="Titolo"
+              label={t('bookingForm.title')}
               name="title"
               fullWidth
               value={formData.title}
@@ -375,15 +376,15 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             />
             
             <FormControl fullWidth margin="normal" required error={!!errors.resourceId}>
-              <InputLabel id="resource-select-label">Risorsa</InputLabel>
+              <InputLabel id="resource-select-label">{t('bookingForm.resource')}</InputLabel>
               <Select
                 labelId="resource-select-label"
                 name="resourceId"
                 value={formData.resourceId || ''}
-                label="Risorsa"
+                label={t('bookingForm.resource')}
                 onChange={handleChange}
               >
-                <MenuItem value="">Seleziona risorsa</MenuItem>
+                <MenuItem value="">{t('bookingForm.selectResource')}</MenuItem>
                 {activeResources.map(resource => (
                   <MenuItem key={resource.id} value={resource.id}>
                     {resource.name} - {resource.specs}
@@ -392,7 +393,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               </Select>
               {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
               {activeResources.length === 0 && (
-                <FormHelperText>Non ci sono risorse attive disponibili per la prenotazione</FormHelperText>
+                <FormHelperText>{t('bookingForm.noActiveResources')}</FormHelperText>
               )}
             </FormControl>
 
@@ -401,12 +402,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               <Box sx={{ mt: 3, mb: 2 }}>
                 <Divider sx={{ mb: 2 }}>
                   <Typography variant="caption" color="text.secondary">
-                    Utente della prenotazione
+                    {t('bookingForm.bookingUser')}
                   </Typography>
                 </Divider>
                 
                 <Alert severity="info" sx={{ mb: 2 }}>
-                  In qualità di amministratore, puoi effettuare prenotazioni per altri utenti o a tuo nome.
+                  {t('bookingForm.adminBookingNote')}
                 </Alert>
                 
                 <FormControl fullWidth>
@@ -414,22 +415,24 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                     value={useCurrentUser ? 'current' : 'other'}
                     onChange={(e) => handleUserSelectionChange(e.target.value === 'current')}
                   >
-                    <MenuItem value="current">Prenota a mio nome ({currentUser?.name || currentUser?.username})</MenuItem>
-                    <MenuItem value="other">Prenota per un altro utente</MenuItem>
+                    <MenuItem value="current">
+                      {t('bookingForm.bookInMyName')} ({currentUser?.name || currentUser?.username})
+                    </MenuItem>
+                    <MenuItem value="other">{t('bookingForm.bookForAnotherUser')}</MenuItem>
                   </Select>
                 </FormControl>
                 
                 {!useCurrentUser && (
                   <FormControl fullWidth margin="normal" required error={!!errors.userId}>
-                    <InputLabel id="user-select-label">Seleziona utente</InputLabel>
+                    <InputLabel id="user-select-label">{t('bookingForm.selectUser')}</InputLabel>
                     <Select
                       labelId="user-select-label"
                       name="userId"
                       value={formData.userId || ''}
-                      label="Seleziona utente"
+                      label={t('bookingForm.selectUser')}
                       onChange={handleChange}
                     >
-                      <MenuItem value="">Seleziona utente</MenuItem>
+                      <MenuItem value="">{t('bookingForm.selectUser')}</MenuItem>
                       {users.map(user => (
                         <MenuItem key={user.id} value={user.id}>
                           {user.name || user.username || `${user.firstName} ${user.lastName}`}
@@ -452,7 +455,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               }}
             >
               <TextField
-                label="Data/Ora Inizio"
+                label={t('bookingForm.startDateTime')}
                 name="start"
                 type="datetime-local"
                 fullWidth
@@ -464,7 +467,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 helperText={errors.start}
               />
               <TextField
-                label="Data/Ora Fine"
+                label={t('bookingForm.endDateTime')}
                 name="end"
                 type="datetime-local"
                 fullWidth
@@ -477,7 +480,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               />
             </Box>
             
-            {/* Pulsante per verificare conflitti */}
+            {/* Button to check for conflicts */}
             <Box sx={{ mt: 1, mb: 2 }}>
               <Button
                 variant="outlined"
@@ -487,11 +490,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 fullWidth
                 startIcon={isChecking ? <CircularProgress size={20} /> : null}
               >
-                {isChecking ? 'Verifica in corso...' : 'Verifica disponibilità'}
+                {isChecking ? t('bookingForm.checking') : t('bookingForm.checkAvailability')}
               </Button>
             </Box>
             
-            {/* Messaggio di validazione */}
+            {/* Validation message */}
             {validationMessage && (
               <Alert 
                 severity={validationMessage.type} 
@@ -502,7 +505,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             )}
             
             <TextField
-              label="Descrizione"
+              label={t('bookingForm.description')}
               name="description"
               fullWidth
               multiline
@@ -515,7 +518,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>
-            Annulla
+            {t('bookingForm.cancel')}
           </Button>
           <Button 
             variant="contained" 
@@ -523,7 +526,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             onClick={handleSubmit}
             disabled={isChecking || activeResources.length === 0}
           >
-            {formData.id ? 'Aggiorna' : 'Conferma'}
+            {formData.id ? t('bookingForm.update') : t('bookingForm.confirm')}
           </Button>
           {formData.id && (
             <Button 
@@ -532,7 +535,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               onClick={() => onDelete(formData.id)}
               disabled={isChecking}
             >
-              Elimina
+              {t('bookingForm.delete')}
             </Button>
           )}
         </DialogActions>

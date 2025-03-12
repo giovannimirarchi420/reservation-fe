@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Avatar,
     Box,
@@ -17,6 +18,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const UserCard = ({ user, onEdit, onDelete }) => {
+    const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = React.useState(null);
 
     const handleOpenMenu = (event) => {
@@ -37,15 +39,15 @@ const UserCard = ({ user, onEdit, onDelete }) => {
         onDelete();
     };
 
-    // Determina se l'utente è admin in base ai ruoli
+    // Determine if the user is admin based on roles
     const isAdmin = user.roles ?
         user.roles.includes('ADMIN') :
         user.role === 'admin';
 
-    // Genera il nome completo per la visualizzazione
+    // Generate the full name for display
     const displayName = user.firstName && user.lastName ?
         `${user.firstName} ${user.lastName}` :
-        user.username || user.name || 'Utente';
+        user.username || user.name || t('userManagement.user');
 
     return (
         <Card>
@@ -72,7 +74,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Chip
-                        label={isAdmin ? 'Amministratore' : 'Utente'}
+                        label={isAdmin ? t('userManagement.administrator') : t('userManagement.user')}
                         color={isAdmin ? 'secondary' : 'primary'}
                         size="small"
                     />
@@ -91,13 +93,13 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                     <ListItemIcon>
                         <EditIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Modifica</ListItemText>
+                    <ListItemText>{t('userManagement.editUser')}</ListItemText>
                 </MenuItem>
                 <MenuItem onClick={handleDelete}>
                     <ListItemIcon>
                         <DeleteIcon fontSize="small" color="error" />
                     </ListItemIcon>
-                    <ListItemText primary="Elimina" primaryTypographyProps={{ color: 'error' }} />
+                    <ListItemText primary={t('userManagement.delete')} primaryTypographyProps={{ color: 'error' }} />
                 </MenuItem>
             </Menu>
         </Card>

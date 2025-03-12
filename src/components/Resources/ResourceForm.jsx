@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -15,6 +16,7 @@ import {
 } from '@mui/material';
 
 const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -24,7 +26,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
   });
   const [errors, setErrors] = useState({});
 
-  // Popola il form quando viene selezionata una risorsa
+  // Populate the form when a resource is selected
   useEffect(() => {
     if (resource) {
       setFormData({
@@ -58,7 +60,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
       [name]: value
     });
 
-    // Rimuovi errori quando l'utente modifica il campo
+    // Remove errors when the user modifies the field
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -71,19 +73,19 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
     const newErrors = {};
 
     if (!formData.name) {
-      newErrors.name = 'Il nome è obbligatorio';
+      newErrors.name = t('resourceForm.nameRequired');
     }
 
     if (!formData.typeId) {
-      newErrors.typeId = 'Il tipo è obbligatorio';
+      newErrors.typeId = t('resourceForm.typeRequired');
     }
 
     if (!formData.specs) {
-      newErrors.specs = 'Le specifiche sono obbligatorie';
+      newErrors.specs = t('resourceForm.specificationsRequired');
     }
 
     if (!formData.location) {
-      newErrors.location = 'L\'ubicazione è obbligatoria';
+      newErrors.location = t('resourceForm.locationRequired');
     }
 
     setErrors(newErrors);
@@ -92,7 +94,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // Converti i valori stringa in numeri dove appropriato
+      // Convert string values to numbers where appropriate
       const preparedData = {
         ...formData,
         typeId: formData.typeId ? parseInt(formData.typeId) : null,
@@ -109,11 +111,11 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
           maxWidth="sm"
           fullWidth
       >
-        <DialogTitle>{formData.id ? 'Modifica Risorsa' : 'Nuova Risorsa'}</DialogTitle>
+        <DialogTitle>{formData.id ? t('resourceForm.editResource') : t('resourceForm.newResource')}</DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
             <TextField
-                label="Nome Risorsa"
+                label={t('resourceForm.resourceName')}
                 name="name"
                 fullWidth
                 value={formData.name}
@@ -125,15 +127,15 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
             />
 
             <FormControl fullWidth margin="normal" required error={!!errors.typeId}>
-              <InputLabel id="resource-type-label">Tipo Risorsa</InputLabel>
+              <InputLabel id="resource-type-label">{t('resourceForm.resourceType')}</InputLabel>
               <Select
                   labelId="resource-type-label"
                   name="typeId"
                   value={formData.typeId || ''}
-                  label="Tipo Risorsa"
+                  label={t('resourceForm.resourceType')}
                   onChange={handleChange}
               >
-                <MenuItem value="">Seleziona tipo</MenuItem>
+                <MenuItem value="">{t('resourceForm.selectType')}</MenuItem>
                 {resourceTypes.map(type => (
                     <MenuItem key={type.id} value={type.id}>
                       {type.name}
@@ -144,7 +146,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
             </FormControl>
 
             <TextField
-                label="Specifiche"
+                label={t('resourceForm.specifications')}
                 name="specs"
                 fullWidth
                 value={formData.specs}
@@ -156,7 +158,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
             />
 
             <TextField
-                label="Ubicazione"
+                label={t('resourceForm.location')}
                 name="location"
                 fullWidth
                 value={formData.location}
@@ -168,31 +170,31 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
             />
 
             <FormControl fullWidth margin="normal" required>
-              <InputLabel id="resource-status-label">Stato</InputLabel>
+              <InputLabel id="resource-status-label">{t('resourceForm.status')}</InputLabel>
               <Select
                   labelId="resource-status-label"
                   name="status"
                   value={formData.status}
-                  label="Stato"
+                  label={t('resourceForm.status')}
                   onChange={handleChange}
               >
-                <MenuItem value={0}>Attivo</MenuItem>
-                <MenuItem value={1}>Manutenzione</MenuItem>
-                <MenuItem value={2}>Non disponibile</MenuItem>
+                <MenuItem value={0}>{t('resourceForm.active')}</MenuItem>
+                <MenuItem value={1}>{t('resourceForm.maintenance')}</MenuItem>
+                <MenuItem value={2}>{t('resourceForm.unavailable')}</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>
-            Annulla
+            {t('resourceForm.cancel')}
           </Button>
           <Button
               variant="contained"
               color="primary"
               onClick={handleSubmit}
           >
-            {formData.id ? 'Aggiorna' : 'Conferma'}
+            {formData.id ? t('resourceForm.update') : t('resourceForm.confirm')}
           </Button>
           {formData.id && (
               <Button
@@ -200,7 +202,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
                   color="error"
                   onClick={() => onDelete(formData.id)}
               >
-                Elimina
+                {t('resourceForm.delete')}
               </Button>
           )}
         </DialogActions>

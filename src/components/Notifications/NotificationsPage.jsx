@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
   Card,
   CardContent,
   Chip,
-  Divider,
   IconButton,
   Paper,
   Stack,
@@ -24,12 +24,12 @@ import {
   WarningOutlined as WarningIcon,
   CheckCircleOutlined as SuccessIcon,
   ErrorOutlined as ErrorIcon,
-  MoreVert as MoreVertIcon,
   FilterList as FilterListIcon
 } from '@mui/icons-material';
 import { useNotification } from '../../hooks/useNotification';
 
 const NotificationsPage = () => {
+  const { t } = useTranslation();
   const theme = useTheme();
   const { 
     notifications, 
@@ -72,7 +72,7 @@ const NotificationsPage = () => {
       }
       
       // Type filter
-      if (typeFilter !== 'all' && notification.type.toLowerCase() !== typeFilter.toLowerCase()) {
+      if (typeFilter !== 'all' && notification.type?.toLowerCase() !== typeFilter.toLowerCase()) {
         return false;
       }
       
@@ -90,7 +90,7 @@ const NotificationsPage = () => {
   const getNotificationIcon = (type) => {
     if (!type) return <InfoIcon color="info" />;
     
-    // Normalizza il tipo convertendolo in lowercase
+    // Normalize the type by converting to lowercase
     const normalizedType = String(type).toLowerCase();
     
     switch (normalizedType) {
@@ -108,14 +108,14 @@ const NotificationsPage = () => {
   
   // Format timestamp to readable date and time
   const formatDateTime = (timestamp) => {
-    if (!timestamp) return 'Data sconosciuta';
+    if (!timestamp) return t('notificationsPage.unknownDate');
     
     try {
       const date = new Date(timestamp);
       
-      // Verifica se la data è valida
+      // Check if the date is valid
       if (isNaN(date.getTime())) {
-        return 'Data non valida';
+        return t('notificationsPage.invalidDate');
       }
       
       return date.toLocaleString('it-IT', { 
@@ -126,14 +126,14 @@ const NotificationsPage = () => {
         minute: '2-digit'
       });
     } catch (error) {
-      console.error('Errore nella formattazione della data:', error);
-      return 'Data non valida';
+      console.error('Error formatting date:', error);
+      return t('notificationsPage.invalidDate');
     }
   };
   
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Centro Notifiche</Typography>
+      <Typography variant="h5" sx={{ mb: 3 }}>{t('notificationsPage.title')}</Typography>
       
       <Paper sx={{ mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
@@ -143,8 +143,8 @@ const NotificationsPage = () => {
             indicatorColor="primary"
             textColor="primary"
           >
-            <Tab label={`Tutte (${notifications.length})`} />
-            <Tab label={`Non lette (${unreadNotifications.length})`} />
+            <Tab label={`${t('notificationsPage.all')} (${notifications.length})`} />
+            <Tab label={`${t('notificationsPage.unread')} (${unreadNotifications.length})`} />
           </Tabs>
           
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -156,7 +156,7 @@ const NotificationsPage = () => {
               onClick={handleOpenFilterMenu}
               sx={{ mr: 1 }}
             >
-              {typeFilter === 'all' ? 'Tutti i tipi' : `Tipo: ${typeFilter}`}
+              {typeFilter === 'all' ? t('notificationsPage.allTypes') : `${t('notificationsPage.type')} ${typeFilter}`}
             </Button>
             
             {unreadNotifications.length > 0 && (
@@ -167,7 +167,7 @@ const NotificationsPage = () => {
                 startIcon={<DoneAllIcon />}
                 onClick={markAllAsRead}
               >
-                Segna tutte come lette
+                {t('notificationsPage.markAllAsRead')}
               </Button>
             )}
           </Box>
@@ -181,35 +181,35 @@ const NotificationsPage = () => {
               onClick={() => handleTypeFilterChange('all')}
               selected={typeFilter === 'all'}
             >
-              Tutti i tipi
+              {t('notificationsPage.allTypes')}
             </MenuItem>
             <MenuItem 
               onClick={() => handleTypeFilterChange('info')}
               selected={typeFilter === 'info'}
             >
               <InfoIcon color="info" sx={{ mr: 1 }} />
-              Informazioni
+              {t('notificationsPage.information')}
             </MenuItem>
             <MenuItem 
               onClick={() => handleTypeFilterChange('success')}
               selected={typeFilter === 'success'}
             >
               <SuccessIcon color="success" sx={{ mr: 1 }} />
-              Successo
+              {t('notificationsPage.success')}
             </MenuItem>
             <MenuItem 
               onClick={() => handleTypeFilterChange('warning')}
               selected={typeFilter === 'warning'}
             >
               <WarningIcon color="warning" sx={{ mr: 1 }} />
-              Avvisi
+              {t('notificationsPage.warnings')}
             </MenuItem>
             <MenuItem 
               onClick={() => handleTypeFilterChange('error')}
               selected={typeFilter === 'error'}
             >
               <ErrorIcon color="error" sx={{ mr: 1 }} />
-              Errori
+              {t('notificationsPage.errors')}
             </MenuItem>
           </Menu>
         </Box>
@@ -217,7 +217,7 @@ const NotificationsPage = () => {
       
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-          <Typography>Caricamento notifiche...</Typography>
+          <Typography>{t('notificationsPage.loadingNotifications')}</Typography>
         </Box>
       ) : error ? (
         <Box sx={{ my: 3 }}>
@@ -225,16 +225,16 @@ const NotificationsPage = () => {
             severity="error" 
             action={
               <Button color="inherit" size="small" onClick={refresh}>
-                Riprova
+                {t('notificationsPage.tryAgain')}
               </Button>
             }
           >
-            Errore nel caricamento delle notifiche: {error}
+            {t('notificationsPage.errorLoadingNotifications')} {error}
           </Alert>
         </Box>
       ) : filteredNotifications.length === 0 ? (
         <Alert severity="info" sx={{ mb: 3 }}>
-          Nessuna notifica da visualizzare
+          {t('notificationsPage.noNotificationsToDisplay')}
         </Alert>
       ) : (
         <Stack spacing={2}>
@@ -290,7 +290,7 @@ const NotificationsPage = () => {
                             onClick={() => markAsRead(notification.id)}
                             sx={{ mr: 1 }}
                           >
-                            Segna come letta
+                            {t('notificationsPage.markAsRead')}
                           </Button>
                         )}
                         

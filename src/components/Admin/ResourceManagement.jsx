@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -25,10 +26,11 @@ import {
   updateResource,
   ResourceStatus
 } from '../../services/resourceService';
-import {fetchResourceTypes} from '../../services/resourceTypeService';
+import { fetchResourceTypes } from '../../services/resourceTypeService';
 import useApiError from '../../hooks/useApiError';
 
 const ResourceManagement = ({ onSwitchToResourceType }) => {
+  const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
@@ -41,17 +43,17 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Mostra una notifica
+  // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
     
-    // Rimuovi la notifica dopo 6 secondi
+    // Remove the notification after 6 seconds
     setTimeout(() => {
       setNotification(null);
     }, 6000);
   };
 
-  // Carica risorse e tipi di risorsa
+  // Load resources and resource types
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -64,7 +66,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
           setResources(resourcesData);
           setResourceTypes(resourceTypesData);
         }, {
-          errorMessage: 'Impossibile caricare le risorse',
+          errorMessage: t('errors.unableToLoadResources'),
           showError: true
         });
       } finally {
@@ -73,9 +75,9 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     };
 
     loadData();
-  }, [needsRefresh, withErrorHandling]);
+  }, [needsRefresh, withErrorHandling, t]);
 
-  // Filtra risorse in base alla ricerca, al tipo e allo stato
+  // Filter resources based on search, type, and status
   const filteredResources = resources.filter(resource => {
     const matchesSearch = searchTerm === '' ||
         resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -101,7 +103,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   };
 
   const handleSaveResource = async (resourceData) => {
-    // Assicurati che status e typeId siano numeri
+    // Ensure that status and typeId are numbers
     const preparedData = {
       ...resourceData,
       status: Number(resourceData.status),
@@ -110,58 +112,58 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
 
     const result = await withErrorHandling(async () => {
       if (preparedData.id) {
-        // Aggiorna una risorsa esistente
+        // Update an existing resource
         const updatedResource = await updateResource(preparedData.id, preparedData);
         return { updated: true, resource: updatedResource };
       } else {
-        // Crea una nuova risorsa
+        // Create a new resource
         const newResource = await createResource(preparedData);
         return { updated: false, resource: newResource };
       }
     }, {
       errorMessage: preparedData.id 
-        ? `Impossibile aggiornare la risorsa "${preparedData.name}"` 
-        : `Impossibile creare la risorsa "${preparedData.name}"`,
+        ? t('resourceManagement.unableToUpdateResource', {name: preparedData.name}) 
+        : t('resourceManagement.unableToCreateResource', {name: preparedData.name}),
       showError: true
     });
 
     if (result) {
       if (result.updated) {
-        // Aggiorna risorse esistenti
+        // Update existing resources
         setResources(resources.map(resource =>
             resource.id === result.resource.id ? result.resource : resource
         ));
-        showNotification(`Risorsa "${result.resource.name}" aggiornata con successo`);
+        showNotification(t('resourceManagement.resourceUpdatedSuccess', {name: result.resource.name}));
       } else {
-        // Aggiungi nuova risorsa
+        // Add new resource
         setResources([...resources, result.resource]);
-        showNotification(`Risorsa "${result.resource.name}" creata con successo`);
+        showNotification(t('resourceManagement.resourceCreatedSuccess', {name: result.resource.name}));
       }
       setIsResourceModalOpen(false);
     }
   };
 
   const handleDeleteResource = async (resourceId) => {
-    // Trova il nome della risorsa prima di eliminarla
+    // Find the resource name before deleting it
     const resourceToDelete = resources.find(r => r.id === resourceId);
-    const resourceName = resourceToDelete ? resourceToDelete.name : 'selezionata';
+    const resourceName = resourceToDelete ? resourceToDelete.name : t('resourceManagement.selected');
 
-    const success = await withErrorHandling(async () => {
+    const response = await withErrorHandling(async () => {
       await deleteResource(resourceId);
       return true;
     }, {
-      errorMessage: `Impossibile eliminare la risorsa "${resourceName}"`,
+      errorMessage: t('resourceManagement.unableToDeleteResource', {name: resourceName}),
       showError: true
     });
 
-    if (success) {
+    if (response.success) {
       setResources(resources.filter(resource => resource.id !== resourceId));
       setIsResourceModalOpen(false);
-      showNotification(`Risorsa "${resourceName}" eliminata con successo`);
+      showNotification(t('resourceManagement.resourceDeletedSuccess', {name: resourceName}));
     }
   };
 
-  // Modificato per reindirizzare alla gestione dei tipi di risorsa
+  // Modified to redirect to resource type management
   const handleAddResourceType = () => {
     onSwitchToResourceType();
   };
@@ -169,14 +171,14 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-          <Typography variant="h6">Risorse Disponibili</Typography>
+          <Typography variant="h6">{t('resourceManagement.title')}</Typography>
           <Button
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
               onClick={handleAddResource}
           >
-            Aggiungi Risorsa
+            {t('resourceManagement.addResource')}
           </Button>
         </Box>
 
@@ -188,7 +190,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
           flexWrap="wrap"
         >
           <TextField
-              placeholder="Cerca risorse..."
+              placeholder={t('resourceManagement.searchResources')}
               variant="outlined"
               size="small"
               value={searchTerm}
@@ -212,7 +214,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
           }}>
             <TextField
                 select
-                label="Tipo"
+                label={t('resourceManagement.type')}
                 value={filterType}
                 onChange={(e) => setFilterType(e.target.value)}
                 size="small"
@@ -225,7 +227,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
                   ),
                 }}
             >
-              <MenuItem value="">Tutti i tipi</MenuItem>
+              <MenuItem value="">{t('resourceManagement.allTypes')}</MenuItem>
               {resourceTypes.map((type) => (
                   <MenuItem key={type.id} value={type.id}>
                     {type.name}
@@ -235,19 +237,19 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
 
             <TextField
                 select
-                label="Stato"
+                label={t('resourceManagement.status')}
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
                 size="small"
                 sx={{ minWidth: 150 }}
             >
-              <MenuItem value="">Tutti gli stati</MenuItem>
-              <MenuItem value={ResourceStatus.ACTIVE}>Attivo</MenuItem>
-              <MenuItem value={ResourceStatus.MAINTENANCE}>Manutenzione</MenuItem>
-              <MenuItem value={ResourceStatus.UNAVAILABLE}>Non disponibile</MenuItem>
+              <MenuItem value="">{t('resourceManagement.allStatuses')}</MenuItem>
+              <MenuItem value={ResourceStatus.ACTIVE}>{t('resourceManagement.active')}</MenuItem>
+              <MenuItem value={ResourceStatus.MAINTENANCE}>{t('resourceManagement.maintenance')}</MenuItem>
+              <MenuItem value={ResourceStatus.UNAVAILABLE}>{t('resourceManagement.unavailable')}</MenuItem>
             </TextField>
 
-            <Tooltip title="Aggiungi nuovo tipo">
+            <Tooltip title={t('resourceManagement.addNewType')}>
               <Button
                   variant="outlined"
                   size="small"
@@ -277,7 +279,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
               {filteredResources.length === 0 ? (
                   <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
-                      Nessuna risorsa trovata.
+                      {t('resourceManagement.noResourcesFound')}
                     </Typography>
                   </Box>
               ) : (
@@ -285,7 +287,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
                       <ResourceCard
                           key={resource.id}
                           resource={resource}
-                          resourceType={resourceTypes.find(t => t.id === resource.type)}
+                          resourceType={resourceTypes.find(t => t.id === resource.typeId)}
                           onEdit={() => handleEditResource(resource)}
                           onDelete={() => handleDeleteResource(resource.id)}
                       />
@@ -303,7 +305,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
             onDelete={handleDeleteResource}
         />
 
-        {/* Notifica per le operazioni completate con successo */}
+        {/* Notification for successful operations */}
         <Snackbar
           open={!!notification}
           autoHideDuration={6000}

@@ -1,4 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button, 
@@ -16,10 +17,11 @@ import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import UserCard from '../Users/UserCard';
 import UserForm from '../Users/UserForm';
-import {createUser, deleteUser, fetchUsers, updateUser} from '../../services/userService';
+import { createUser, deleteUser, fetchUsers, updateUser } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
 
 const UserManagement = () => {
+  const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,17 +31,17 @@ const UserManagement = () => {
   const [filterRole, setFilterRole] = useState('');
   const [notification, setNotification] = useState(null);
 
-  // Mostra una notifica
+  // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
     
-    // Rimuovi la notifica dopo 6 secondi
+    // Remove the notification after 6 seconds
     setTimeout(() => {
       setNotification(null);
     }, 6000);
   };
 
-  // Carica utenti
+  // Load users
   useEffect(() => {
     const loadUsers = async () => {
       setIsLoading(true);
@@ -48,7 +50,7 @@ const UserManagement = () => {
           const usersData = await fetchUsers();
           setUsers(usersData);
         }, {
-          errorMessage: 'Impossibile caricare la lista degli utenti',
+          errorMessage: t('errors.unableToLoadUserList'),
           showError: true
         });
       } finally {
@@ -57,9 +59,9 @@ const UserManagement = () => {
     };
 
     loadUsers();
-  }, [withErrorHandling]);
+  }, [withErrorHandling, t]);
 
-  // Filtra utenti in base alla ricerca e al ruolo
+  // Filter users based on search and role
   const filteredUsers = users.filter(user => {
     const matchesSearch = searchTerm === '' ||
         (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -88,43 +90,45 @@ const UserManagement = () => {
   const handleSaveUser = async (userData) => {
     const result = await withErrorHandling(async () => {
       if (userData.id) {
-        // Aggiorna un utente esistente
+        // Update an existing user
         const updatedUser = await updateUser(userData.id, userData);
         return { updated: true, user: updatedUser };
       } else {
-        // Crea un nuovo utente
+        // Create a new user
         const newUser = await createUser(userData);
         return { updated: false, user: newUser };
       }
     }, {
       errorMessage: userData.id 
-        ? `Impossibile aggiornare l'utente "${userData.username}"` 
-        : `Impossibile creare l'utente "${userData.username}"`,
+        ? t('userManagement.unableToUpdateUser', { username: userData.username }) 
+        : t('userManagement.unableToCreateUser', { username: userData.username }),
       showError: true
     });
 
     if (result) {
       if (result.updated) {
-        // Aggiorna utenti esistenti
+        // Update existing users
         setUsers(users.map(user =>
             user.id === result.user.id ? result.user : user
         ));
-        showNotification(`Utente "${result.user.username}" aggiornato con successo`);
+        showNotification(t('userManagement.userUpdatedSuccess', { username: result.user.username }));
       } else {
-        // Aggiungi nuovo utente
+        // Add new user
         setUsers([...users, result.user]);
-        showNotification(`Utente "${result.user.username}" creato con successo`);
+        showNotification(t('userManagement.userCreatedSuccess', { username: result.user.username }));
       }
       setIsUserModalOpen(false);
     }
   };
 
   const handleDeleteUser = async (userId) => {
-    // Trova il nome dell'utente prima di eliminarlo
+    // Find the user's name before deleting
     const userToDelete = users.find(u => u.id === userId);
-    const userName = userToDelete ? (userToDelete.username || `${userToDelete.firstName} ${userToDelete.lastName}`) : 'selezionato';
+    const userName = userToDelete ? (userToDelete.username || `${userToDelete.firstName} ${userToDelete.lastName}`) : t('userManagement.selected');
 
-    const confirmation = window.confirm(`Sei sicuro di voler eliminare l'utente "${userName}"? Questa azione non può essere annullata.`);
+    const confirmation = window.confirm(
+      `${t('userManagement.confirmDeleteUser')} "${userName}"? ${t('userManagement.actionCannotBeUndone')}`
+    );
     
     if (!confirmation) {
       return;
@@ -134,34 +138,34 @@ const UserManagement = () => {
       await deleteUser(userId);
       return true;
     }, {
-      errorMessage: `Impossibile eliminare l'utente "${userName}"`,
+      errorMessage: t('userManagement.unableToDeleteUser', { username: userName }),
       showError: true
     });
 
     if (success) {
       setUsers(users.filter(user => user.id !== userId));
       setIsUserModalOpen(false);
-      showNotification(`Utente "${userName}" eliminato con successo`);
+      showNotification(t('userManagement.userDeletedSuccess', { username: userName }));
     }
   };
 
   return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-          <Typography variant="h6">Utenti Registrati</Typography>
+          <Typography variant="h6">{t('userManagement.title')}</Typography>
           <Button
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
               onClick={handleAddUser}
           >
-            Aggiungi Utente
+            {t('userManagement.addUser')}
           </Button>
         </Box>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3 }}>
           <TextField
-              placeholder="Cerca utenti..."
+              placeholder={t('userManagement.searchUsers')}
               variant="outlined"
               size="small"
               value={searchTerm}
@@ -178,7 +182,7 @@ const UserManagement = () => {
 
           <TextField
               select
-              label="Ruolo"
+              label={t('userManagement.role')}
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               size="small"
@@ -191,9 +195,9 @@ const UserManagement = () => {
                 ),
               }}
           >
-            <MenuItem value="">Tutti i ruoli</MenuItem>
-            <MenuItem value="ADMIN">Amministratore</MenuItem>
-            <MenuItem value="USER">Utente</MenuItem>
+            <MenuItem value="">{t('userManagement.allRoles')}</MenuItem>
+            <MenuItem value="ADMIN">{t('userManagement.administrator')}</MenuItem>
+            <MenuItem value="USER">{t('userManagement.user')}</MenuItem>
           </TextField>
         </Stack>
 
@@ -206,7 +210,7 @@ const UserManagement = () => {
               {filteredUsers.length === 0 ? (
                   <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
                     <Typography variant="body1" color="text.secondary">
-                      Nessun utente trovato.
+                      {t('userManagement.noUsersFound')}
                     </Typography>
                   </Box>
               ) : (
@@ -230,7 +234,7 @@ const UserManagement = () => {
             onDelete={handleDeleteUser}
         />
 
-        {/* Notifica per le operazioni completate con successo */}
+        {/* Notification for successful operations */}
         <Snackbar
           open={!!notification}
           autoHideDuration={6000}

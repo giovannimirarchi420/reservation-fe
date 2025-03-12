@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Box,
     Card,
@@ -16,6 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
+    const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = React.useState(null);
 
     const handleOpenMenu = (event) => {
@@ -36,17 +38,17 @@ const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
         onDelete();
     };
 
-    // Funzione per determinare etichetta e colore in base allo stato numerico
+    // Function to determine label and color based on numeric status
     const getStatusInfo = (statusCode) => {
         switch (statusCode) {
             case "ACTIVE":
-                return { label: 'Attivo', color: 'success' };
+                return { label: t('resourceCard.active'), color: 'success' };
             case "MAINTENANCE":
-                return { label: 'Manutenzione', color: 'warning' };
+                return { label: t('resourceCard.maintenance'), color: 'warning' };
             case "UNAVAILABLE":
-                return { label: 'Non disponibile', color: 'error' };
+                return { label: t('resourceCard.unavailable'), color: 'error' };
             default:
-                return { label: 'Sconosciuto', color: 'default' };
+                return { label: t('resourceCard.unknown'), color: 'default' };
         }
     };
 
@@ -77,11 +79,11 @@ const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
                 </Box>
 
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                    <b>Specifiche:</b> {resource.specs}
+                    <b>{t('resourceCard.specifications')}</b> {resource.specs}
                 </Typography>
 
                 <Typography variant="body2" color="text.secondary" gutterBottom>
-                    <b>Ubicazione:</b> {resource.location}
+                    <b>{t('resourceCard.location')}</b> {resource.location}
                 </Typography>
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, alignItems: 'center' }}>
@@ -91,7 +93,7 @@ const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
                         size="small"
                     />
                     <Typography variant="caption" color="text.secondary">
-                        ID: {resource.id}
+                        {t('resourceCard.id')} {resource.id}
                     </Typography>
                 </Box>
             </CardContent>
@@ -105,13 +107,13 @@ const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
                     <ListItemIcon>
                         <EditIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Modifica</ListItemText>
+                    <ListItemText>{t('resourceCard.edit')}</ListItemText>
                 </MenuItem>
                 <MenuItem onClick={handleDelete}>
                     <ListItemIcon>
                         <DeleteIcon fontSize="small" color="error" />
                     </ListItemIcon>
-                    <ListItemText primary="Elimina" primaryTypographyProps={{ color: 'error' }} />
+                    <ListItemText primary={t('resourceCard.delete')} primaryTypographyProps={{ color: 'error' }} />
                 </MenuItem>
             </Menu>
         </Card>

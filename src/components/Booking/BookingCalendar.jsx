@@ -1,7 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'moment/locale/it';
+import 'moment/locale/en-gb';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import {
     Box,
@@ -37,11 +39,11 @@ import useApiError from '../../hooks/useApiError';
 import { RESOURCE_COLORS } from '../../utils/colorUtils';
 import '../../styles/calendarStyles.css';
 
-// Configura moment.js per l'italiano
-moment.locale('it');
+// Configure moment.js for localization
 const localizer = momentLocalizer(moment);
 
 const BookingCalendar = () => {
+  const { t, i18n } = useTranslation();
   const { currentUser } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
   const [currentView, setCurrentView] = useState('week');
@@ -55,50 +57,60 @@ const BookingCalendar = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [calendarHeight, setCalendarHeight] = useState('100%');
   const [bookingToHighlight, setBookingToHighlight] = useState(null);
-  // Stato per la notifica
+  // State for notification
   const [notification, setNotification] = useState(null);
 
-  // Mostra una notifica
+  // Update moment locale based on current language
+  useEffect(() => {
+    const language = i18n.language || 'it';
+    if (language.startsWith('en')) {
+      moment.locale('en-gb');
+    } else {
+      moment.locale('it');
+    }
+  }, [i18n.language]);
+
+  // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
     
-    // Rimuovi la notifica dopo 6 secondi
+    // Remove the notification after 6 seconds
     setTimeout(() => {
       setNotification(null);
     }, 6000);
   };
 
-  // Controlla se c'è una prenotazione da visualizzare dal localStorage
+  // Check if there is a booking to display from localStorage
   useEffect(() => {
     const bookingData = localStorage.getItem('viewBookingInCalendar');
     if (bookingData) {
       try {
         const parsedData = JSON.parse(bookingData);
-        // Imposta la data selezionata dalla prenotazione
+        // Set the selected date from the booking
         if (parsedData.date) {
           const bookingDate = new Date(parsedData.date);
           setSelectedDate(bookingDate);
-          // Imposta la vista giornaliera per una migliore visualizzazione della prenotazione
+          // Set the day view for better booking visualization
           setCurrentView('day');
         }
-        // Salva l'ID della prenotazione per evidenziarla
+        // Save the booking ID to highlight it
         if (parsedData.id) {
           setBookingToHighlight(parsedData.id);
         }
-        // Imposta il filtro sulla risorsa se è presente
+        // Set the resource filter if present
         if (parsedData.resourceId) {
           setSelectedResource(parsedData.resourceId);
         }
-        // Rimuovi i dati dal localStorage dopo averli utilizzati
+        // Remove data from localStorage after using it
         localStorage.removeItem('viewBookingInCalendar');
       } catch (error) {
-        console.error('Errore nel parsing dei dati della prenotazione:', error);
+        console.error('Error parsing booking data:', error);
         localStorage.removeItem('viewBookingInCalendar');
       }
     }
   }, []);
 
-  // Carica eventi e risorse
+  // Load events and resources
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
@@ -109,10 +121,10 @@ const BookingCalendar = () => {
             fetchResources()
           ]);
           
-          // Assegna colori alle risorse
+          // Assign colors to resources
           const colors = {};
           resourcesData.forEach((resource, index) => {
-            // Usa colori ciclici per avere colori distinti per ogni risorsa
+            // Use cyclic colors to have distinct colors for each resource
             colors[resource.id] = RESOURCE_COLORS[index % RESOURCE_COLORS.length];
           });
           setResourceColors(colors);
@@ -123,25 +135,25 @@ const BookingCalendar = () => {
               ...event,
               start: new Date(event.start),
               end: new Date(event.end),
-              resourceName: resource ? resource.name : 'Risorsa sconosciuta'
+              resourceName: resource ? resource.name : t('bookingForm.unknownResource')
             };
           });
           
           setEvents(processedEvents);
           setResources(resourcesData);
           
-          // Se c'è una prenotazione da evidenziare, apri il modal dei dettagli
+          // If there is a booking to highlight, open the details modal
           if (bookingToHighlight) {
             const bookingToShow = processedEvents.find(event => event.id === bookingToHighlight);
             if (bookingToShow) {
               setSelectedEvent(bookingToShow);
               setIsBookingModalOpen(true);
-              // Resetta dopo l'apertura
+              // Reset after opening
               setBookingToHighlight(null);
             }
           }
         }, {
-          errorMessage: 'Impossibile caricare i dati del calendario',
+          errorMessage: t('errors.unableToLoadCalendarData'),
           showError: true
         });
       } finally {
@@ -150,26 +162,26 @@ const BookingCalendar = () => {
     };
 
     loadData();
-  }, [withErrorHandling, bookingToHighlight]);
+  }, [withErrorHandling, bookingToHighlight, t]);
 
-  // Aggiorna l'altezza del calendario in base alla vista corrente
+  // Update calendar height based on current view
   useEffect(() => {
-    // In vista mensile, usiamo un'altezza fissa per evitare sovrapposizioni con il footer
+    // In month view, use a fixed height to avoid overlaps with the footer
     if (currentView === 'month') {
-      // Altezza calcolata per evitare sovrapposizioni con il footer
+      // Calculated height to avoid overlaps with the footer
       setCalendarHeight('calc(100vh - 220px)');
     } else {
-      // Per le altre viste, usiamo l'altezza disponibile del contenitore
+      // For other views, use the available container height
       setCalendarHeight('calc(100% - 70px)');
     }
   }, [currentView]);
 
-  // Filtra gli eventi in base alla risorsa selezionata
+  // Filter events based on selected resource
   const filteredEvents = selectedResource
       ? events.filter(event => event.resourceId === selectedResource)
       : events;
 
-  // Handler per aprire il modal di prenotazione con slot selezionato
+  // Handler to open booking modal with selected slot
   const handleSelectSlot = (slotInfo) => {
     setSelectedEvent({
       title: '',
@@ -177,20 +189,20 @@ const BookingCalendar = () => {
       start: slotInfo.start,
       end: slotInfo.end,
       description: '',
-      userId: currentUser?.id // Usa l'ID dell'utente corrente come default
+      userId: currentUser?.id // Use current user ID as default
     });
     setIsBookingModalOpen(true);
   };
 
-  // Handler per visualizzare i dettagli di un evento selezionato
+  // Handler to display details of a selected event
   const handleSelectEvent = (event) => {
     setSelectedEvent(event);
     setIsBookingModalOpen(true);
   };
 
-  // Salva una prenotazione
+  // Save a booking
   const handleSaveBooking = async (bookingData) => {
-    // Assicurati che bookingData.start e bookingData.end siano oggetti Date
+    // Ensure bookingData.start and bookingData.end are Date objects
     const processedBookingData = {
       ...bookingData,
       start: bookingData.start instanceof Date ? bookingData.start : new Date(bookingData.start),
@@ -199,19 +211,18 @@ const BookingCalendar = () => {
     
     const result = await withErrorHandling(async () => {
       if (processedBookingData.id) {
-        // Aggiorna un evento esistente
+        // Update an existing event
         const updatedEvent = await updateEvent(processedBookingData.id, processedBookingData);
-        // Assicurati che le date nella risposta siano oggetti Date
+        // Ensure dates in the response are Date objects
         return {
           ...updatedEvent,
           start: new Date(updatedEvent.start),
           end: new Date(updatedEvent.end)
         };
       } else {
-        // Crea un nuovo evento
+        // Create a new event
         const newEvent = await createEvent(processedBookingData);
-        console.log(newEvent)
-        // Assicurati che le date nella risposta siano oggetti Date
+        // Ensure dates in the response are Date objects
         return {
           ...newEvent,
           start: new Date(newEvent.start),
@@ -220,42 +231,42 @@ const BookingCalendar = () => {
       }
     }, {
       errorMessage: processedBookingData.id
-        ? 'Impossibile aggiornare la prenotazione'
-        : 'Impossibile creare la prenotazione',
+        ? t('bookingCalendar.unableToUpdateBooking')
+        : t('bookingCalendar.unableToCreateBooking'),
       showError: true
     });
     
-    //The BE does not return any status field if the call went good and the new/updated event has been returned.
+    // The BE does not return any status field if the call went good and the new/updated event has been returned.
     if (result && !result.status) {
-      // Aggiungi il nome della risorsa al risultato
-      const resourceName = resources.find(r => r.id === result.resourceId)?.name || 'Risorsa sconosciuta';
+      // Add the resource name to the result
+      const resourceName = resources.find(r => r.id === result.resourceId)?.name || t('bookingForm.unknownResource');
       const enrichedResult = { ...result, resourceName };
     
       if (processedBookingData.id) {
-        // Aggiorna l'evento nella lista
+        // Update the event in the list
         setEvents(events.map(event => event.id === enrichedResult.id ? enrichedResult : event));
-        showNotification(`Prenotazione "${enrichedResult.title}" aggiornata con successo`);
+        showNotification(t('bookingCalendar.bookingUpdatedSuccess', { title: enrichedResult.title }));
       } else {
-        // Aggiungi il nuovo evento alla lista
+        // Add the new event to the list
         setEvents([...events, enrichedResult]);
-        showNotification(`Prenotazione "${enrichedResult.title}" creata con successo`);
+        showNotification(t('bookingCalendar.bookingCreatedSuccess', { title: enrichedResult.title }));
       }
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
     }
   };
 
-  // Elimina una prenotazione
+  // Delete a booking
   const handleDeleteBooking = async (eventId) => {
-    // Trova l'evento prima di eliminarlo per mostrare il titolo nella notifica
+    // Find the event before deleting it to show the title in the notification
     const eventToDelete = events.find(e => e.id === eventId);
-    const eventTitle = eventToDelete ? eventToDelete.title : 'selezionata';
+    const eventTitle = eventToDelete ? eventToDelete.title : t('bookingCalendar.selected');
     
     const success = await withErrorHandling(async () => {
       await deleteEvent(eventId);
       return true;
     }, {
-      errorMessage: 'Impossibile eliminare la prenotazione',
+      errorMessage: t('bookingCalendar.unableToDeleteBooking'),
       showError: true
     });
     
@@ -263,13 +274,13 @@ const BookingCalendar = () => {
       setEvents(events.filter(event => event.id !== eventId));
       setIsBookingModalOpen(false);
       setSelectedEvent(null);
-      showNotification(`Prenotazione "${eventTitle}" eliminata con successo`, 'info');
+      showNotification(t('bookingCalendar.bookingDeletedSuccess', { title: eventTitle }), 'info');
     }
   };
 
-  // Funzione per trovare eventi sovrapposti
+  // Function to find overlapping events
   const findOverlappingEvents = (targetEvent) => {
-    // Funzione che verifica se due eventi si sovrappongono temporalmente
+    // Function that checks if two events overlap in time
     const eventsOverlap = (event1, event2) => {
       return (
         event1.start < event2.end && 
@@ -277,26 +288,26 @@ const BookingCalendar = () => {
       );
     };
     
-    // Conta quanti eventi si sovrappongono con questo
+    // Count how many events overlap with this one
     return filteredEvents.filter(event => 
       event.id !== targetEvent.id && 
       eventsOverlap(event, targetEvent)
     ).length;
   };
 
-  // Stile per gli eventi nel calendario
+  // Style for events in the calendar
   const eventStyleGetter = (event) => {
-    // Usa il colore basato sulla risorsa
+    // Use color based on the resource
     const backgroundColor = resourceColors[event.resourceId] || '#1976d2';
     
-    // Conta quanti eventi si sovrappongono con questo
+    // Count how many events overlap with this one
     const overlappingCount = findOverlappingEvents(event);
     
-    // Adatta lo stile in base al numero di eventi sovrapposti
+    // Adjust style based on the number of overlapping events
     const compactMode = overlappingCount >= 2;
     const extremeCompactMode = overlappingCount >= 4;
     
-    // Controlla se è l'evento che deve essere evidenziato
+    // Check if it's the event that needs to be highlighted
     const isHighlighted = bookingToHighlight === event.id;
     
     return {
@@ -305,7 +316,7 @@ const BookingCalendar = () => {
         borderRadius: '3px',
         opacity: 0.9,
         color: 'white',
-        border: isHighlighted ? '2px solid #ff5722' : '1px solid ' + backgroundColor, // Bordo più evidente per eventi evidenziati
+        border: isHighlighted ? '2px solid #ff5722' : '1px solid ' + backgroundColor, // More noticeable border for highlighted events
         display: 'block',
         overflow: 'hidden',
         fontSize: extremeCompactMode ? '0.65rem' : (compactMode ? '0.7rem' : '0.75rem'),
@@ -314,10 +325,10 @@ const BookingCalendar = () => {
         textOverflow: 'ellipsis',
         marginTop: '1px',
         marginBottom: '1px',
-        boxShadow: isHighlighted ? '0 0 8px rgba(255, 87, 34, 0.8)' : '0 1px 2px rgba(0,0,0,0.2)', // Ombra più evidente per eventi evidenziati
-        // Imposta un'altezza minima in base al numero di eventi sovrapposti
+        boxShadow: isHighlighted ? '0 0 8px rgba(255, 87, 34, 0.8)' : '0 1px 2px rgba(0,0,0,0.2)', // More noticeable shadow for highlighted events
+        // Set a minimum height based on the number of overlapping events
         minHeight: extremeCompactMode ? '16px' : (compactMode ? '18px' : '20px'),
-        // Aggiungi un attributo data- che il componente EventItem può leggere
+        // Add a data- attribute that the EventItem component can read
         '--overlapping-count': overlappingCount,
         '--compact-mode': compactMode ? 'true' : 'false',
         '--extreme-compact-mode': extremeCompactMode ? 'true' : 'false',
@@ -332,15 +343,15 @@ const BookingCalendar = () => {
     }
   };
 
-  // Componente per visualizzare gli eventi nel calendario
+  // Component to display events in the calendar
   const EventItem = ({ event }) => {
-    // Accedi alle proprietà di stile passate dall'eventStyleGetter
+    // Access style properties passed from eventStyleGetter
     const style = event.style || {};
     const compactMode = style['--compact-mode'] === 'true';
     const extremeCompactMode = style['--extreme-compact-mode'] === 'true';
     const isHighlighted = style['--is-highlighted'] === 'true';
     
-    // In modalità compatta estrema, mostra tutto in un'unica riga
+    // In extreme compact mode, show everything in a single line
     if (extremeCompactMode) {
       return (
         <Box sx={{ 
@@ -368,7 +379,7 @@ const BookingCalendar = () => {
       );
     }
     
-    // In modalità compatta, mostra titolo e risorsa su un'unica riga
+    // In compact mode, show title and resource on a single line
     if (compactMode) {
       return (
         <Box sx={{ 
@@ -406,7 +417,7 @@ const BookingCalendar = () => {
       );
     }
     
-    // Modalità normale, mostra su due righe
+    // Normal mode, show on two lines
     return (
       <Box sx={{ 
         p: 0.5, 
@@ -457,7 +468,7 @@ const BookingCalendar = () => {
             p: 2,
             display: 'flex',
             flexDirection: 'column',
-            overflow: 'hidden'  // Impedisce che il contenuto fuoriesca dal Paper
+            overflow: 'hidden'  // Prevent content from overflowing the Paper
           }}
         >
           <Box sx={{
@@ -467,42 +478,42 @@ const BookingCalendar = () => {
             alignItems: { xs: 'stretch', md: 'center' },
             gap: 2,
             mb: 2,
-            flexShrink: 0  // Impedisce che i controlli si riducano
+            flexShrink: 0  // Prevent controls from shrinking
           }}>
-            {/* Prima riga (o colonna su mobile): controlli di visualizzazione */}
+            {/* First row (or column on mobile): display controls */}
             <Box sx={{
               display: 'flex',
               alignItems: 'center',
               gap: 2
             }}>
-              {/* Toggle buttons per vista calendario - sostituiscono i bottoni singoli */}
+              {/* Toggle buttons for calendar view - replace single buttons */}
               <ToggleButtonGroup
                   value={currentView}
                   exclusive
                   onChange={handleViewChange}
-                  aria-label="vista calendario"
+                  aria-label="calendar view"
                   size="small"
               >
-                <ToggleButton value="day" aria-label="vista giornaliera">
-                  <Tooltip title="Vista giornaliera">
+                <ToggleButton value="day" aria-label="day view">
+                  <Tooltip title={t('bookingCalendar.dayView')}>
                     <CalendarViewDay />
                   </Tooltip>
                 </ToggleButton>
-                <ToggleButton value="week" aria-label="vista settimanale">
-                  <Tooltip title="Vista settimanale">
+                <ToggleButton value="week" aria-label="week view">
+                  <Tooltip title={t('bookingCalendar.weekView')}>
                     <CalendarViewWeek />
                   </Tooltip>
                 </ToggleButton>
-                <ToggleButton value="month" aria-label="vista mensile">
-                  <Tooltip title="Vista mensile">
+                <ToggleButton value="month" aria-label="month view">
+                  <Tooltip title={t('bookingCalendar.monthView')}>
                     <CalendarViewMonth />
                   </Tooltip>
                 </ToggleButton>
               </ToggleButtonGroup>
 
-              {/* Controlli navigazione */}
+              {/* Navigation controls */}
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Tooltip title="Precedente">
+                <Tooltip title={t('bookingCalendar.previous')}>
                   <IconButton
                       onClick={() => setSelectedDate(moment(selectedDate).subtract(1, currentView).toDate())}
                       size="small"
@@ -511,7 +522,7 @@ const BookingCalendar = () => {
                   </IconButton>
                 </Tooltip>
 
-                <Tooltip title="Oggi">
+                <Tooltip title={t('bookingCalendar.today')}>
                   <Button
                       onClick={() => setSelectedDate(new Date())}
                       variant="outlined"
@@ -519,11 +530,11 @@ const BookingCalendar = () => {
                       startIcon={<TodayIcon />}
                       sx={{ mx: 1 }}
                   >
-                    Oggi
+                    {t('bookingCalendar.today')}
                   </Button>
                 </Tooltip>
 
-                <Tooltip title="Successivo">
+                <Tooltip title={t('bookingCalendar.next')}>
                   <IconButton
                       onClick={() => setSelectedDate(moment(selectedDate).add(1, currentView).toDate())}
                       size="small"
@@ -534,7 +545,7 @@ const BookingCalendar = () => {
               </Box>
             </Box>
 
-            {/* Seconda riga (o colonna su mobile): azioni e filtri */}
+            {/* Second row (or column on mobile): actions and filters */}
             <Box sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -542,7 +553,7 @@ const BookingCalendar = () => {
               gap: 2,
               flexWrap: { xs: 'wrap', md: 'nowrap' }
             }}>
-              <Tooltip title="Crea nuova prenotazione">
+              <Tooltip title={t('bookingCalendar.newBooking')}>
                 <Button
                     variant="contained"
                     color="primary"
@@ -553,14 +564,14 @@ const BookingCalendar = () => {
                         start: new Date(),
                         end: new Date(new Date().getTime() + 60 * 60 * 1000),
                         description: '',
-                        userId: currentUser?.id // Imposta l'ID dell'utente corrente come default
+                        userId: currentUser?.id // Set current user ID as default
                       });
                       setIsBookingModalOpen(true);
                     }}
                     startIcon={<AddIcon />}
                     fullWidth={false}
                 >
-                  Nuova Prenotazione
+                  {t('bookingCalendar.newBooking')}
                 </Button>
               </Tooltip>
 
@@ -571,15 +582,15 @@ const BookingCalendar = () => {
                     flexGrow: { xs: 1, md: 0 }
                   }}
               >
-                <InputLabel id="resource-filter-label">Risorsa</InputLabel>
+                <InputLabel id="resource-filter-label">{t('bookingCalendar.resource')}</InputLabel>
                 <Select
                     labelId="resource-filter-label"
                     value={selectedResource || ''}
-                    label="Risorsa"
+                    label={t('bookingCalendar.resource')}
                     onChange={(e) => setSelectedResource(e.target.value ? parseInt(e.target.value) : null)}
                     startAdornment={<FilterList fontSize="small" sx={{ mr: 1, ml: -0.5 }} />}
                 >
-                  <MenuItem value="">Tutte le risorse</MenuItem>
+                  <MenuItem value="">{t('bookingCalendar.allResources')}</MenuItem>
                   {resources.map(resource => (
                       <MenuItem key={resource.id} value={resource.id}>
                         {resource.name}
@@ -594,14 +605,14 @@ const BookingCalendar = () => {
             sx={{
               height: calendarHeight,
               flex: 1,
-              overflow: 'hidden',  // Contiene il calendario in caso di sovrapposizione
+              overflow: 'hidden',  // Contain the calendar in case of overflow
               display: 'flex',
               flexDirection: 'column'
             }}
           >
             {isLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <Typography>Caricamento calendario...</Typography>
+                  <Typography>{t('bookingCalendar.loadingCalendar')}</Typography>
                 </Box>
             ) : (
                 <Calendar
@@ -631,30 +642,30 @@ const BookingCalendar = () => {
                     min={moment().hour(0).minute(0).toDate()}
                     max={moment().hour(23).minute(59).toDate()}
                     messages={{
-                      today: 'Oggi',
-                      previous: 'Precedente',
-                      next: 'Successivo',
-                      month: 'Mese',
-                      week: 'Settimana',
-                      day: 'Giorno',
+                      today: t('bookingCalendar.today'),
+                      previous: t('bookingCalendar.previous'),
+                      next: t('bookingCalendar.next'),
+                      month: t('bookingCalendar.month'),
+                      week: t('bookingCalendar.week'),
+                      day: t('bookingCalendar.day'),
                       agenda: 'Agenda',
-                      date: 'Data',
-                      time: 'Ora',
-                      event: 'Evento',
-                      noEventsInRange: 'Nessuna prenotazione in questo periodo',
-                      showMore: (total) => `+ ${total} altre`
+                      date: t('bookingCalendar.date'),
+                      time: t('bookingCalendar.time'),
+                      event: t('bookingCalendar.event'),
+                      noEventsInRange: t('bookingCalendar.noBookingsInPeriod'),
+                      showMore: (total) => `+ ${total} ${t('common.more')}`
                     }}
                     popup
                     components={{
                       event: EventItem,
-                      toolbar: () => null // Disabilita la toolbar predefinita del calendario
+                      toolbar: () => null // Disable the default calendar toolbar
                     }}
                 />
             )}
           </Box>
         </Paper>
 
-        {/* Dialog prenotazione */}
+        {/* Booking dialog */}
         <BookingForm
             open={isBookingModalOpen}
             onClose={() => {
@@ -667,7 +678,7 @@ const BookingCalendar = () => {
             resources={resources}
         />
 
-        {/* Notifica per le operazioni completate con successo */}
+        {/* Notification for successful operations */}
         <Snackbar
           open={!!notification}
           autoHideDuration={6000}

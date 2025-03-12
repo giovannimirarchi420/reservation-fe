@@ -1,16 +1,18 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Alert, Snackbar, IconButton, Stack } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useError } from '../../context/ErrorContext';
 
 /**
- * Componente che visualizza le notifiche di errore
- * Le notifiche vengono mostrate come Snackbar che appaiono nella parte inferiore dello schermo
+ * Component that displays error notifications
+ * Notifications appear as Snackbars at the bottom of the screen
  */
 const ErrorNotification = () => {
+  const { t } = useTranslation();
   const { errors, removeError } = useError();
 
-  // Massimo 3 errori mostrati contemporaneamente per non riempire lo schermo
+  // Maximum 3 errors shown simultaneously to avoid filling the screen
   const visibleErrors = errors.slice(0, 3);
 
   const handleClose = (errorId) => {
@@ -45,7 +47,7 @@ const ErrorNotification = () => {
         </Snackbar>
       ))}
       
-      {/* Se ci sono più di 3 errori, mostra il numero totale nel primo */}
+      {/* If there are more than 3 errors, show the total number in the first one */}
       {errors.length > 3 && (
         <Snackbar
           open={true}
@@ -53,7 +55,7 @@ const ErrorNotification = () => {
           sx={{ position: 'relative', transform: 'none', width: '100%', maxWidth: 'lg', mx: 'auto' }}
         >
           <Alert severity="info">
-            Ci sono altri {errors.length - 3} errori non visualizzati
+            {t('errors.moreErrorsNotDisplayed', { count: errors.length - 3 })}
           </Alert>
         </Snackbar>
       )}

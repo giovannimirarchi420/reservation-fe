@@ -259,8 +259,8 @@ const it = {
     },
     upcomingReservations: {
       noUpcomingBookings: "Nessuna prenotazione imminente",
-      date: "Data:",
-      user: "Utente:",
+      date: "Data",
+      user: "Utente",
       na: "N/D"
     },
     profile: {
@@ -339,7 +339,8 @@ const it = {
     unableToSendNotification: "Impossibile inviare la notifica",
     unableToMarkNotificationAsRead: "Impossibile segnare la notifica come letta",
     unableToMarkAllNotificationsAsRead: "Impossibile segnare tutte le notifiche come lette",
-    unableToDeleteNotification: "Impossibile eliminare la notifica"
+    unableToDeleteNotification: "Impossibile eliminare la notifica",
+    moreErrorsNotDisplayed: "Ci sono altri {{count}} errori non visualizzati"
   },
   common: {
     unableToCompleteOperation: "Impossibile completare l'operazione",
@@ -357,7 +358,8 @@ const it = {
     success: "Successo",
     warning: "Avviso",
     information: "Informazione",
-    tryAgain: "Riprova"
+    tryAgain: "Riprova",
+    more: "Altre.."
   },
   languageSelector: {
     language: "Lingua",

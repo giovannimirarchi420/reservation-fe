@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Box,
     Button,
     Card,
     CardContent,
     CircularProgress,
-    Grid,
     IconButton,
     InputAdornment,
     ListItemIcon,
@@ -13,7 +13,8 @@ import {
     Menu,
     MenuItem,
     TextField,
-    Typography
+    Typography,
+    Stack
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -30,6 +31,7 @@ import ResourceTypeForm from './ResourceTypeForm';
 import { getContrastTextColor } from '../../utils/colorUtils';
 
 const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
+    const { t } = useTranslation();
     const [resourceTypes, setResourceTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -48,7 +50,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
         }
     }, [openFormOnMount, resetOpenFormFlag]);
 
-    // Carica tipi di risorsa
+    // Load resource types
     useEffect(() => {
         const loadResourceTypes = async () => {
             setIsLoading(true);
@@ -65,7 +67,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
         loadResourceTypes();
     }, []);
 
-    // Filtra tipi di risorsa in base alla ricerca
+    // Filter resource types based on search
     const filteredResourceTypes = resourceTypes.filter(type => {
         return searchTerm === '' ||
             type.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -96,20 +98,20 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const handleSaveResourceType = async (resourceTypeData) => {
         try {
             if (resourceTypeData.id) {
-                // Aggiorna un tipo di risorsa esistente
+                // Update an existing resource type
                 const updatedResourceType = await updateResourceType(resourceTypeData.id, resourceTypeData);
                 setResourceTypes(resourceTypes.map(type =>
                     type.id === updatedResourceType.id ? updatedResourceType : type
                 ));
             } else {
-                // Crea un nuovo tipo di risorsa
+                // Create a new resource type
                 const newResourceType = await createResourceType(resourceTypeData);
                 setResourceTypes([...resourceTypes, newResourceType]);
             }
             setIsFormOpen(false);
         } catch (error) {
             console.error('Error saving resource type:', error);
-            // Qui potrebbe essere visualizzato un messaggio di errore
+            // Could display an error message here
         }
     };
 
@@ -121,27 +123,27 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
             handleCloseMenu();
         } catch (error) {
             console.error('Error deleting resource type:', error);
-            // Qui potrebbe essere visualizzato un messaggio di errore
+            // Could display an error message here
         }
     };
 
     return (
         <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-                <Typography variant="h6">Tipi di Risorse</Typography>
+                <Typography variant="h6">{t('resourceType.title')}</Typography>
                 <Button
                     variant="contained"
                     color="primary"
                     startIcon={<AddIcon />}
                     onClick={handleAddResourceType}
                 >
-                    Aggiungi Tipo
+                    {t('resourceType.addType')}
                 </Button>
             </Box>
 
             <Box sx={{ mb: 3 }}>
                 <TextField
-                    placeholder="Cerca tipi di risorsa..."
+                    placeholder={t('resourceType.searchResourceTypes')}
                     variant="outlined"
                     size="small"
                     value={searchTerm}
@@ -162,62 +164,68 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
                     <CircularProgress />
                 </Box>
             ) : (
-                <Grid container spacing={3}>
+                <Box sx={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: { 
+                        xs: '1fr', 
+                        md: 'repeat(2, 1fr)', 
+                        lg: 'repeat(3, 1fr)' 
+                    }, 
+                    gap: 3 
+                }}>
                     {filteredResourceTypes.length === 0 ? (
-                        <Box sx={{ width: '100%', textAlign: 'center', py: 4 }}>
+                        <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
                             <Typography variant="body1" color="text.secondary">
-                                Nessun tipo di risorsa trovato.
+                                {t('resourceType.noResourceTypesFound')}
                             </Typography>
                         </Box>
                     ) : (
                         filteredResourceTypes.map(resourceType => (
-                            <Grid item xs={12} md={6} lg={4} key={resourceType.id}>
-                                <Card>
-                                    <CardContent>
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-                                            <Box
-                                                sx={{
-                                                    backgroundColor: resourceType.color,
-                                                    color: getContrastTextColor(resourceType.color),
-                                                    borderRadius: 2,
-                                                    px: 2,
-                                                    py: 1,
-                                                    fontWeight: 'bold'
-                                                }}
-                                            >
-                                                {resourceType.name}
-                                            </Box>
-                                            <IconButton
-                                                size="small"
-                                                onClick={(e) => handleOpenMenu(e, resourceType.id)}
-                                            >
-                                                <MoreVertIcon />
-                                            </IconButton>
+                            <Card key={resourceType.id}>
+                                <CardContent>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                        <Box
+                                            sx={{
+                                                backgroundColor: resourceType.color,
+                                                color: getContrastTextColor(resourceType.color),
+                                                borderRadius: 2,
+                                                px: 2,
+                                                py: 1,
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            {resourceType.name}
                                         </Box>
+                                        <IconButton
+                                            size="small"
+                                            onClick={(e) => handleOpenMenu(e, resourceType.id)}
+                                        >
+                                            <MoreVertIcon />
+                                        </IconButton>
+                                    </Box>
 
-                                        {resourceType.description && (
-                                            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                                                {resourceType.description}
-                                            </Typography>
-                                        )}
+                                    {resourceType.description && (
+                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                                            {resourceType.description}
+                                        </Typography>
+                                    )}
 
-                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                                            <Typography variant="caption" color="text.secondary">
-                                                ID: {resourceType.id}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                Colore: {resourceType.color}
-                                            </Typography>
-                                        </Box>
-                                    </CardContent>
-                                </Card>
-                            </Grid>
+                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {t('resourceType.id')} {resourceType.id}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {t('resourceType.color')} {resourceType.color}
+                                        </Typography>
+                                    </Box>
+                                </CardContent>
+                            </Card>
                         ))
                     )}
-                </Grid>
+                </Box>
             )}
 
-            {/* Menu contestuale */}
+            {/* Context menu */}
             <Menu
                 anchorEl={menuAnchorEl}
                 open={Boolean(menuAnchorEl)}
@@ -234,17 +242,17 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
                     <ListItemIcon>
                         <EditIcon fontSize="small" />
                     </ListItemIcon>
-                    <ListItemText>Modifica</ListItemText>
+                    <ListItemText>{t('resourceType.edit')}</ListItemText>
                 </MenuItem>
                 <MenuItem onClick={() => handleDeleteResourceType(activeResourceTypeId)}>
                     <ListItemIcon>
                         <DeleteIcon fontSize="small" color="error" />
                     </ListItemIcon>
-                    <ListItemText primary="Elimina" primaryTypographyProps={{ color: 'error' }} />
+                    <ListItemText primary={t('resourceType.delete')} primaryTypographyProps={{ color: 'error' }} />
                 </MenuItem>
             </Menu>
 
-            {/* Form per creazione/modifica */}
+            {/* Form for creating/editing */}
             <ResourceTypeForm
                 open={isFormOpen}
                 onClose={() => setIsFormOpen(false)}

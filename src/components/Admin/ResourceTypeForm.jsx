@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     Box,
     Button,
@@ -12,9 +13,10 @@ import {
 import { getRandomColor } from '../../utils/colorUtils';
 
 /**
- * Form per la creazione/modifica di un tipo di risorsa
+ * Form for creating/editing a resource type
  */
 const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
@@ -22,7 +24,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
     });
     const [errors, setErrors] = useState({});
 
-    // Popola il form quando viene selezionato un tipo di risorsa
+    // Populate the form when a resource type is selected
     useEffect(() => {
         if (resourceType) {
             setFormData({
@@ -52,7 +54,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
             [name]: value
         });
 
-        // Rimuovi errori quando l'utente modifica il campo
+        // Remove errors when the user modifies the field
         if (errors[name]) {
             setErrors({
                 ...errors,
@@ -65,11 +67,11 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         const newErrors = {};
 
         if (!formData.name) {
-            newErrors.name = 'Il nome è obbligatorio';
+            newErrors.name = t('resourceType.nameRequired');
         }
 
         if (!formData.color || !/^#[0-9A-F]{6}$/i.test(formData.color)) {
-            newErrors.color = 'Il colore deve essere un codice esadecimale valido (es. #1976d2)';
+            newErrors.color = t('resourceType.invalidColorCode');
         }
 
         setErrors(newErrors);
@@ -97,11 +99,11 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
             maxWidth="sm"
             fullWidth
         >
-            <DialogTitle>{formData.id ? 'Modifica Tipo Risorsa' : 'Nuovo Tipo Risorsa'}</DialogTitle>
+            <DialogTitle>{formData.id ? t('resourceType.editResourceType') : t('resourceType.newResourceType')}</DialogTitle>
             <DialogContent>
                 <Box sx={{ pt: 2 }}>
                     <TextField
-                        label="Nome Tipo"
+                        label={t('resourceType.typeName')}
                         name="name"
                         fullWidth
                         value={formData.name}
@@ -113,7 +115,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                     />
 
                     <TextField
-                        label="Descrizione"
+                        label={t('resourceType.description')}
                         name="description"
                         fullWidth
                         multiline
@@ -125,7 +127,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
 
                     <Box sx={{ display: 'flex', alignItems: 'flex-start', mt: 2, gap: 2 }}>
                         <TextField
-                            label="Colore"
+                            label={t('resourceType.color')}
                             name="color"
                             value={formData.color}
                             onChange={handleChange}
@@ -156,7 +158,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                             onClick={generateRandomColor}
                             sx={{ mt: 3 }}
                         >
-                            Casuale
+                            {t('resourceType.random')}
                         </Button>
                     </Box>
 
@@ -165,14 +167,14 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>
-                    Annulla
+                    {t('resourceType.cancel')}
                 </Button>
                 <Button
                     variant="contained"
                     color="primary"
                     onClick={handleSubmit}
                 >
-                    {formData.id ? 'Aggiorna' : 'Conferma'}
+                    {formData.id ? t('resourceType.update') : t('resourceType.confirm')}
                 </Button>
                 {formData.id && (
                     <Button
@@ -180,7 +182,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                         color="error"
                         onClick={() => onDelete(formData.id)}
                     >
-                        Elimina
+                        {t('resourceType.delete')}
                     </Button>
                 )}
             </DialogActions>
