@@ -1,7 +1,6 @@
 import React, {useContext} from 'react';
-import {AppBar, Avatar, Badge, IconButton, Menu, MenuItem, Toolbar, Typography} from '@mui/material';
+import {AppBar, Avatar, IconButton, Menu, MenuItem, Toolbar, Typography} from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import NotificationsIcon from '@mui/icons-material/Notifications';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -9,6 +8,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import {useNotification} from '../../hooks/useNotification';
 import {AuthContext} from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import NotificationMenu from '../Notifications/NotificationMenu';
 
 const AppHeader = ({ onMenuClick }) => {
   const { notifications } = useNotification();
@@ -55,11 +55,7 @@ const AppHeader = ({ onMenuClick }) => {
               Controllo Accesso Risorse Cloud
             </Typography>
 
-            <IconButton color="inherit">
-              <Badge badgeContent={notifications.length} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+            <NotificationMenu />
 
             <IconButton
                 color="inherit"

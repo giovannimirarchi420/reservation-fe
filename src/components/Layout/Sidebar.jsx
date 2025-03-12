@@ -7,6 +7,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ListAltIcon from '@mui/icons-material/ListAlt'; // Nuova icona per Le mie prenotazioni
+import NotificationsIcon from '@mui/icons-material/Notifications';
 import {AuthContext} from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
@@ -74,6 +75,17 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
                 <PersonIcon />
               </ListItemIcon>
               <ListItemText primary="Il Mio Profilo" />
+            </ListItem>
+            <ListItem
+                button
+                selected={currentSection === 'notifications'}
+                onClick={() => onSectionChange('notifications')}
+                sx={{ cursor: 'pointer' }}
+            >
+              <ListItemIcon>
+                <NotificationsIcon />
+              </ListItemIcon>
+              <ListItemText primary="Notifiche" />
             </ListItem>
           </List>
           <Divider />

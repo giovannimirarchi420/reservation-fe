@@ -6,7 +6,8 @@ import AdminPanel from './components/Admin/AdminPanel';
 import LoginPage from './components/Auth/LoginPage';
 import ProfileManagement from './components/Profile/ProfileManagement';
 import Dashboard from './components/Dashboard/Dashboard';
-import MyBookingsPage from './components/Booking/MyBookingsPage'; // Importa la nuova pagina
+import MyBookingsPage from './components/Booking/MyBookingsPage';
+import NotificationsPage from './components/Notifications/NotificationsPage';
 import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
@@ -73,6 +74,9 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
                 break;
             case 'profile':
                 navigate('/profile');
+                break;
+            case 'notifications':
+                navigate('/notifications');
                 break;
             default:
                 navigate('/');
@@ -141,6 +145,16 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<ProfileManagement />}
                                     currentSection="profile"
+                                    requiredRole="user"
+                                />
+                            }
+                        />
+                        <Route
+                            path="/notifications"
+                            element={
+                                <LayoutWrapper
+                                    element={<NotificationsPage />}
+                                    currentSection="notifications"
                                     requiredRole="user"
                                 />
                             }
