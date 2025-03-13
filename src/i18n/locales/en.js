@@ -85,6 +85,7 @@ const en = {
       user: "User",
       noUsersFound: "No users found.",
       editUser: "Edit User",
+      delete: "Delete User",
       newUser: "New User",
       username: "Username",
       email: "Email",
@@ -250,7 +251,13 @@ const en = {
       maintenance: "Maintenance",
       unavailable: "Unavailable",
       unknown: "Unknown",
-      na: "N/A"
+      na: "N/A",
+      noData: "No data available"
+    },
+    trendChart: {
+      booking: "bookings",
+      numberOfBookings: "Number of bookings",
+      month: "Month"
     },
     statusChart: {
       active: "Active",
@@ -268,10 +275,10 @@ const en = {
       editProfile: "Edit Profile",
       cancel: "Cancel",
       userNotAuthenticated: "User not authenticated",
-      role: "Role:",
+      role: "Role",
       administrator: "Administrator",
       user: "User",
-      userId: "User ID:",
+      userId: "User ID",
       firstName: "First Name",
       lastName: "Last Name",
       email: "Email",

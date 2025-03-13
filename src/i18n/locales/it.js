@@ -85,6 +85,7 @@ const it = {
       user: "Utente",
       noUsersFound: "Nessun utente trovato.",
       editUser: "Modifica Utente",
+      delete: "Elimina Utente",
       newUser: "Nuovo Utente",
       username: "Nome Utente",
       email: "Email",
@@ -252,6 +253,11 @@ const it = {
       unknown: "Sconosciuto",
       na: "N/D"
     },
+    trendChart: {
+      booking: "prenotazioni",
+      numberOfBookings: "Numero di prenotazioni",
+      month: "Mese"
+    },
     statusChart: {
       active: "Attive",
       inMaintenance: "In manutenzione",
@@ -268,10 +274,10 @@ const it = {
       editProfile: "Modifica Profilo",
       cancel: "Annulla",
       userNotAuthenticated: "Utente non autenticato",
-      role: "Ruolo:",
+      role: "Ruolo",
       administrator: "Amministratore",
       user: "Utente",
-      userId: "ID Utente:",
+      userId: "ID Utente",
       firstName: "Nome",
       lastName: "Cognome",
       email: "Email",

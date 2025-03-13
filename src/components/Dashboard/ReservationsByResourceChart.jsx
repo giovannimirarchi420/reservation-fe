@@ -1,9 +1,11 @@
 import React from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 const ReservationsByResourceChart = ({ data }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // Se non ci sono dati, mostra un messaggio
   if (!data || data.length === 0) {
@@ -38,13 +40,13 @@ const ReservationsByResourceChart = ({ data }) => {
           />
           <YAxis 
             label={{ 
-              value: 'Numero di prenotazioni', 
+              value: t('trendChart.numberOfBookings'), 
               angle: -90, 
               position: 'insideLeft', 
               style: { textAnchor: 'middle' } 
             }} 
           />
-          <Tooltip formatter={(value, name) => [value, 'Prenotazioni']} />
+          <Tooltip formatter={(value, name) => [value, t('trendChart.booking')]} />
           <Bar dataKey="count" fill={theme.palette.primary.main} />
         </BarChart>
       </ResponsiveContainer>

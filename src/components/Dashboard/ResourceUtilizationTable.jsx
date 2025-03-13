@@ -12,10 +12,13 @@ import {
   Typography,
   LinearProgress
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import { ResourceStatus } from '../../services/resourceService';
 
 const ResourceUtilizationTable = ({ resources, events, resourceTypes }) => {
   
+  const { t } = useTranslation();
+
   // Genera i dati di utilizzo per ogni risorsa
   const utilizationData = useMemo(() => {
     if (!resources || !events) return [];
@@ -57,13 +60,13 @@ const ResourceUtilizationTable = ({ resources, events, resourceTypes }) => {
   const getStatusInfo = (status) => {
     switch (status) {
       case ResourceStatus.ACTIVE:
-        return { label: 'Attivo', color: 'success' };
+        return { label: t('utilization.active'), color: 'success' };
       case ResourceStatus.MAINTENANCE:
-        return { label: 'Manutenzione', color: 'warning' };
+        return { label: t('utilization.maintenance'), color: 'warning' };
       case ResourceStatus.UNAVAILABLE:
-        return { label: 'Non disponibile', color: 'error' };
+        return { label: t('utilization.unavailable'), color: 'error' };
       default:
-        return { label: 'Sconosciuto', color: 'default' };
+        return { label: t('utilization.unknown'), color: 'default' };
     }
   };
 
@@ -78,7 +81,7 @@ const ResourceUtilizationTable = ({ resources, events, resourceTypes }) => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
         <Typography variant="body1" color="text.secondary">
-          Nessun dato disponibile
+          {t('utilization.noData')}
         </Typography>
       </Box>
     );
@@ -89,11 +92,11 @@ const ResourceUtilizationTable = ({ resources, events, resourceTypes }) => {
       <Table sx={{ minWidth: 650 }} size="small">
         <TableHead sx={{ bgcolor: 'grey.100' }}>
           <TableRow>
-            <TableCell>Nome Risorsa</TableCell>
-            <TableCell>Tipo</TableCell>
-            <TableCell>Stato</TableCell>
-            <TableCell>Prenotazioni</TableCell>
-            <TableCell>Tasso di Utilizzo Mensile</TableCell>
+            <TableCell>{t('utilization.resourceName')}</TableCell>
+            <TableCell>{t('utilization.type')}</TableCell>
+            <TableCell>{t('utilization.state')}</TableCell>
+            <TableCell>{t('utilization.bookings')}</TableCell>
+            <TableCell>{t('utilization.monthlyUtilizationRate')}</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>

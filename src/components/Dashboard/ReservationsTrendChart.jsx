@@ -1,9 +1,11 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Box, Typography, useTheme } from '@mui/material';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const ReservationsTrendChart = ({ data }) => {
   const theme = useTheme();
+  const { t } = useTranslation();
 
   // Se non ci sono dati, mostra un messaggio
   if (!data || data.length === 0) {
@@ -28,7 +30,7 @@ const ReservationsTrendChart = ({ data }) => {
     
     // Restituisci array con valore e descrizione
     return [
-      `${item.count} prenotazioni`, 
+      `${item.count} ${t('trendChart.booking')}`, 
       `${item.name} ${item.year}`
     ];
   };
@@ -50,14 +52,14 @@ const ReservationsTrendChart = ({ data }) => {
             dataKey="name" 
             tick={{ fontSize: 12 }}
             label={{ 
-              value: 'Mese', 
+              value: t('trendChart.month'), 
               position: 'insideBottomRight', 
               offset: -5 
             }}
           />
           <YAxis 
             label={{ 
-              value: 'Numero di prenotazioni', 
+              value: t('trendChart.numberOfBookings'), 
               angle: -90, 
               position: 'insideLeft', 
               style: { textAnchor: 'middle' } 
