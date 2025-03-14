@@ -155,8 +155,8 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
       errorMessage: t('resourceManagement.unableToDeleteResource', {name: resourceName}),
       showError: true
     });
-
-    if (response.success) {
+    
+    if (response) {
       setResources(resources.filter(resource => resource.id !== resourceId));
       setIsResourceModalOpen(false);
       showNotification(t('resourceManagement.resourceDeletedSuccess', {name: resourceName}));
