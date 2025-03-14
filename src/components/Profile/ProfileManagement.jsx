@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Divider,
   Paper,
   Stack,
   IconButton,
@@ -15,16 +14,18 @@ import {
   TextField,
   Typography,
   Alert,
+  Chip,
   Snackbar
 } from '@mui/material';
-import { AuthContext } from '../../context/AuthContext';
 import { 
   Edit as EditIcon, 
   Save as SaveIcon, 
   Cancel as CancelIcon, 
   Visibility as VisibilityIcon, 
-  VisibilityOff as VisibilityOffIcon 
+  VisibilityOff as VisibilityOffIcon,
+  ContentCopy as ContentCopyIcon
 } from '@mui/icons-material';
+import { AuthContext } from '../../context/AuthContext';
 import { updateProfile } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
 
@@ -36,6 +37,12 @@ const ProfileManagement = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState(null);
+
+  // Create a translation object with the new keys
+  const profileTranslations = {
+    userIdCopied: t('profile.userIdCopied') || 'User ID copied to clipboard',
+    copyUserId: t('profile.copyUserId') || 'Copy User ID'
+  };
 
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -84,11 +91,9 @@ const ProfileManagement = () => {
     setIsEditing(!isEditing);
   };
 
-  // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
     
-    // Remove the notification after 6 seconds
     setTimeout(() => {
       setNotification(null);
     }, 6000);
@@ -99,25 +104,22 @@ const ProfileManagement = () => {
     setIsSaving(true);
 
     try {
-      // Prepare data for API
       const updatedData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         email: profileData.email,
-        username: profileData.username
+        username: profileData.username,
+        avatar: profileData.avatar
       };
 
-      // Only include password if it was modified
       if (profileData.password) {
         updatedData.password = profileData.password;
       }
 
-      // Only include avatar if it was modified
       if (profileData.avatar !== currentUser.avatar) {
         updatedData.avatar = profileData.avatar;
       }
 
-      // Use withErrorHandling
       const user = await withErrorHandling(async () => {
         return await updateProfile(updatedData);
       }, {
@@ -156,7 +158,12 @@ const ProfileManagement = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Paper elevation={2} sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          mb: 3 
+        }}>
           <Typography variant="h5">{t('profile.title')}</Typography>
           <Button
             variant={isEditing ? "outlined" : "contained"}
@@ -173,15 +180,15 @@ const ProfileManagement = () => {
           <Stack 
             direction={{ xs: 'column', md: 'row' }} 
             spacing={3}
-            alignItems={{ xs: 'center', md: 'flex-start' }}
+            alignItems="flex-start"
           >
+            {/* Left Column: Avatar and User Details */}
             <Box 
               sx={{ 
+                width: { xs: '100%', md: '30%' }, 
                 display: 'flex', 
                 flexDirection: 'column', 
-                alignItems: 'center', 
-                width: { xs: '100%', md: '30%' }, 
-                maxWidth: '300px'
+                alignItems: 'center' 
               }}
             >
               <Avatar
@@ -211,24 +218,69 @@ const ProfileManagement = () => {
 
               <Card sx={{ width: '100%', mt: 2 }}>
                 <CardContent>
-                  <Typography variant="subtitle1" gutterBottom>
-                    <strong>{t('profile.role')}:</strong> {currentUser.role === 'admin' 
-                      ? t('profile.administrator') 
-                      : t('profile.user')}
-                  </Typography>
-                  
-                  <Divider sx={{ my: 1 }} />
-                  
-                  <Typography variant="subtitle1" gutterBottom>
-                    <strong>{t('profile.userId')}:</strong> {currentUser.id}
-                  </Typography>
+                  <Stack 
+                    direction="column" 
+                    spacing={2}
+                    sx={{ width: '100%' }}
+                  >
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center' 
+                    }}>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        {t('profile.role')}
+                      </Typography>
+                      <Chip
+                        label={currentUser.role === 'admin' 
+                          ? t('profile.administrator') 
+                          : t('profile.user')}
+                        color={currentUser.role === 'admin' ? 'secondary' : 'primary'}
+                        size="small"
+                      />
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      backgroundColor: 'action.hover',
+                      borderRadius: 1,
+                      p: 1
+                    }}>
+                      <Box>
+                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                          {t('profile.userId')}
+                        </Typography>
+                        <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
+                          {currentUser.id}
+                        </Typography>
+                      </Box>
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          navigator.clipboard.writeText(currentUser.id.toString());
+                          showNotification(profileTranslations.userIdCopied, 'info');
+                        }}
+                        title={profileTranslations.copyUserId}
+                      >
+                        <ContentCopyIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Stack>
                 </CardContent>
               </Card>
             </Box>
 
-            <Box sx={{ flexGrow: 1 }}>
+            {/* Right Column: Editable Profile Fields */}
+            <Box sx={{ 
+              flexGrow: 1, 
+              width: { xs: '100%', md: '70%' } 
+            }}>
               <Stack spacing={2}>
-                <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Stack 
+                  direction={{ xs: 'column', sm: 'row' }} 
+                  spacing={2}
+                >
                   <TextField
                     label={t('profile.firstName')}
                     name="firstName"
@@ -247,6 +299,7 @@ const ProfileManagement = () => {
                     fullWidth
                     disabled={!isEditing}
                     required={isEditing}
+                    margin="normal"
                   />
                 </Stack>
                 
@@ -259,6 +312,7 @@ const ProfileManagement = () => {
                   fullWidth
                   disabled={!isEditing}
                   required={isEditing}
+                  margin="normal"
                 />
                 
                 <TextField
@@ -269,6 +323,7 @@ const ProfileManagement = () => {
                   fullWidth
                   disabled={!isEditing}
                   required={isEditing}
+                  margin="normal"
                 />
 
                 {isEditing && (
@@ -279,6 +334,7 @@ const ProfileManagement = () => {
                     value={profileData.password}
                     onChange={handleChange}
                     fullWidth
+                    margin="normal"
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">
@@ -295,7 +351,11 @@ const ProfileManagement = () => {
                 )}
 
                 {isEditing && (
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'flex-end', 
+                    mt: 2 
+                  }}>
                     <Button
                       type="submit"
                       variant="contained"

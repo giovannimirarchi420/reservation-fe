@@ -29,13 +29,24 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
   // Populate the form when a resource is selected
   useEffect(() => {
     if (resource) {
+      // Convert string status to numeric value
+      let statusValue = 0; // Default to ACTIVE
+      
+      // Handle string status
+      switch(resource.status) {
+        case "ACTIVE": statusValue = 0; break;
+        case "MAINTENANCE": statusValue = 1; break;
+        case "UNAVAILABLE": statusValue = 2; break;
+        default: statusValue = 0; // Default to ACTIVE
+      }
+      
       setFormData({
         id: resource.id,
         name: resource.name || '',
         typeId: resource.typeId || resource.type || '',
         specs: resource.specs || '',
         location: resource.location || '',
-        status: resource.status !== undefined ? resource.status : 0
+        status: statusValue
       });
     } else {
       resetForm();
