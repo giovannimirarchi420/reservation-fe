@@ -13,11 +13,13 @@ import {
 import GitHubIcon from '@mui/icons-material/GitHub';
 import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import packageInfo from '../../../package.json';
 
 const Footer = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const currentYear = new Date().getFullYear();
+  const appVersion = packageInfo.version;
 
   return (
     <Box 
@@ -38,7 +40,7 @@ const Footer = () => {
         >
           {/* Copyright */}
           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
-            © {currentYear} {t('footer.title')}
+            © {currentYear} {t('footer.title')} - v{appVersion}
           </Typography>
           
           {/* Developer info with social links */}
