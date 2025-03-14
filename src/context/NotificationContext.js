@@ -1,7 +1,7 @@
-import React, {createContext, useEffect, useState, useCallback, useContext} from 'react';
+import React, {createContext, useEffect, useState, useCallback, useContext, useRef} from 'react';
 import * as notificationService from '../services/notificationService';
 import useApiError from '../hooks/useApiError';
-import { AuthContext } from './AuthContext'; // Importa il contesto di autenticazione
+import { AuthContext } from './AuthContext';
 
 // Creazione del contesto
 export const NotificationContext = createContext();
@@ -12,10 +12,23 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { withErrorHandling } = useApiError();
-  const { updateToken, isAuthorized } = useContext(AuthContext); // Ottieni le funzioni di autenticazione
+  const { updateToken, isAuthorized } = useContext(AuthContext);
+  
+  // Usa useRef per memorizzare lo stato dell'intervallo
+  const intervalRef = useRef(null);
+  // Usa useRef per memorizzare un riferimento stabile a withErrorHandling e updateToken
+  const apiHandlersRef = useRef({ withErrorHandling, updateToken });
+  
+  // Aggiorna il riferimento quando le funzioni cambiano
+  useEffect(() => {
+    apiHandlersRef.current = { withErrorHandling, updateToken };
+  }, [withErrorHandling, updateToken]);
 
   // Recupera le notifiche dal server
   const fetchNotifications = useCallback(async () => {
+    // Usa le funzioni dal ref per evitare dipendenze che causano re-render
+    const { withErrorHandling, updateToken } = apiHandlersRef.current;
+    
     // Se l'utente non è autenticato, non effettuare la chiamata
     if (!isAuthorized()) return;
     
@@ -29,7 +42,7 @@ export const NotificationProvider = ({ children }) => {
         setNotifications(fetchedNotifications);
       }, {
         errorMessage: 'Impossibile caricare le notifiche',
-        showError: false, // Nasconde l'errore all'utente per non disturbare l'esperienza
+        showError: false,
         rethrowError: false
       });
     } catch (err) {
@@ -38,28 +51,48 @@ export const NotificationProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [withErrorHandling, updateToken, isAuthorized]);
+  }, [isAuthorized]); // Dipende solo da isAuthorized
 
-  // Carica le notifiche all'avvio e imposta il polling
+  // Imposta il polling solo quando l'autorizzazione cambia
   useEffect(() => {
-    // Assicurati che l'utente sia autenticato prima di iniziare il polling
-    if (isAuthorized()) {
-      fetchNotifications();
-
-      // Imposta un polling per aggiornare le notifiche ogni 30 secondi
-      const interval = setInterval(() => {
+    const setupPolling = () => {
+      // Pulisci qualsiasi intervallo esistente
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+      
+      // Se l'utente è autenticato, configura il polling
+      if (isAuthorized()) {
+        // Carica le notifiche iniziali
         fetchNotifications();
-      }, 30000);
-
-      return () => clearInterval(interval);
-    }
-  }, [fetchNotifications, isAuthorized]);
+        
+        // Imposta l'intervallo di polling
+        intervalRef.current = setInterval(() => {
+          fetchNotifications();
+        }, 30000);
+      }
+    };
+    
+    // Avvia il polling
+    setupPolling();
+    
+    // Pulisci l'intervallo quando il componente viene smontato
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isAuthorized, fetchNotifications]);
 
   // Recupera le notifiche non lette
   const unreadNotifications = notifications.filter(n => !n.read);
 
   // Aggiunge una nuova notifica
   const addNotification = useCallback(async (message, type = 'INFO', userId) => {
+    const { withErrorHandling, updateToken } = apiHandlersRef.current;
+    
     if (!isAuthorized()) return null;
     
     try {
@@ -83,10 +116,12 @@ export const NotificationProvider = ({ children }) => {
       console.error('Errore nell\'invio della notifica:', error);
       return null;
     }
-  }, [withErrorHandling, fetchNotifications, updateToken, isAuthorized]);
+  }, [isAuthorized, fetchNotifications]);
 
   // Marca una notifica come letta
   const markAsRead = useCallback(async (id) => {
+    const { withErrorHandling, updateToken } = apiHandlersRef.current;
+    
     if (!isAuthorized()) return;
     
     try {
@@ -114,10 +149,12 @@ export const NotificationProvider = ({ children }) => {
       // In caso di errore, ripristina lo stato locale
       fetchNotifications();
     }
-  }, [withErrorHandling, updateToken, fetchNotifications, isAuthorized]);
+  }, [isAuthorized, fetchNotifications]);
 
   // Marca tutte le notifiche come lette
   const markAllAsRead = useCallback(async () => {
+    const { withErrorHandling, updateToken } = apiHandlersRef.current;
+    
     if (!isAuthorized()) return;
     
     try {
@@ -141,10 +178,12 @@ export const NotificationProvider = ({ children }) => {
       // In caso di errore, ripristina lo stato locale
       fetchNotifications();
     }
-  }, [withErrorHandling, updateToken, fetchNotifications, isAuthorized]);
+  }, [isAuthorized, fetchNotifications]);
 
   // Rimuove una notifica
   const removeNotification = useCallback(async (id) => {
+    const { withErrorHandling, updateToken } = apiHandlersRef.current;
+    
     if (!isAuthorized()) return;
     
     try {
@@ -168,7 +207,7 @@ export const NotificationProvider = ({ children }) => {
       // In caso di errore, ripristina lo stato locale
       fetchNotifications();
     }
-  }, [withErrorHandling, updateToken, fetchNotifications, isAuthorized]);
+  }, [isAuthorized, fetchNotifications]);
 
   return (
     <NotificationContext.Provider value={{

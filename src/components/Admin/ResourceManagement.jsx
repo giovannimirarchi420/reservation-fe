@@ -77,6 +77,20 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     loadData();
   }, [needsRefresh, withErrorHandling, t]);
 
+  // Helper function to get status priority for sorting
+  const getStatusPriority = (status) => {
+    switch(status) {
+      case ResourceStatus.ACTIVE:
+        return 1; // First priority
+      case ResourceStatus.MAINTENANCE:
+        return 2; // Second priority
+      case ResourceStatus.UNAVAILABLE:
+        return 3; // Last priority
+      default:
+        return 4; // Unknown status lowest priority
+    }
+  };
+
   // Filter resources based on search, type, and status
   const filteredResources = resources.filter(resource => {
     const matchesSearch = searchTerm === '' ||
@@ -90,6 +104,10 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
         resource.status === filterStatus;
 
     return matchesSearch && matchesType && matchesStatus;
+  })
+  // Sort resources by status priority
+  .sort((a, b) => {
+    return getStatusPriority(a.status) - getStatusPriority(b.status);
   });
 
   const handleAddResource = () => {
@@ -148,18 +166,24 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     const resourceToDelete = resources.find(r => r.id === resourceId);
     const resourceName = resourceToDelete ? resourceToDelete.name : t('resourceManagement.selected');
 
-    const response = await withErrorHandling(async () => {
-      await deleteResource(resourceId);
-      return true;
-    }, {
-      errorMessage: t('resourceManagement.unableToDeleteResource', {name: resourceName}),
-      showError: true
-    });
-    
-    if (response) {
-      setResources(resources.filter(resource => resource.id !== resourceId));
-      setIsResourceModalOpen(false);
-      showNotification(t('resourceManagement.resourceDeletedSuccess', {name: resourceName}));
+    try {
+      // Close menu before starting the operation
+      const response = await withErrorHandling(async () => {
+        return await deleteResource(resourceId);
+      }, {
+        errorMessage: t('resourceManagement.unableToDeleteResource', {name: resourceName}),
+        showError: true
+      });
+      
+      // Check if response exists and has success property set to true
+      // or if response is truthy (for backward compatibility)
+      if (response.success) {
+        setResources(resources.filter(resource => resource.id !== resourceId));
+        setIsResourceModalOpen(false);
+        showNotification(t('resourceManagement.resourceDeletedSuccess', {name: resourceName}));
+      }
+    } catch (error) {
+      console.error('Unhandled error during resource deletion:', error);
     }
   };
 

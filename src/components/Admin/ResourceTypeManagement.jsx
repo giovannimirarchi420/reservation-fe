@@ -14,7 +14,8 @@ import {
     MenuItem,
     TextField,
     Typography,
-    Stack
+    Snackbar,
+    Alert
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -29,9 +30,11 @@ import {
 } from '../../services/resourceTypeService';
 import ResourceTypeForm from './ResourceTypeForm';
 import { getContrastTextColor } from '../../utils/colorUtils';
+import useApiError from '../../hooks/useApiError';
 
 const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const { t } = useTranslation();
+    const { withErrorHandling } = useApiError();
     const [resourceTypes, setResourceTypes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isFormOpen, setIsFormOpen] = useState(false);
@@ -39,6 +42,37 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [menuAnchorEl, setMenuAnchorEl] = useState(null);
     const [activeResourceTypeId, setActiveResourceTypeId] = useState(null);
+    const [notification, setNotification] = useState(null);
+
+    // Show a notification
+    const showNotification = (message, severity = 'success') => {
+        setNotification({ message, severity });
+        
+        // Remove the notification after 6 seconds
+        setTimeout(() => {
+            setNotification(null);
+        }, 6000);
+    };
+
+    // Load resource types
+    useEffect(() => {
+        const loadResourceTypes = async () => {
+            setIsLoading(true);
+            try {
+                await withErrorHandling(async () => {
+                    const data = await fetchResourceTypes();
+                    setResourceTypes(data);
+                }, {
+                    errorMessage: t('errors.unableToLoadResourceTypes'),
+                    showError: true
+                });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadResourceTypes();
+    }, [withErrorHandling, t]);
 
     // Effect to handle opening the form when directed from another component
     useEffect(() => {
@@ -49,23 +83,6 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
             resetOpenFormFlag();
         }
     }, [openFormOnMount, resetOpenFormFlag]);
-
-    // Load resource types
-    useEffect(() => {
-        const loadResourceTypes = async () => {
-            setIsLoading(true);
-            try {
-                const data = await fetchResourceTypes();
-                setResourceTypes(data);
-            } catch (error) {
-                console.error('Error loading resource types:', error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        loadResourceTypes();
-    }, []);
 
     // Filter resource types based on search
     const filteredResourceTypes = resourceTypes.filter(type => {
@@ -96,34 +113,74 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     };
 
     const handleSaveResourceType = async (resourceTypeData) => {
-        try {
+        const result = await withErrorHandling(async () => {
             if (resourceTypeData.id) {
                 // Update an existing resource type
                 const updatedResourceType = await updateResourceType(resourceTypeData.id, resourceTypeData);
-                setResourceTypes(resourceTypes.map(type =>
-                    type.id === updatedResourceType.id ? updatedResourceType : type
-                ));
+                return { updated: true, resourceType: updatedResourceType };
             } else {
                 // Create a new resource type
                 const newResourceType = await createResourceType(resourceTypeData);
-                setResourceTypes([...resourceTypes, newResourceType]);
+                return { updated: false, resourceType: newResourceType };
+            }
+        }, {
+            errorMessage: resourceTypeData.id 
+                ? t('resourceType.unableToUpdateResourceType', {name: resourceTypeData.name}) 
+                : t('resourceType.unableToCreateResourceType', {name: resourceTypeData.name}),
+            showError: true
+        });
+
+        if (result) {
+            if (result.updated) {
+                // Update existing resource types
+                setResourceTypes(resourceTypes.map(type =>
+                    type.id === result.resourceType.id ? result.resourceType : type
+                ));
+                showNotification(t('resourceType.resourceTypeUpdatedSuccess', {name: result.resourceType.name}));
+            } else {
+                // Add new resource type
+                setResourceTypes([...resourceTypes, result.resourceType]);
+                showNotification(t('resourceType.resourceTypeCreatedSuccess', {name: result.resourceType.name}));
             }
             setIsFormOpen(false);
-        } catch (error) {
-            console.error('Error saving resource type:', error);
-            // Could display an error message here
         }
     };
 
     const handleDeleteResourceType = async (resourceTypeId) => {
-        try {
-            await deleteResourceType(resourceTypeId);
-            setResourceTypes(resourceTypes.filter(type => type.id !== resourceTypeId));
-            setIsFormOpen(false);
+        // Find the resource type name before deleting it
+        const typeToDelete = resourceTypes.find(t => t.id === resourceTypeId);
+        const typeName = typeToDelete ? typeToDelete.name : t('resourceType.selected');
+    
+        const confirmation = window.confirm(
+            `${t('resourceType.confirmDeleteResourceType')} "${typeName}"? ${t('resourceType.actionCannotBeUndone')}`
+        );
+        
+        if (!confirmation) {
             handleCloseMenu();
+            return;
+        }
+    
+        try {
+            // Chiudi il menu prima di iniziare l'operazione
+            handleCloseMenu();
+            
+            const response = await withErrorHandling(async () => {
+                return await deleteResourceType(resourceTypeId);
+            }, {
+                errorMessage: t('resourceType.unableToDeleteResourceType', {name: typeName}),
+                showError: true
+            });
+    
+            // Check if response exists and has success property set to true
+            // or if response is truthy (for backward compatibility)
+            if ((response && response.success === true) || response === true) {
+                setResourceTypes(resourceTypes.filter(type => type.id !== resourceTypeId));
+                setIsFormOpen(false);
+                showNotification(t('resourceType.resourceTypeDeletedSuccess', {name: typeName}));
+            }
         } catch (error) {
-            console.error('Error deleting resource type:', error);
-            // Could display an error message here
+            // In caso di errore non gestito, assicurati che il menu sia chiuso
+            handleCloseMenu();
         }
     };
 
@@ -260,6 +317,24 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
                 onSave={handleSaveResourceType}
                 onDelete={handleDeleteResourceType}
             />
+
+            {/* Notification for successful operations */}
+            <Snackbar
+                open={!!notification}
+                autoHideDuration={6000}
+                onClose={() => setNotification(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+                {notification && (
+                    <Alert
+                        onClose={() => setNotification(null)}
+                        severity={notification.severity}
+                        sx={{ width: '100%' }}
+                    >
+                        {notification.message}
+                    </Alert>
+                )}
+            </Snackbar>
         </Box>
     );
 };

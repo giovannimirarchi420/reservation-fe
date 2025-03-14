@@ -162,7 +162,6 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                         </Button>
                     </Box>
 
-                    {errors.color && <FormHelperText error>{errors.color}</FormHelperText>}
                 </Box>
             </DialogContent>
             <DialogActions>

@@ -73,7 +73,16 @@ const it = {
       confirm: "Conferma",
       update: "Aggiorna",
       nameRequired: "Il nome è obbligatorio",
-      invalidColorCode: "Il colore deve essere un codice esadecimale valido (es. #1976d2)"
+      invalidColorCode: "Il colore deve essere un codice esadecimale valido (es. #1976d2)",
+      confirmDeleteResourceType: "Sei sicuro di voler eliminare il tipo di risorsa",
+      actionCannotBeUndone: "Questa azione non può essere annullata.",
+      resourceTypeUpdatedSuccess: "Tipo di risorsa aggiornato con successo",
+      resourceTypeCreatedSuccess: "Tipo di risorsa creato con successo",
+      resourceTypeDeletedSuccess: "Tipo di risorsa eliminato con successo",
+      unableToUpdateResourceType: "Impossibile aggiornare il tipo di risorsa",
+      unableToCreateResourceType: "Impossibile creare il tipo di risorsa",
+      unableToDeleteResourceType: "Impossibile eliminare il tipo di risorsa",
+      selected: "selezionato"
     },
     userManagement: {
       title: "Utenti Registrati",
@@ -107,7 +116,10 @@ const it = {
       unableToDeleteUser: "Impossibile eliminare l'utente",
       passwordCopied: "Password copiata negli appunti",
       confirmDeleteUser: "Sei sicuro di voler eliminare l'utente",
-      actionCannotBeUndone: "Questa azione non può essere annullata."
+      actionCannotBeUndone: "Attenzione: Tutte le prenotazioni associate a questo utente saranno eliminate. Questa azione non può essere annullata.",
+      invalidEmail: "Formato email non valido",
+      passwordRequiredForNewUsers: "La password è obbligatoria per i nuovi utenti",
+      unableToCopyPassword: "Impossibile copiare la password negli appunti"
     },
     resourceForm: {
       editResource: "Modifica Risorsa",
@@ -365,7 +377,9 @@ const it = {
     warning: "Avviso",
     information: "Informazione",
     tryAgain: "Riprova",
-    more: "Altre.."
+    more: "Altre..",
+    update: "Aggiorna",
+    isRequired: "è obbligatorio"
   },
   languageSelector: {
     language: "Lingua",

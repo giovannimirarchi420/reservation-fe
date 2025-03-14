@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Box,
   Button,
@@ -26,6 +27,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -101,26 +103,26 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     const newErrors = {};
 
     if (!formData.username) {
-      newErrors.username = 'Il nome utente è obbligatorio';
+      newErrors.username = t('userManagement.username') + ' ' + t('common.isRequired');
     }
 
     if (!formData.email) {
-      newErrors.email = 'L\'email è obbligatoria';
+      newErrors.email = t('userManagement.email') + ' ' + t('common.isRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Formato email non valido';
+      newErrors.email = t('userManagement.invalidEmail');
     }
 
     if (!formData.firstName) {
-      newErrors.firstName = 'Il nome è obbligatorio';
+      newErrors.firstName = t('userManagement.firstName') + ' ' + t('common.isRequired');
     }
 
     if (!formData.lastName) {
-      newErrors.lastName = 'Il cognome è obbligatorio';
+      newErrors.lastName = t('userManagement.lastName') + ' ' + t('common.isRequired');
     }
 
     // Richiedi la password solo per i nuovi utenti
     if (!formData.id && !formData.password) {
-      newErrors.password = 'La password è obbligatoria per i nuovi utenti';
+      newErrors.password = t('userManagement.passwordRequiredForNewUsers');
     }
 
     setErrors(newErrors);
@@ -193,7 +195,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
           setCopiedToClipboard(false);
         }, 2000);
       } catch (err) {
-        console.error('Impossibile copiare la password: ', err);
+        console.error(t('userManagement.unableToCopyPassword'), err);
       }
     }
   };
@@ -210,11 +212,11 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       maxWidth="sm"
       fullWidth
     >
-      <DialogTitle>{formData.id ? 'Modifica Utente' : 'Nuovo Utente'}</DialogTitle>
+      <DialogTitle>{formData.id ? t('userManagement.editUser') : t('userManagement.newUser')}</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 2 }}>
           <TextField
-            label="Nome Utente"
+            label={t('userManagement.username')}
             name="username"
             fullWidth
             value={formData.username}
@@ -226,7 +228,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
           />
 
           <TextField
-            label="Email"
+            label={t('userManagement.email')}
             name="email"
             type="email"
             fullWidth
@@ -240,10 +242,21 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mt: 2 }}>
             <TextField
-              label="Nome"
+              label={t('userManagement.firstName')}
               name="firstName"
               fullWidth
               value={formData.firstName}
+              onChange={handleChange}
+              required
+              error={!!errors.firstName}
+              helperText={errors.firstName}
+            />
+            
+            <TextField
+              label={t('userManagement.lastName')}
+              name="lastName"
+              fullWidth
+              value={formData.lastName}
               onChange={handleChange}
               required
               error={!!errors.lastName}
@@ -252,7 +265,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
           </Stack>
 
           <TextField
-            label={formData.id ? "Password (lascia vuoto per non modificare)" : "Password"}
+            label={formData.id ? t('userManagement.keepCurrentPassword') : t('userManagement.password')}
             name="password"
             type={showPassword ? "text" : "password"}
             fullWidth
@@ -266,7 +279,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               endAdornment: (
                 <InputAdornment position="end">
                   <Stack direction="row">
-                    <Tooltip title="Genera password">
+                    <Tooltip title={t('userManagement.generatePassword')}>
                       <IconButton
                         onClick={() => generateRandomPassword()}
                         edge="end"
@@ -275,7 +288,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                       </IconButton>
                     </Tooltip>
 
-                    <Tooltip title="Copia password">
+                    <Tooltip title={t('userManagement.copyPassword')}>
                       <IconButton
                         onClick={copyPasswordToClipboard}
                         edge="end"
@@ -285,7 +298,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                       </IconButton>
                     </Tooltip>
 
-                    <Tooltip title={showPassword ? "Nascondi password" : "Mostra password"}>
+                    <Tooltip title={showPassword ? t('userManagement.hidePassword') : t('userManagement.showPassword')}>
                       <IconButton
                         onClick={() => setShowPassword(!showPassword)}
                         edge="end"
@@ -300,41 +313,41 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
           />
 
           <FormControl fullWidth margin="normal" required>
-            <InputLabel id="user-role-label">Ruolo</InputLabel>
+            <InputLabel id="user-role-label">{t('userManagement.role')}</InputLabel>
             <Select
               labelId="user-role-label"
               name="roles"
               value={formData.roles || ['USER']}
-              label="Ruolo"
+              label={t('userManagement.role')}
               onChange={handleRoleChange}
               multiple
             >
-              <MenuItem value="USER">Utente</MenuItem>
-              <MenuItem value="ADMIN">Amministratore</MenuItem>
+              <MenuItem value="USER">{t('userManagement.user')}</MenuItem>
+              <MenuItem value="ADMIN">{t('userManagement.administrator')}</MenuItem>
             </Select>
           </FormControl>
 
           <TextField
-            label="Iniziali Avatar (opzionale)"
+            label={t('userManagement.avatarInitials')}
             name="avatar"
             fullWidth
             value={formData.avatar}
             onChange={handleChange}
             margin="normal"
-            helperText="Lascia vuoto per generare automaticamente dalle iniziali del nome e cognome"
+            helperText={t('userManagement.autoGenerateInitials')}
           />
         </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>
-          Annulla
+          {t('common.cancel')}
         </Button>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSubmit}
         >
-          {formData.id ? 'Aggiorna' : 'Conferma'}
+          {formData.id ? t('common.update') : t('common.confirm')}
         </Button>
         {formData.id && (
           <Button
@@ -342,7 +355,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             color="error"
             onClick={() => onDelete(formData.id)}
           >
-            Elimina
+            {t('common.delete')}
           </Button>
         )}
       </DialogActions>
@@ -352,7 +365,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         open={showSnackbar}
         autoHideDuration={2000}
         onClose={handleCloseSnackbar}
-        message="Password copiata negli appunti"
+        message={t('userManagement.passwordCopied')}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
     </Dialog>

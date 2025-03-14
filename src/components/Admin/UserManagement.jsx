@@ -92,11 +92,11 @@ const UserManagement = () => {
       if (userData.id) {
         // Update an existing user
         const updatedUser = await updateUser(userData.id, userData);
-        return { updated: true, user: updatedUser };
+        return { updated: true, user: updatedUser, success: true };
       } else {
         // Create a new user
         const newUser = await createUser(userData);
-        return { updated: false, user: newUser };
+        return { updated: false, user: newUser, success: true };
       }
     }, {
       errorMessage: userData.id 
@@ -105,7 +105,7 @@ const UserManagement = () => {
       showError: true
     });
 
-    if (result) {
+    if (result.success) {
       if (result.updated) {
         // Update existing users
         setUsers(users.map(user =>

@@ -73,7 +73,16 @@ const en = {
       confirm: "Confirm",
       update: "Update",
       nameRequired: "Name is required",
-      invalidColorCode: "Color must be a valid hexadecimal code (e.g. #1976d2)"
+      invalidColorCode: "Color must be a valid hexadecimal code (e.g. #1976d2)",
+      confirmDeleteResourceType: "Are you sure you want to delete the resource type",
+      actionCannotBeUndone: "This action cannot be undone.",
+      resourceTypeUpdatedSuccess: "Resource type updated successfully",
+      resourceTypeCreatedSuccess: "Resource type created successfully",
+      resourceTypeDeletedSuccess: "Resource type deleted successfully",
+      unableToUpdateResourceType: "Unable to update resource type",
+      unableToCreateResourceType: "Unable to create resource type",
+      unableToDeleteResourceType: "Unable to delete resource type",
+      selected: "selected"
     },
     userManagement: {
       title: "Registered Users",
@@ -107,7 +116,10 @@ const en = {
       unableToDeleteUser: "Unable to delete user",
       passwordCopied: "Password copied to clipboard",
       confirmDeleteUser: "Are you sure you want to delete the user",
-      actionCannotBeUndone: "This action cannot be undone."
+      actionCannotBeUndone: "Warning: All bookings associated with this user will also be deleted. This action cannot be undone.",
+      invalidEmail: "Invalid email format",
+      passwordRequiredForNewUsers: "Password is required for new users",
+      unableToCopyPassword: "Unable to copy password to clipboard"
     },
     resourceForm: {
       editResource: "Edit Resource",
@@ -366,7 +378,9 @@ const en = {
       warning: "Warning",
       information: "Information",
       tryAgain: "Try again",
-      more: "More.."
+      more: "More..",
+      update: "Update",
+      isRequired: "is required"
     },
     languageSelector: {
       language: "Language",
