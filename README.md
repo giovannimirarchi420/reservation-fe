@@ -13,6 +13,7 @@ A comprehensive cloud resource management application built with React and Mater
 - **Resource Management**: Add, edit, and maintain resources and resource types
 - **User Management**: Manage users with different permission levels (admins and regular users)
 - **Dashboard**: Visualize resource usage with interactive charts and statistics
+- **Notification System**: Real-time notification center to alert users about booking changes and system events
 - **Multi-language Support**: Full internationalization support for English and Italian
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
 
