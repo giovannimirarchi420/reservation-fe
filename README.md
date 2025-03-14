@@ -1,70 +1,147 @@
-# Getting Started with Create React App
+# Resource Management System
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive cloud resource management application built with React and Material UI. This system allows users to book, track, and manage various resources across an organization.
 
-## Available Scripts
+![Dashboard Preview](./img/dashboard.png)
+![Calendar Preview](./img/calendar.png)
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+- **Resource Booking**: Schedule and manage resource reservations with an intuitive calendar interface
+- **Resource Management**: Add, edit, and maintain resources and resource types
+- **User Management**: Manage users with different permission levels (admins and regular users)
+- **Dashboard**: Visualize resource usage with interactive charts and statistics
+- **Multi-language Support**: Full internationalization support for English and Italian
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## Technology Stack
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+- **Frontend**: React 19.0.0, Material UI 6.4.7
+- **State Management**: React Context API
+- **Authentication**: Keycloak integration
+- **Visualization**: Recharts for data visualization
+- **Calendar**: React Big Calendar for booking interface
+- **Internationalization**: i18next for multi-language support
 
-### `npm test`
+## Getting Started
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prerequisites
 
-### `npm run build`
+- Node.js (v16.x or higher)
+- npm or yarn
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/giovannimirarchi420/reservation-fe.git
+   cd reservation-fe
+   ```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+2. Install dependencies:
+   ```bash
+   npm install
+   # or
+   yarn install
+   ```
 
-### `npm run eject`
+3. Configure environment variables:
+   Create a `.env` file in the root directory with the following variables:
+   ```
+   REACT_APP_API_URL=http://localhost:8080/api
+   REACT_APP_KEYCLOAK_URL=http://localhost:8180
+   REACT_APP_KEYCLOAK_REALM=resource-management
+   REACT_APP_KEYCLOAK_CLIENT_ID=resource-management-app
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+4. Start the development server:
+   ```bash
+   npm start
+   # or
+   yarn start
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+## Project Structure
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+The project follows a component-based architecture:
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```
+src/
+├── components/        # UI components
+│   ├── Admin/         # Administration components
+│   ├── Booking/       # Resource booking components
+│   ├── Layout/        # Layout components (Header, Sidebar, Footer)
+│   ├── Resources/     # Resource management components
+│   └── Users/         # User management components
+├── context/           # React context providers
+├── services/          # API services
+├── utils/             # Utility functions
+├── hooks/             # Custom React hooks
+├── i18n/              # Internationalization
+└── styles/            # CSS stylesheets
+```
 
-## Learn More
+## Main Features
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Resource Booking Calendar
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+The booking calendar allows users to:
+- View resources and existing bookings
+- Create new bookings
+- Edit or delete existing bookings
+- Filter resources by type or status
 
-### Code Splitting
+### Admin Panel
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Administrators have access to:
+- Resource management (add, edit, delete)
+- Resource type configuration
+- User management
+- System settings
 
-### Analyzing the Bundle Size
+### Dashboard
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+The dashboard provides visual analytics on:
+- Resource utilization rates
+- Booking trends over time
+- Resource status overview
+- Upcoming reservations
 
-### Making a Progressive Web App
+## Deployment
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### Building for Production
 
-### Advanced Configuration
+To build the application for production:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+```bash
+npm run build
+# or
+yarn build
+```
 
-### Deployment
+The build artifacts will be stored in the `build/` directory.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### Deployment Options
 
-### `npm run build` fails to minify
+The application can be deployed to:
+- Static hosting services (Netlify, Vercel, etc.)
+- AWS S3 + CloudFront
+- Traditional web servers (Apache, Nginx)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## Authentication and Authorization
+
+The application uses Keycloak for authentication and role-based access control:
+- **Administrators**: Full access to all features
+- **Users**: Can view resources and manage their own bookings
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
