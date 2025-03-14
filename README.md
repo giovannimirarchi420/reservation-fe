@@ -1,6 +1,8 @@
-# Resource Management System
+# Resource Management System (Frontend)
 
 A comprehensive cloud resource management application built with React and Material UI. This system allows users to book, track, and manage various resources across an organization.
+
+> **Important**: This repository is a sub-module of the main repository [cloud-resource-reservation](https://github.com/giovannimirarchi420/cloud-resource-reservation), which contains the complete project including backend services, database and Keycloak initialization scripts, and Docker configuration.
 
 ![Dashboard Preview](./img/dashboard.png)
 ![Calendar Preview](./img/calendar.png)
@@ -29,6 +31,8 @@ A comprehensive cloud resource management application built with React and Mater
 
 - Node.js (v16.x or higher)
 - npm or yarn
+
+> **Recommended**: For a complete environment including backend, database, and authentication services, we recommend cloning the main repository [cloud-resource-reservation](https://github.com/giovannimirarchi420/cloud-resource-reservation) which includes this frontend as a sub-module along with Docker Compose configuration for easy setup.
 
 ### Installation
 
@@ -66,19 +70,40 @@ A comprehensive cloud resource management application built with React and Mater
 The project follows a component-based architecture:
 
 ```
-src/
-├── components/        # UI components
-│   ├── Admin/         # Administration components
-│   ├── Booking/       # Resource booking components
-│   ├── Layout/        # Layout components (Header, Sidebar, Footer)
-│   ├── Resources/     # Resource management components
-│   └── Users/         # User management components
-├── context/           # React context providers
-├── services/          # API services
-├── utils/             # Utility functions
-├── hooks/             # Custom React hooks
-├── i18n/              # Internationalization
-└── styles/            # CSS stylesheets
+/
+├── public/                       # Static assets
+│   ├── index.html                # Main HTML file
+│   ├── manifest.json             # Web app manifest
+│   ├── robots.txt                # Robots configuration
+│   └── silent-check-sso.html     # Keycloak SSO support
+│
+├── src/                          # Source code
+│   ├── components/               # UI components
+│   │   ├── Admin/                # Admin panel components
+│   │   ├── Auth/                 # Authentication components
+│   │   ├── Booking/              # Booking-related components
+│   │   ├── Common/               # Shared/common components
+│   │   ├── Dashboard/            # Dashboard components
+│   │   ├── LanguageSelector/     # Internationalization UI
+│   │   ├── Layout/               # Layout components
+│   │   ├── Notifications/        # Notification components
+│   │   ├── Profile/              # User profile management
+│   │   ├── Resources/            # Resource-related components
+│   │   └── Users/                # User management components
+│   ├── config/                   # Configuration files
+│   │   └── keycloak.js           # Keycloak configuration
+│   ├── context/                  # React context providers
+│   ├── hooks/                    # Custom React hooks
+│   ├── i18n/                     # Internationalization
+│   │   └── locales/              # Language files
+│   ├── services/                 # API services
+│   ├── styles/                   # CSS and styling
+│   ├── utils/                    # Utility functions
+│   ├── App.jsx                   # Main App component
+│   ├── App.test.js               # App tests
+│   ├── index.jsx                 # Application entry point
+│   ├── logo.svg                  # App logo
+│   └── theme.js                  # Material UI theme configuration
 ```
 
 ## Main Features
@@ -128,6 +153,33 @@ The application can be deployed to:
 - AWS S3 + CloudFront
 - Traditional web servers (Apache, Nginx)
 
+### Full Stack Deployment
+
+For a complete deployment with all services:
+
+1. Clone the main repository which contains this frontend as a sub-module:
+   ```bash
+   git clone https://github.com/giovannimirarchi420/cloud-resource-reservation.git
+   cd cloud-resource-reservation
+   ```
+
+2. Initialize and update submodules:
+   ```bash
+   git submodule init
+   git submodule update
+   ```
+
+3. Use Docker Compose to start all services:
+   ```bash
+   docker-compose up -d
+   ```
+
+This will set up the complete environment including:
+- Frontend (this repository)
+- Backend API services
+- Database
+- Keycloak authentication server
+
 ## Authentication and Authorization
 
 The application uses Keycloak for authentication and role-based access control:
@@ -145,3 +197,9 @@ The application uses Keycloak for authentication and role-based access control:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- Material UI for the component library
+- React team for the amazing framework
+- All contributors who have helped shape this project
