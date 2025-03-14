@@ -128,9 +128,27 @@ const ProfileManagement = () => {
       });
       
       if(user && user.id) {
+        // Aggiorna solo l'utente corrente con i nuovi dati mantenendo gli altri campi
+        const updatedUser = {
+          ...currentUser,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          email: profileData.email,
+          username: profileData.username,
+          avatar: profileData.avatar,
+          // Altri campi che potrebbero essere stati aggiornati dal backend
+          ...user
+        };
+        
         showNotification(t('profile.profileUpdatedSuccess'));
         setIsEditing(false);
-        setCurrentUser(user);
+        setCurrentUser(updatedUser);
+        
+        // Aggiorna anche i dati del form con i valori aggiornati
+        setProfileData({
+          ...profileData,
+          password: '' // Resetta la password nel form
+        });
       }
     } finally {
       setIsSaving(false);
@@ -252,13 +270,13 @@ const ProfileManagement = () => {
                           {t('profile.userId')}
                         </Typography>
                         <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
-                          {currentUser.id}
+                          {currentUser.keycloakId || currentUser.id}
                         </Typography>
                       </Box>
                       <IconButton
                         size="small"
                         onClick={() => {
-                          navigator.clipboard.writeText(currentUser.id.toString());
+                          navigator.clipboard.writeText((currentUser.keycloakId || currentUser.id).toString());
                           showNotification(profileTranslations.userIdCopied, 'info');
                         }}
                         title={profileTranslations.copyUserId}
