@@ -94,7 +94,7 @@ const ResourceUtilizationTable = ({ resources, events, resourceTypes }) => {
           <TableRow>
             <TableCell>{t('utilization.resourceName')}</TableCell>
             <TableCell>{t('utilization.type')}</TableCell>
-            <TableCell>{t('utilization.state')}</TableCell>
+            <TableCell>{t('utilization.status')}</TableCell>
             <TableCell>{t('utilization.bookings')}</TableCell>
             <TableCell>{t('utilization.monthlyUtilizationRate')}</TableCell>
           </TableRow>
