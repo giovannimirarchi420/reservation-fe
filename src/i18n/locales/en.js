@@ -301,7 +301,8 @@ const en = {
       profileUpdatedSuccess: "Profile updated successfully",
       unableToUpdateProfile: "Unable to update profile",
       avatarInitials: "Avatar Initials",
-      maxTwoCharacters: "Maximum 2 characters"
+      maxTwoCharacters: "Maximum 2 characters",
+      userIdCopied: "User ID copied to clipboard"
     },
     notificationsPage: {
       title: "Notification Center",

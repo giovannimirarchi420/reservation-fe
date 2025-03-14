@@ -49,8 +49,7 @@ const ProfileManagement = () => {
     lastName: '',
     email: '',
     username: '',
-    password: '',
-    avatar: ''
+    password: ''
   });
 
   useEffect(() => {
@@ -60,8 +59,7 @@ const ProfileManagement = () => {
         lastName: currentUser.lastName || '',
         email: currentUser.email || '',
         username: currentUser.username || currentUser.name || '',
-        password: '',
-        avatar: currentUser.avatar || ''
+        password: ''
       });
     }
   }, [currentUser]);
@@ -83,8 +81,7 @@ const ProfileManagement = () => {
           lastName: currentUser.lastName || '',
           email: currentUser.email || '',
           username: currentUser.username || currentUser.name || '',
-          password: '',
-          avatar: currentUser.avatar || ''
+          password: ''
         });
       }
     }
@@ -108,16 +105,11 @@ const ProfileManagement = () => {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         email: profileData.email,
-        username: profileData.username,
-        avatar: profileData.avatar
+        username: profileData.username
       };
 
       if (profileData.password) {
         updatedData.password = profileData.password;
-      }
-
-      if (profileData.avatar !== currentUser.avatar) {
-        updatedData.avatar = profileData.avatar;
       }
 
       const user = await withErrorHandling(async () => {
@@ -135,7 +127,6 @@ const ProfileManagement = () => {
           lastName: profileData.lastName,
           email: profileData.email,
           username: profileData.username,
-          avatar: profileData.avatar,
           // Altri campi che potrebbero essere stati aggiornati dal backend
           ...user
         };
@@ -218,21 +209,8 @@ const ProfileManagement = () => {
                   bgcolor: currentUser.role === 'admin' ? 'secondary.main' : 'primary.main'
                 }}
               >
-                {profileData.avatar || currentUser.username?.[0]?.toUpperCase() || 'U'}
+                {currentUser.avatar || currentUser.username?.[0]?.toUpperCase() || 'U'}
               </Avatar>
-
-              {isEditing && (
-                <TextField
-                  label={t('profile.avatarInitials')}
-                  name="avatar"
-                  value={profileData.avatar}
-                  onChange={handleChange}
-                  fullWidth
-                  margin="normal"
-                  helperText={t('profile.maxTwoCharacters')}
-                  inputProps={{ maxLength: 2 }}
-                />
-              )}
 
               <Card sx={{ width: '100%', mt: 2 }}>
                 <CardContent>

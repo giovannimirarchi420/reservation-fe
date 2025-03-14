@@ -300,7 +300,9 @@ const it = {
       profileUpdatedSuccess: "Profilo aggiornato con successo",
       unableToUpdateProfile: "Impossibile aggiornare il profilo",
       avatarInitials: "Iniziali Avatar",
-      maxTwoCharacters: "Massimo 2 caratteri"
+      maxTwoCharacters: "Massimo 2 caratteri",
+      userIdCopied: "User ID copiato"
+
     },
     notificationsPage: {
       title: "Centro Notifiche",
