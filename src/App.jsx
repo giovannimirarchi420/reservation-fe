@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Navigate, Route, Routes, useNavigate } from 'r
 import MainLayout from './components/Layout/MainLayout';
 import BookingCalendar from './components/Booking/BookingCalendar';
 import AdminPanel from './components/Admin/AdminPanel';
-import LoginPage from './components/Auth/LoginPage';
 import ProfileManagement from './components/Profile/ProfileManagement';
 import Dashboard from './components/Dashboard/Dashboard';
 import MyBookingsPage from './components/Booking/MyBookingsPage';
@@ -98,7 +97,6 @@ const App = () => {
             <ErrorInitializer>
                 <Router>
                     <Routes>
-                        <Route path="/login" element={currentUser ? <Navigate to="/" replace /> : <LoginPage />} />
                         <Route
                             path="/"
                             element={

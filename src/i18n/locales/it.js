@@ -387,6 +387,16 @@ const it = {
     language: "Lingua",
     english: "Inglese",
     italian: "Italiano"
+  },
+  themeToggler: {
+    darkMode: "Modalità scura",
+    lightMode: "Modalità chiara",
+    systemPreference: "Usa preferenza di sistema"
+  },
+  themeToggler: {
+    darkMode: "Modalità scura",
+    lightMode: "Modalità chiara",
+    systemPreference: "Usa preferenza di sistema"
   }
 };
 

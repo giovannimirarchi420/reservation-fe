@@ -5,6 +5,8 @@ import moment from 'moment';
 import 'moment/locale/it';
 import 'moment/locale/en-gb';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import '../../styles/calendarStyles.css';
+import '../../styles/calendarDarkStyles.css';
 import {
     Box,
     Button,
@@ -19,7 +21,8 @@ import {
     Tooltip,
     Typography,
     Snackbar,
-    Alert
+    Alert,
+    useTheme
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -37,7 +40,7 @@ import { fetchResources } from '../../services/resourceService';
 import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
 import { RESOURCE_COLORS } from '../../utils/colorUtils';
-import '../../styles/calendarStyles.css';
+import { useColorMode } from '../../theme/ThemeProvider';
 
 // Configure moment.js for localization
 const localizer = momentLocalizer(moment);
@@ -46,6 +49,8 @@ const BookingCalendar = () => {
   const { t, i18n } = useTranslation();
   const { currentUser } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
+  const theme = useTheme();
+  const { mode } = useColorMode();
   const [currentView, setCurrentView] = useState('week');
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedResource, setSelectedResource] = useState(null);
@@ -298,7 +303,26 @@ const BookingCalendar = () => {
   // Style for events in the calendar
   const eventStyleGetter = (event) => {
     // Use color based on the resource
-    const backgroundColor = resourceColors[event.resourceId] || '#1976d2';
+    let backgroundColor = resourceColors[event.resourceId] || '#1976d2';
+    
+    // In dark mode, adjust colors for better visibility if needed
+    if (mode === 'dark' && backgroundColor.startsWith('#')) {
+      // This is a simple brightening for dark colors in dark mode
+      // You could use a more sophisticated color manipulation if needed
+      if (backgroundColor.match(/^#[0-9A-F]{6}$/i)) {
+        const rgb = parseInt(backgroundColor.slice(1), 16);
+        const r = (rgb >> 16) & 0xff;
+        const g = (rgb >> 8) & 0xff;
+        const b = (rgb >> 0) & 0xff;
+        
+        // If the color is too dark, brighten it
+        if (r + g + b < 300) {
+          // Brighten dark colors for better visibility in dark mode
+          const brightenedColor = `rgba(${Math.min(r + 50, 255)}, ${Math.min(g + 50, 255)}, ${Math.min(b + 50, 255)}, 0.9)`;
+          backgroundColor = brightenedColor;
+        }
+      }
+    }
     
     // Count how many events overlap with this one
     const overlappingCount = findOverlappingEvents(event);
@@ -609,6 +633,7 @@ const BookingCalendar = () => {
               display: 'flex',
               flexDirection: 'column'
             }}
+            className={mode === 'dark' ? 'dark-theme' : ''}
           >
             {isLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>

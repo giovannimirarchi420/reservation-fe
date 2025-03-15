@@ -21,6 +21,7 @@ import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../Notifications/NotificationMenu';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
+import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
 
 const AppHeader = ({ onMenuClick }) => {
   const { t } = useTranslation();
@@ -70,6 +71,7 @@ const AppHeader = ({ onMenuClick }) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <LanguageSelector />
+            <ThemeSwitcher />
             <NotificationMenu />
 
             <IconButton

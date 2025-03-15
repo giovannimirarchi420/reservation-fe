@@ -1,0 +1,174 @@
+/* Stili specifici per il tema scuro del calendario */
+
+/* Stile di base per il calendario in tema scuro */
+.dark-theme .rbc-calendar {
+  background-color: #1e1e1e;
+  color: #f0f0f0;
+}
+
+/* Header del mese e intestazioni giorni della settimana */
+.dark-theme .rbc-month-header,
+.dark-theme .rbc-time-header-content {
+  background-color: #2c2c2c;
+}
+
+.dark-theme .rbc-header {
+  background-color: #2c2c2c;
+  color: #f0f0f0;
+  border-bottom: 1px solid #444;
+}
+
+/* Celle dei giorni */
+.dark-theme .rbc-month-view,
+.dark-theme .rbc-time-view {
+  border: 1px solid #444;
+}
+
+.dark-theme .rbc-month-row {
+  border-bottom: 1px solid #444;
+}
+
+.dark-theme .rbc-day-bg {
+  background-color: #1e1e1e;
+  border-right: 1px solid #444;
+}
+
+.dark-theme .rbc-day-bg + .rbc-day-bg {
+  border-left: none;
+}
+
+.dark-theme .rbc-day-bg.rbc-off-range-bg {
+  background-color: #181818;
+}
+
+.dark-theme .rbc-off-range {
+  color: #777;
+}
+
+.dark-theme .rbc-date-cell {
+  color: #f0f0f0;
+  padding: 5px;
+}
+
+.dark-theme .rbc-date-cell.rbc-now {
+  font-weight: bold;
+  color: #90caf9;
+}
+
+/* Celle di oggi */
+.dark-theme .rbc-day-bg.rbc-today {
+  background-color: rgba(30, 60, 90, 0.5);
+}
+
+/* Vista oraria */
+.dark-theme .rbc-time-content {
+  border-top: 1px solid #444;
+}
+
+.dark-theme .rbc-time-content > * + * > * {
+  border-left: 1px solid #444;
+}
+
+.dark-theme .rbc-timeslot-group {
+  border-bottom: 1px solid #333;
+}
+
+.dark-theme .rbc-time-slot {
+  border-top: 1px solid #333;
+}
+
+.dark-theme .rbc-time-gutter,
+.dark-theme .rbc-time-header-gutter {
+  background-color: #252525;
+  color: #f0f0f0;
+}
+
+.dark-theme .rbc-time-gutter,
+.dark-theme .rbc-time-header-content {
+  border-right: 1px solid #444;
+}
+
+/* Eventi */
+.dark-theme .rbc-event {
+  background-color: #1976d2;
+  border: none;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+}
+
+.dark-theme .rbc-event-content {
+  font-size: 0.85rem;
+}
+
+.dark-theme .rbc-event.rbc-selected {
+  background-color: #3f51b5;
+  box-shadow: 0 0 6px #000;
+}
+
+/* Visibilità delle linee di sfondo nella vista temporale */
+.dark-theme .rbc-time-content .rbc-time-column {
+  background-color: #1e1e1e;
+}
+
+.dark-theme .rbc-current-time-indicator {
+  background-color: #f44336;
+  height: 2px;
+}
+
+/* Popup "Show more" */
+.dark-theme .rbc-overlay {
+  background-color: #2c2c2c;
+  border: 1px solid #444;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  color: #f0f0f0;
+}
+
+.dark-theme .rbc-overlay-header {
+  border-bottom: 1px solid #444;
+  color: #f0f0f0;
+}
+
+/* Toolbar */
+.dark-theme .rbc-toolbar button {
+  color: #f0f0f0;
+  border: 1px solid #555;
+  background-color: #2c2c2c;
+}
+
+.dark-theme .rbc-toolbar button:hover {
+  background-color: #444;
+}
+
+.dark-theme .rbc-toolbar button.rbc-active {
+  background-color: #3f51b5;
+  border-color: #3f51b5;
+}
+
+/* Migliorare il contrasto per gli eventi colorgati scuri */
+.dark-theme .rbc-event {
+  color: white;
+  text-shadow: 0 0 1px rgba(0, 0, 0, 0.7);
+}
+
+/* Stile per gli eventi sovrapposti in tema scuro */
+.dark-theme .rbc-event.compact-mode {
+  opacity: 0.9;
+}
+
+.dark-theme .rbc-event.extreme-compact-mode {
+  opacity: 0.85;
+}
+
+/* Aggiunta di una linea separatore più evidente tra le ore */
+.dark-theme .rbc-time-content > .rbc-time-gutter {
+  border-right: 1px solid #444;
+}
+
+/* Miglioramento dell'aspetto dei label del tempo nella vista oraria */
+.dark-theme .rbc-label {
+  padding: 5px;
+}
+
+/* Hover sulle celle dei giorni */
+.dark-theme .rbc-day-bg:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
