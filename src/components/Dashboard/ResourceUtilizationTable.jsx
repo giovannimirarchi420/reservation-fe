@@ -90,7 +90,7 @@ const ResourceUtilizationTable = ({ resources, events, resourceTypes }) => {
   return (
     <TableContainer component={Paper} variant="outlined">
       <Table sx={{ minWidth: 650 }} size="small">
-        <TableHead sx={{ bgcolor: 'grey.100' }}>
+        <TableHead sx={{ bgcolor: 'black.100' }}>
           <TableRow>
             <TableCell>{t('utilization.resourceName')}</TableCell>
             <TableCell>{t('utilization.type')}</TableCell>

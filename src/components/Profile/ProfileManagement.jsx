@@ -104,8 +104,7 @@ const ProfileManagement = () => {
       const updatedData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        email: profileData.email,
-        username: profileData.username
+        email: profileData.email
       };
 
       if (profileData.password) {
@@ -120,14 +119,12 @@ const ProfileManagement = () => {
       });
       
       if(user && user.id) {
-        // Aggiorna solo l'utente corrente con i nuovi dati mantenendo gli altri campi
+        // Update current user with new data while keeping other fields
         const updatedUser = {
           ...currentUser,
           firstName: profileData.firstName,
           lastName: profileData.lastName,
           email: profileData.email,
-          username: profileData.username,
-          // Altri campi che potrebbero essere stati aggiornati dal backend
           ...user
         };
         
@@ -135,10 +132,10 @@ const ProfileManagement = () => {
         setIsEditing(false);
         setCurrentUser(updatedUser);
         
-        // Aggiorna anche i dati del form con i valori aggiornati
+        // Update form data with updated values
         setProfileData({
           ...profileData,
-          password: '' // Resetta la password nel form
+          password: '' // Reset password in form
         });
       }
     } finally {
@@ -262,6 +259,14 @@ const ProfileManagement = () => {
                         <ContentCopyIcon fontSize="small" />
                       </IconButton>
                     </Box>
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        {t('profile.username')}
+                      </Typography>
+                      <Typography variant="body1">
+                        {currentUser.username || currentUser.name || ''}
+                      </Typography>
+                    </Box>
                   </Stack>
                 </CardContent>
               </Card>
@@ -311,17 +316,6 @@ const ProfileManagement = () => {
                   margin="normal"
                 />
                 
-                <TextField
-                  label={t('profile.username')}
-                  name="username"
-                  value={profileData.username}
-                  onChange={handleChange}
-                  fullWidth
-                  disabled={!isEditing}
-                  required={isEditing}
-                  margin="normal"
-                />
-
                 {isEditing && (
                   <TextField
                     label={t('profile.newPassword')}

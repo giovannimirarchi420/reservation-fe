@@ -16,6 +16,7 @@ A comprehensive cloud resource management application built with React and Mater
 - **Notification System**: Real-time notification center to alert users about booking changes and system events
 - **Multi-language Support**: Full internationalization support for English and Italian
 - **Responsive Design**: Works seamlessly on desktop and mobile devices
+- **Dark Mode**: Light or Dark Mode available.
 
 ## Technology Stack
 

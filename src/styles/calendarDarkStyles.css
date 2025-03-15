@@ -1,12 +1,12 @@
-/* Stili specifici per il tema scuro del calendario */
+/* Specific styles for calendar dark theme */
 
-/* Stile di base per il calendario in tema scuro */
+/* Base style for calendar in dark theme */
 .dark-theme .rbc-calendar {
   background-color: #1e1e1e;
   color: #f0f0f0;
 }
 
-/* Header del mese e intestazioni giorni della settimana */
+/* Month header and week day headers */
 .dark-theme .rbc-month-header,
 .dark-theme .rbc-time-header-content {
   background-color: #2c2c2c;
@@ -18,7 +18,7 @@
   border-bottom: 1px solid #444;
 }
 
-/* Celle dei giorni */
+/* Day cells */
 .dark-theme .rbc-month-view,
 .dark-theme .rbc-time-view {
   border: 1px solid #444;
@@ -55,12 +55,12 @@
   color: #90caf9;
 }
 
-/* Celle di oggi */
+/* Today's cells */
 .dark-theme .rbc-day-bg.rbc-today {
   background-color: rgba(30, 60, 90, 0.5);
 }
 
-/* Vista oraria */
+/* Time view */
 .dark-theme .rbc-time-content {
   border-top: 1px solid #444;
 }
@@ -88,11 +88,12 @@
   border-right: 1px solid #444;
 }
 
-/* Eventi */
+/* Events - removing background color override to allow color variety */
 .dark-theme .rbc-event {
-  background-color: #1976d2;
   border: none;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.5);
+  /* Increase brightness/opacity to make colors more visible */
+  filter: brightness(1.2);
 }
 
 .dark-theme .rbc-event-content {
@@ -100,11 +101,12 @@
 }
 
 .dark-theme .rbc-event.rbc-selected {
-  background-color: #3f51b5;
+  /* Only modify shadow and selection effect, not the color */
   box-shadow: 0 0 6px #000;
+  filter: brightness(1.4);
 }
 
-/* Visibilità delle linee di sfondo nella vista temporale */
+/* Background line visibility in time view */
 .dark-theme .rbc-time-content .rbc-time-column {
   background-color: #1e1e1e;
 }
@@ -114,7 +116,7 @@
   height: 2px;
 }
 
-/* Popup "Show more" */
+/* "Show more" popup */
 .dark-theme .rbc-overlay {
   background-color: #2c2c2c;
   border: 1px solid #444;
@@ -125,6 +127,23 @@
 .dark-theme .rbc-overlay-header {
   border-bottom: 1px solid #444;
   color: #f0f0f0;
+  background-color: #333;
+  padding: 8px;
+}
+
+/* Fix for the event items in the overlay popup - preserving original colors */
+.dark-theme .rbc-overlay .rbc-event {
+  border: none;
+  margin-bottom: 5px;
+  padding: 5px;
+  /* Increase brightness to make colors more visible in dark mode */
+  filter: brightness(1.2);
+}
+
+/* Target only the text in the overlay to ensure readability */
+.dark-theme .rbc-overlay .rbc-event * {
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 /* Toolbar */
@@ -143,13 +162,13 @@
   border-color: #3f51b5;
 }
 
-/* Migliorare il contrasto per gli eventi colorgati scuri */
+/* Improve contrast for dark-colored events */
 .dark-theme .rbc-event {
   color: white;
   text-shadow: 0 0 1px rgba(0, 0, 0, 0.7);
 }
 
-/* Stile per gli eventi sovrapposti in tema scuro */
+/* Style for overlapping events in dark theme */
 .dark-theme .rbc-event.compact-mode {
   opacity: 0.9;
 }
@@ -158,17 +177,17 @@
   opacity: 0.85;
 }
 
-/* Aggiunta di una linea separatore più evidente tra le ore */
+/* Adding a more visible separator line between hours */
 .dark-theme .rbc-time-content > .rbc-time-gutter {
   border-right: 1px solid #444;
 }
 
-/* Miglioramento dell'aspetto dei label del tempo nella vista oraria */
+/* Improve appearance of time labels in hourly view */
 .dark-theme .rbc-label {
   padding: 5px;
 }
 
-/* Hover sulle celle dei giorni */
+/* Hover on day cells */
 .dark-theme .rbc-day-bg:hover {
   background-color: rgba(255, 255, 255, 0.05);
 }
