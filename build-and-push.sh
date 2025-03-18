@@ -1,9 +1,14 @@
 #!/bin/bash
-set -e
 
 # Configuration
-DOCKER_USERNAME=g420  # Change this to your Docker Hub username
+REGISTRY="docker.io/g420"  # Change this to your Docker Hub username
 IMAGE_NAME=resource-management-frontend
+
+# Colors for output
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
 
 # Extract version from package.json
 VERSION=$(grep -o '"version": "[^"]*' package.json | cut -d'"' -f4)
@@ -15,35 +20,40 @@ fi
 echo "Extracted version $VERSION from package.json"
 
 # Set image tags
-IMAGE_TAG=$VERSION
-LATEST_TAG=latest
+VERSION_TAG="$REGISTRY/$IMAGE_NAME:$VERSION"
+LATEST_TAG="$REGISTRY/$IMAGE_NAME:latest"
 
-# Log in to Docker Hub (you'll be prompted for password)
-echo "Logging in to Docker Hub as $DOCKER_USERNAME"
-docker login -u $DOCKER_USERNAME
+echo -e "${GREEN}Building Docker image...${NC}"
+docker build -t $VERSION_TAG -t $LATEST_TAG .
 
-# Setup buildx builder if it doesn't exist
-if ! docker buildx inspect multiplatform-builder &>/dev/null; then
-  echo "Creating new buildx builder"
-  docker buildx create --name multiplatform-builder --use
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}Successfully built images:${NC}"
+    echo -e "  - $VERSION_TAG"
+    echo -e "  - $LATEST_TAG"
+    
+    echo -e "${GREEN}Pushing images to registry: $REGISTRY${NC}"
+    
+    # Push version tag
+    echo -e "${YELLOW}Pushing $VERSION_TAG...${NC}"
+    docker push $VERSION_TAG
+    VERSION_PUSH_STATUS=$?
+    
+    # Push latest tag
+    echo -e "${YELLOW}Pushing $LATEST_TAG...${NC}"
+    docker push $LATEST_TAG
+    LATEST_PUSH_STATUS=$?
+    
+    if [ $VERSION_PUSH_STATUS -eq 0 ] && [ $LATEST_PUSH_STATUS -eq 0 ]; then
+        echo -e "${GREEN}Successfully pushed all images${NC}"
+    else
+        echo -e "${RED}Failed to push one or more images${NC}"
+        exit 1
+    fi
 else
-  echo "Using existing buildx builder"
-  docker buildx use multiplatform-builder
+    echo -e "${RED}Failed to build images${NC}"
+    exit 1
 fi
 
-# Make sure the builder is running
-docker buildx inspect --bootstrap
-
-# Build and push for multiple platforms in one go
-echo "Building and pushing multi-architecture image for version $VERSION"
-docker buildx build --platform linux/amd64,linux/arm64,linux/arm/v7 \
-  --tag $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_TAG \
-  --tag $DOCKER_USERNAME/$IMAGE_NAME:$LATEST_TAG \
-  --push \
-  .
-
-echo "Done! Multi-architecture images pushed to Docker Hub:"
-echo "- $DOCKER_USERNAME/$IMAGE_NAME:$IMAGE_TAG"
-echo "- $DOCKER_USERNAME/$IMAGE_NAME:$LATEST_TAG"
-echo ""
-echo "Supported architectures: AMD64, ARM64, ARMv7"
+echo -e "${GREEN}Images are now available at:${NC}"
+echo -e "  - $VERSION_TAG"
+echo -e "  - $LATEST_TAG"
