@@ -1,24 +1,40 @@
-# Resource Management System (Frontend)
+# Cloud Resource Management System 🚀
 
-A comprehensive cloud resource management application built with React and Material UI. This system allows users to book, track, and manage various resources across an organization.
+[![React](https://img.shields.io/badge/React-19.0.0-blue?logo=react)](https://reactjs.org/)
+[![Material UI](https://img.shields.io/badge/Material%20UI-6.4.7-purple?logo=mui)](https://mui.com/)
+[![i18next](https://img.shields.io/badge/i18next-multilingual-yellow?logo=i18next)](https://www.i18next.com/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![Version](https://img.shields.io/badge/Version-1.0.2-orange)](package.json)
+
+A comprehensive cloud resource management application built with React and Material UI, allowing users to manage resource bookings across an organization.
 
 > **Important**: This repository is a sub-module of the main repository [cloud-resource-reservation](https://github.com/giovannimirarchi420/cloud-resource-reservation), which contains the complete project including backend services, database and Keycloak initialization scripts, and Docker configuration.
 
 ![Dashboard Preview](./img/dashboard.png)
 ![Calendar Preview](./img/calendar.png)
 
-## Features
+> 📸 **More screenshots available in the `/img` directory.**
 
-- **Resource Booking**: Schedule and manage resource reservations with an intuitive calendar interface
-- **Resource Management**: Add, edit, and maintain resources and resource types
-- **User Management**: Manage users with different permission levels (admins and regular users)
-- **Dashboard**: Visualize resource usage with interactive charts and statistics
-- **Notification System**: Real-time notification center to alert users about booking changes and system events
-- **Multi-language Support**: Full internationalization support for English and Italian
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Dark Mode**: Light or Dark Mode available.
+## 🌐 Live Demo
 
-## Technology Stack
+**Demo URL**: [https://204.216.215.139/](https://204.216.215.139/)
+
+**Login Credentials**:
+- Username: `admin`
+- Password: `password`
+
+## ✨ Features
+
+- **📅 Resource Booking**: Schedule and manage resource reservations with an intuitive calendar interface
+- **📦 Resource Management**: Add, edit, and maintain resources and resource types
+- **👥 User Management**: Manage users with different permission levels (admins and regular users)
+- **📊 Dashboard**: Visualize resource usage with interactive charts and statistics
+- **🔔 Notification System**: Real-time notification center for booking changes and system events
+- **🌍 Multi-language Support**: Full internationalization for English and Italian
+- **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
+- **🌓 Dark Mode**: Light or Dark Mode support
+
+## 🛠️ Technology Stack
 
 - **Frontend**: React 19.0.0, Material UI 6.4.7
 - **State Management**: React Context API
@@ -27,14 +43,14 @@ A comprehensive cloud resource management application built with React and Mater
 - **Calendar**: React Big Calendar for booking interface
 - **Internationalization**: i18next for multi-language support
 
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Node.js (v16.x or higher)
 - npm or yarn
 
-> **Recommended**: For a complete environment including backend, database, and authentication services, we recommend cloning the main repository [cloud-resource-reservation](https://github.com/giovannimirarchi420/cloud-resource-reservation) which includes this frontend as a sub-module along with Docker Compose configuration for easy setup.
+> **Recommended**: For a complete environment including backend, database, and authentication services, clone the main repository [cloud-resource-reservation](https://github.com/giovannimirarchi420/cloud-resource-reservation) which includes this frontend as a sub-module along with Docker Compose configuration.
 
 ### Installation
 
@@ -52,7 +68,7 @@ A comprehensive cloud resource management application built with React and Mater
    ```
 
 3. Configure environment variables:
-   Create a `.env` file in the root directory with the following variables:
+   Create a `.env` file in the root directory with:
    ```
    REACT_APP_API_URL=http://localhost:8080/api
    REACT_APP_KEYCLOAK_URL=http://localhost:8180
@@ -67,78 +83,71 @@ A comprehensive cloud resource management application built with React and Mater
    yarn start
    ```
 
-## Project Structure
-
-The project follows a component-based architecture:
+## 📂 Project Structure
 
 ```
 /
 ├── public/                       # Static assets
 │   ├── index.html                # Main HTML file
-│   ├── manifest.json             # Web app manifest
-│   ├── robots.txt                # Robots configuration
-│   └── silent-check-sso.html     # Keycloak SSO support
 │
 ├── src/                          # Source code
 │   ├── components/               # UI components
 │   │   ├── Admin/                # Admin panel components
-│   │   ├── Auth/                 # Authentication components
-│   │   ├── Booking/              # Booking-related components
-│   │   ├── Common/               # Shared/common components
+│   │   ├── Booking/              # Booking components
+│   │   ├── Common/               # Shared components
 │   │   ├── Dashboard/            # Dashboard components
-│   │   ├── LanguageSelector/     # Internationalization UI
+│   │   ├── LanguageSelector/     # Language selection UI
 │   │   ├── Layout/               # Layout components
 │   │   ├── Notifications/        # Notification components
 │   │   ├── Profile/              # User profile management
-│   │   ├── Resources/            # Resource-related components
+│   │   ├── Resources/            # Resource components
+│   │   ├── ThemeSwitcher/        # Theme toggling UI
 │   │   └── Users/                # User management components
-│   ├── config/                   # Configuration files
-│   │   └── keycloak.js           # Keycloak configuration
+│   ├── config/                   # Application configuration
 │   ├── context/                  # React context providers
 │   ├── hooks/                    # Custom React hooks
 │   ├── i18n/                     # Internationalization
-│   │   └── locales/              # Language files
+│   │   └── locales/              # Language files (en, it)
 │   ├── services/                 # API services
-│   ├── styles/                   # CSS and styling
+│   │   ├── apiCore.js            # Core API functionality
+│   │   ├── authService.js        # Authentication service
+│   │   ├── bookingService.js     # Booking API
+│   │   ├── notificationService.js # Notification API
+│   │   ├── resourceService.js    # Resource API
+│   │   └── userService.js        # User API
+│   ├── styles/                   # CSS styles
+│   ├── theme/                    # Theme configuration
 │   ├── utils/                    # Utility functions
 │   ├── App.jsx                   # Main App component
-│   ├── App.test.js               # App tests
-│   ├── index.jsx                 # Application entry point
-│   ├── logo.svg                  # App logo
-│   └── theme.js                  # Material UI theme configuration
+│   └── index.jsx                 # Application entry point
 ```
 
-## Main Features
+## 🌟 Main Features
 
-### Resource Booking Calendar
+### 📅 Resource Booking Calendar
 
-The booking calendar allows users to:
 - View resources and existing bookings
-- Create new bookings
+- Create new bookings with conflict detection
 - Edit or delete existing bookings
 - Filter resources by type or status
 
-### Admin Panel
+### ⚙️ Admin Panel
 
-Administrators have access to:
 - Resource management (add, edit, delete)
-- Resource type configuration
-- User management
+- Resource type configuration 
+- User management with role-based access
 - System settings
 
-### Dashboard
+### 📊 Dashboard
 
-The dashboard provides visual analytics on:
 - Resource utilization rates
 - Booking trends over time
 - Resource status overview
 - Upcoming reservations
 
-## Deployment
+## 🚀 Deployment
 
 ### Building for Production
-
-To build the application for production:
 
 ```bash
 npm run build
@@ -150,16 +159,25 @@ The build artifacts will be stored in the `build/` directory.
 
 ### Deployment Options
 
-The application can be deployed to:
 - Static hosting services (Netlify, Vercel, etc.)
 - AWS S3 + CloudFront
+- Docker container (Nginx-based)
 - Traditional web servers (Apache, Nginx)
+
+### Docker Deployment
+
+The repo includes a Dockerfile and build script for containerization:
+
+```bash
+# Build and push Docker image
+./build-and-push.sh
+```
 
 ### Full Stack Deployment
 
 For a complete deployment with all services:
 
-1. Clone the main repository which contains this frontend as a sub-module:
+1. Clone the main repository:
    ```bash
    git clone https://github.com/giovannimirarchi420/cloud-resource-reservation.git
    cd cloud-resource-reservation
@@ -176,19 +194,15 @@ For a complete deployment with all services:
    docker-compose up -d
    ```
 
-This will set up the complete environment including:
-- Frontend (this repository)
-- Backend API services
-- Database
-- Keycloak authentication server
+This will set up the complete environment including frontend, backend API, database, and Keycloak authentication server.
 
-## Authentication and Authorization
+## 🔒 Authentication and Authorization
 
 The application uses Keycloak for authentication and role-based access control:
-- **Administrators**: Full access to all features
-- **Users**: Can view resources and manage their own bookings
+- **👑 Administrators**: Full access to all features
+- **👤 Users**: Can view resources and manage their own bookings
 
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -196,12 +210,6 @@ The application uses Keycloak for authentication and role-based access control:
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- Material UI for the component library
-- React team for the amazing framework
-- All contributors who have helped shape this project
