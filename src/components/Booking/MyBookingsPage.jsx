@@ -19,6 +19,7 @@ import {
   EventBusy as EventBusyIcon,
   CalendarToday as CalendarTodayIcon
 } from '@mui/icons-material';
+import { useTranslation } from 'react-i18next';
 import { AuthContext } from '../../context/AuthContext';
 import { fetchMyEvents } from '../../services/bookingService';
 import { fetchResources } from '../../services/resourceService';
@@ -27,13 +28,14 @@ import moment from 'moment';
 import 'moment/locale/it';
 import { formatDate } from '../../utils/dateUtils';
 
-// Componente per mostrare il resoconto delle prenotazioni dell'utente loggato
+// Component to show the user's booking summary
 const MyBookingsPage = () => {
   const theme = useTheme();
+  const { t, i18n } = useTranslation();
   const { currentUser } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState(0); // 0 = future, 1 = passate
+  const [activeTab, setActiveTab] = useState(0); // 0 = future, 1 = past
   const [bookings, setBookings] = useState([]);
   const [resources, setResources] = useState([]);
   const [stats, setStats] = useState({
@@ -44,17 +46,27 @@ const MyBookingsPage = () => {
     lastMonth: 0
   });
 
-  // Carica le prenotazioni dell'utente
+  // Update moment locale based on current language
+  useEffect(() => {
+    const language = i18n.language || 'it';
+    if (language.startsWith('en')) {
+      moment.locale('en-gb');
+    } else {
+      moment.locale('it');
+    }
+  }, [i18n.language]);
+
+  // Load user bookings
   useEffect(() => {
     const loadUserBookings = async () => {
       setIsLoading(true);
       try {
-        // Utilizziamo withErrorHandling per ogni chiamata API individuale
-        // per gestire meglio gli errori parziali
+        // Use withErrorHandling for each individual API call
+        // to better handle partial errors
         const eventsData = await withErrorHandling(async () => {
           return await fetchMyEvents();
         }, {
-          errorMessage: 'Impossibile caricare le tue prenotazioni',
+          errorMessage: t('errors.unableToLoadYourBookings'),
           showError: true,
           rethrowError: false
         }) || [];
@@ -62,26 +74,26 @@ const MyBookingsPage = () => {
         const resourcesData = await withErrorHandling(async () => {
           return await fetchResources();
         }, {
-          errorMessage: 'Impossibile caricare le risorse',
+          errorMessage: t('errors.unableToLoadResourceData'),
           showError: true,
           rethrowError: false
         }) || [];
           
-        // Arricchisci i dati degli eventi con informazioni sulla risorsa
+        // Enrich event data with resource information
         const processedEvents = eventsData.map(event => {
           const resource = resourcesData.find(r => r.id === event.resourceId);
           return {
             ...event,
             start: new Date(event.start),
             end: new Date(event.end),
-            resourceName: resource ? resource.name : 'Risorsa sconosciuta'
+            resourceName: resource ? resource.name : t('bookingForm.unknownResource')
           };
         });
         
         setBookings(processedEvents);
         setResources(resourcesData);
         
-        // Calcola le statistiche
+        // Calculate statistics
         calculateStats(processedEvents);
       } finally {
         setIsLoading(false);
@@ -89,27 +101,27 @@ const MyBookingsPage = () => {
     };
 
     loadUserBookings();
-  }, [withErrorHandling, currentUser]);
+  }, [withErrorHandling, currentUser, t, i18n.language]);
 
-  // Calcola le statistiche delle prenotazioni
+  // Calculate booking statistics
   const calculateStats = (events) => {
     const now = new Date();
     const thisMonth = moment().startOf('month');
     const lastMonth = moment().subtract(1, 'month').startOf('month');
     
-    // Prenotazioni future
+    // Future bookings
     const futureEvents = events.filter(event => new Date(event.start) > now);
     
-    // Prenotazioni passate
+    // Past bookings
     const pastEvents = events.filter(event => new Date(event.end) < now);
     
-    // Prenotazioni di questo mese
+    // This month's bookings
     const thisMonthEvents = events.filter(event => 
       moment(event.start).isSameOrAfter(thisMonth) && 
       moment(event.start).isBefore(moment(thisMonth).add(1, 'month'))
     );
     
-    // Prenotazioni del mese scorso
+    // Last month's bookings
     const lastMonthEvents = events.filter(event => 
       moment(event.start).isSameOrAfter(lastMonth) && 
       moment(event.start).isBefore(thisMonth)
@@ -124,35 +136,35 @@ const MyBookingsPage = () => {
     });
   };
 
-  // Cambia la tab attiva
+  // Change active tab
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
-  // Filtra le prenotazioni in base alla tab attiva
+  // Filter bookings based on active tab
   const filteredBookings = bookings.filter(booking => {
     const now = new Date();
     if (activeTab === 0) {
       // Future
       return new Date(booking.start) > now;
     } else {
-      // Passate
+      // Past
       return new Date(booking.end) < now;
     }
   });
 
-  // Ordina le prenotazioni
+  // Sort bookings
   const sortedBookings = [...filteredBookings].sort((a, b) => {
     if (activeTab === 0) {
-      // Future: ordina per data crescente (più vicine prima)
+      // Future: sort by ascending date (closest first)
       return new Date(a.start) - new Date(b.start);
     } else {
-      // Passate: ordina per data decrescente (più recenti prima)
+      // Past: sort by descending date (most recent first)
       return new Date(b.end) - new Date(a.end);
     }
   });
 
-  // Calcola la durata di una prenotazione in ore
+  // Calculate booking duration in hours
   const calculateDuration = (start, end) => {
     const startTime = new Date(start);
     const endTime = new Date(end);
@@ -171,9 +183,9 @@ const MyBookingsPage = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>Le mie prenotazioni</Typography>
+      <Typography variant="h5" sx={{ mb: 3 }}>{t('myBookings.title')}</Typography>
       
-      {/* Statistiche principali */}
+      {/* Main statistics */}
       <Stack 
         direction={{ xs: 'column', sm: 'row' }} 
         spacing={3} 
@@ -182,7 +194,7 @@ const MyBookingsPage = () => {
         <Card sx={{ bgcolor: theme.palette.primary.main, color: 'white', flex: 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">Totali</Typography>
+              <Typography variant="h6">{t('myBookings.total')}</Typography>
               <CalendarTodayIcon />
             </Box>
             <Typography variant="h3">{stats.total}</Typography>
@@ -191,7 +203,7 @@ const MyBookingsPage = () => {
         <Card sx={{ bgcolor: theme.palette.success.main, color: 'white', flex: 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">Future</Typography>
+              <Typography variant="h6">{t('myBookings.future')}</Typography>
               <EventAvailableIcon />
             </Box>
             <Typography variant="h3">{stats.future}</Typography>
@@ -200,7 +212,7 @@ const MyBookingsPage = () => {
         <Card sx={{ bgcolor: theme.palette.info.main, color: 'white', flex: 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">Questo mese</Typography>
+              <Typography variant="h6">{t('myBookings.thisMonth')}</Typography>
               <CalendarTodayIcon />
             </Box>
             <Typography variant="h3">{stats.thisMonth}</Typography>
@@ -209,7 +221,7 @@ const MyBookingsPage = () => {
         <Card sx={{ bgcolor: theme.palette.secondary.main, color: 'white', flex: 1 }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Typography variant="h6">Completate</Typography>
+              <Typography variant="h6">{t('myBookings.completed')}</Typography>
               <EventBusyIcon />
             </Box>
             <Typography variant="h3">{stats.past}</Typography>
@@ -217,7 +229,7 @@ const MyBookingsPage = () => {
         </Card>
       </Stack>
       
-      {/* Tabs per scegliere tra prenotazioni future e passate */}
+      {/* Tabs to choose between future and past bookings */}
       <Paper sx={{ mb: 3 }}>
         <Tabs
           value={activeTab}
@@ -226,24 +238,24 @@ const MyBookingsPage = () => {
           textColor="primary"
           variant="fullWidth"
         >
-          <Tab label={`Prenotazioni Future (${stats.future})`} />
-          <Tab label={`Prenotazioni Passate (${stats.past})`} />
+          <Tab label={`${t('myBookings.futureBookings')} (${stats.future})`} />
+          <Tab label={`${t('myBookings.pastBookings')} (${stats.past})`} />
         </Tabs>
       </Paper>
       
-      {/* Lista delle prenotazioni */}
+      {/* Booking list */}
       <Paper sx={{ p: 0 }}>
         {sortedBookings.length === 0 ? (
           <Box sx={{ p: 4, textAlign: 'center' }}>
             <Typography variant="h6" color="text.secondary">
               {activeTab === 0 
-                ? 'Non hai prenotazioni future'
-                : 'Non hai prenotazioni passate'}
+                ? t('myBookings.noFutureBookings')
+                : t('myBookings.noPastBookings')}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mt: 1 }}>
               {activeTab === 0 
-                ? 'Le tue prossime prenotazioni appariranno qui'
-                : 'La cronologia delle tue prenotazioni apparirà qui'}
+                ? t('myBookings.upcomingBookingsWillAppear')
+                : t('myBookings.bookingHistoryWillAppear')}
             </Typography>
           </Box>
         ) : (
@@ -255,7 +267,7 @@ const MyBookingsPage = () => {
                   direction={{ xs: 'column', md: 'row' }} 
                   spacing={2}
                 >
-                  {/* Data e ora */}
+                  {/* Date and time */}
                   <Box sx={{ width: { xs: '100%', md: '25%' } }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
                       {formatDate(booking.start, 'dddd D MMMM YYYY')}
@@ -264,15 +276,15 @@ const MyBookingsPage = () => {
                       {formatDate(booking.start, 'HH:mm')} - {formatDate(booking.end, 'HH:mm')}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Durata: {calculateDuration(booking.start, booking.end)} ore
+                      {t('myBookings.duration')} {calculateDuration(booking.start, booking.end)} {t('myBookings.hours')}
                     </Typography>
                   </Box>
                   
-                  {/* Titolo e risorsa */}
+                  {/* Title and resource */}
                   <Box sx={{ width: { xs: '100%', md: '50%' } }}>
                     <Typography variant="h6">{booking.title}</Typography>
                     <Typography variant="body1" sx={{ mt: 1 }}>
-                      <strong>Risorsa:</strong> {booking.resourceName}
+                      <strong>{t('myBookings.resource')}</strong> {booking.resourceName}
                     </Typography>
                     {booking.description && (
                       <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -281,7 +293,7 @@ const MyBookingsPage = () => {
                     )}
                   </Box>
                   
-                  {/* Stato */}
+                  {/* Status */}
                   <Box 
                     sx={{ 
                       width: { xs: '100%', md: '25%' },
@@ -291,7 +303,7 @@ const MyBookingsPage = () => {
                     }}
                   >
                     <Chip
-                      label={activeTab === 0 ? 'Futura' : 'Completata'}
+                      label={activeTab === 0 ? t('myBookings.future') : t('myBookings.completed')}
                       color={activeTab === 0 ? 'primary' : 'default'}
                       variant={activeTab === 0 ? 'filled' : 'outlined'}
                       sx={{ mb: 1 }}
@@ -303,7 +315,7 @@ const MyBookingsPage = () => {
                         size="small"
                         sx={{ mt: 1 }}
                         onClick={() => {
-                          // Memorizza i dati della prenotazione nel localStorage per il passaggio tra pagine
+                          // Store booking data in localStorage for passing between pages
                           localStorage.setItem('viewBookingInCalendar', JSON.stringify({
                             date: booking.start,
                             id: booking.id,
@@ -312,7 +324,7 @@ const MyBookingsPage = () => {
                           window.open('/calendar', '_self');
                         }}
                       >
-                        Vedi nel calendario
+                        {t('myBookings.viewInCalendar')}
                       </Button>
                     </Box>
                   </Box>

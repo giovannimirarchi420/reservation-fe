@@ -263,6 +263,7 @@ const it = {
       maintenance: "Manutenzione",
       unavailable: "Non disponibile",
       unknown: "Sconosciuto",
+      noData: "Nessun dato disponibile",
       na: "N/D"
     },
     trendChart: {

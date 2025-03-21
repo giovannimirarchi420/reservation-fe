@@ -4,7 +4,14 @@
 import * as authService from './authService';
 
 // Base URL for API
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+let API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
+
+if (window.ENV){
+  //If window.ENV exists (e.g. running in k8s cluster, to get the value from the config map) 
+   API_BASE_URL = window.ENV.API_URL
+}
+
+
 
 /**
  * Generic function for making API requests
