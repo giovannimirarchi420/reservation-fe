@@ -328,8 +328,8 @@ const it = {
       unableToUpdateProfile: "Impossibile aggiornare il profilo",
       avatarInitials: "Iniziali Avatar",
       maxTwoCharacters: "Massimo 2 caratteri",
-      userIdCopied: "User ID copiato"
-
+      userIdCopied: "User ID copiato",
+      copyUserId: "Copia ID"
     },
     notificationsPage: {
       title: "Centro Notifiche",

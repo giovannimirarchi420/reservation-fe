@@ -334,7 +334,8 @@ const en = {
       unableToUpdateProfile: "Unable to update profile",
       avatarInitials: "Avatar Initials",
       maxTwoCharacters: "Maximum 2 characters",
-      userIdCopied: "User ID copied to clipboard"
+      userIdCopied: "User ID copied to clipboard",
+      copyUserId: "Copy ID"
     },
     notificationsPage: {
       title: "Notification Center",

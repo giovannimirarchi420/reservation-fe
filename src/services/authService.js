@@ -1,12 +1,12 @@
 /**
- * Servizio per l'autenticazione tramite Keycloak
+ * Authentication service for Keycloak
  */
 import keycloak from '../config/keycloak.js';
 
 /**
- * Avvia il processo di login
- * @param {Object} options - Opzioni di login
- * @returns {Promise} Promessa con l'esito del login
+ * Initiates the login process
+ * @param {Object} options - Login options
+ * @returns {Promise} Promise with the login outcome
  */
 export const login = (options = {}) => {
     return new Promise((resolve, reject) => {
@@ -16,25 +16,25 @@ export const login = (options = {}) => {
                     resolve(result);
                 })
                 .catch(error => {
-                    console.error('Errore durante il login:', error);
-                    reject(new Error('Impossibile completare il login. Verifica le tue credenziali e riprova.'));
+                    console.error('Error during login:', error);
+                    reject(new Error('Unable to complete login. Please check your credentials and try again.'));
                 });
         } catch (error) {
-            console.error('Errore critico durante il login:', error);
-            reject(new Error('Si è verificato un errore durante l\'accesso. Si prega di riprovare.'));
+            console.error('Critical error during login:', error);
+            reject(new Error('An error occurred during access. Please try again.'));
         }
     });
 };
 
 /**
- * Effettua il logout
- * @param {Object} options - Opzioni di logout
- * @returns {Promise} Promessa con l'esito del logout
+ * Performs logout
+ * @param {Object} options - Logout options
+ * @returns {Promise} Promise with the logout outcome
  */
 export const logout = (options = {}) => {
     return new Promise((resolve, reject) => {
         try {
-            // Rimuovi i token salvati
+            // Remove saved tokens
             clearTokens();
 
             keycloak.logout(options)
@@ -42,35 +42,35 @@ export const logout = (options = {}) => {
                     resolve(result);
                 })
                 .catch(error => {
-                    console.error('Errore durante il logout:', error);
-                    reject(new Error('Impossibile completare il logout. Riprova più tardi.'));
+                    console.error('Error during logout:', error);
+                    reject(new Error('Unable to complete logout. Please try again later.'));
                 });
         } catch (error) {
-            console.error('Errore critico durante il logout:', error);
-            reject(new Error('Si è verificato un errore durante la disconnessione. Si prega di chiudere il browser.'));
+            console.error('Critical error during logout:', error);
+            reject(new Error('An error occurred during disconnection. Please close the browser.'));
         }
     });
 };
 
 /**
- * Controlla se l'utente è autenticato
- * @returns {boolean} true se l'utente è autenticato
+ * Checks if the user is authenticated
+ * @returns {boolean} true if the user is authenticated
  */
 export const isAuthenticated = () => {
     return !!keycloak.token;
 };
 
 /**
- * Ottiene il token dell'utente corrente
- * @returns {string} Token JWT
+ * Gets the current user's token
+ * @returns {string} JWT Token
  */
 export const getToken = () => {
     return keycloak.token;
 };
 
 /**
- * Ottiene le informazioni dell'utente dal token
- * @returns {Object} Informazioni dell'utente
+ * Gets user information from the token
+ * @returns {Object} User information
  */
 export const getUserInfo = () => {
     if (keycloak.tokenParsed) {
@@ -81,9 +81,9 @@ export const getUserInfo = () => {
             email: keycloak.tokenParsed.email,
             firstName: keycloak.tokenParsed.given_name,
             lastName: keycloak.tokenParsed.family_name,
-            // Alcune implementazioni Keycloak potrebbero avere il ruolo in formati diversi
+            // Some Keycloak implementations might have the role in different formats
             role: keycloak.tokenParsed.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
-            // Crea un avatar dalle iniziali del nome
+            // Create an avatar from the name initials
             avatar: createAvatarFromName(keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username)
         };
     }
@@ -91,9 +91,9 @@ export const getUserInfo = () => {
 };
 
 /**
- * Verifica se l'utente ha un determinato ruolo
- * @param {string} role - Ruolo da verificare
- * @returns {boolean} true se l'utente ha il ruolo specificato
+ * Checks if the user has a specific role
+ * @param {string} role - Role to check
+ * @returns {boolean} true if the user has the specified role
  */
 export const hasRole = (role) => {
     if (!keycloak.tokenParsed || !keycloak.tokenParsed.realm_access) {
@@ -104,77 +104,77 @@ export const hasRole = (role) => {
 };
 
 /**
- * Ottiene il token per le richieste API
- * @returns {string} Token per l'header Authorization
+ * Gets the token for API requests
+ * @returns {string} Token for the Authorization header
  */
 export const getAuthHeader = () => {
     return `Bearer ${keycloak.token}`;
 };
 
 /**
- * Forza l'aggiornamento del token
- * @returns {Promise} Promessa con l'esito dell'aggiornamento
+ * Forces token refresh
+ * @returns {Promise} Promise with the refresh outcome
  */
 export const updateToken = () => {
     return new Promise((resolve, reject) => {
         keycloak.updateToken(70)
             .then(refreshed => {
                 if (refreshed) {
-                    console.log('Token aggiornato con successo');
-                    // Salva il nuovo token
+                    console.log('Token successfully updated');
+                    // Save the new token
                     saveTokens(keycloak.token, keycloak.refreshToken);
                 }
                 resolve(keycloak.token);
             })
             .catch(error => {
-                console.error('Errore durante l\'aggiornamento del token', error);
-                const authError = new Error('La sessione è scaduta. Effettua nuovamente il login.');
+                console.error('Error during token update', error);
+                const authError = new Error('Session has expired. Please log in again.');
                 authError.type = 'session_expired';
                 reject(authError);
             });
     });
 };
 
-// Funzioni di utilità per la gestione dei token
+// Utility functions for token management
 
 /**
- * Salva i token nel localStorage
- * @param {string} token - Token JWT
- * @param {string} refreshToken - Token di refresh
+ * Saves tokens in localStorage
+ * @param {string} token - JWT Token
+ * @param {string} refreshToken - Refresh token
  */
 const saveTokens = (token, refreshToken) => {
     if (token) {
         try {
             localStorage.setItem('token', token);
         } catch (e) {
-            console.error('Impossibile salvare il token nel localStorage:', e);
+            console.error('Unable to save token in localStorage:', e);
         }
     }
     if (refreshToken) {
         try {
             localStorage.setItem('refreshToken', refreshToken);
         } catch (e) {
-            console.error('Impossibile salvare il refresh token nel localStorage:', e);
+            console.error('Unable to save refresh token in localStorage:', e);
         }
     }
 };
 
 /**
- * Rimuove i token dal localStorage
+ * Removes tokens from localStorage
  */
 const clearTokens = () => {
     try {
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
     } catch (e) {
-        console.error('Impossibile rimuovere i token dal localStorage:', e);
+        console.error('Unable to remove tokens from localStorage:', e);
     }
 };
 
 /**
- * Crea un avatar dalle iniziali del nome
- * @param {string} name - Nome completo
- * @returns {string} Iniziali del nome
+ * Creates an avatar from the name initials
+ * @param {string} name - Full name
+ * @returns {string} Name initials
  */
 const createAvatarFromName = (name) => {
     if (!name) return '';
@@ -190,14 +190,14 @@ const createAvatarFromName = (name) => {
 };
 
 /**
- * Controlla la validità del token corrente
- * @returns {boolean} true se il token è valido, false altrimenti
+ * Checks the validity of the current token
+ * @returns {boolean} true if the token is valid, false otherwise
  */
 export const isTokenValid = () => {
     try {
         return keycloak.isTokenExpired() === false;
     } catch (error) {
-        console.error('Errore nel controllare la validità del token:', error);
+        console.error('Error checking token validity:', error);
         return false;
     }
 };
