@@ -15,7 +15,11 @@ import {
   Typography,
   Alert,
   Chip,
-  Snackbar
+  Snackbar,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Tooltip
 } from '@mui/material';
 import { 
   Edit as EditIcon, 
@@ -23,10 +27,13 @@ import {
   Cancel as CancelIcon, 
   Visibility as VisibilityIcon, 
   VisibilityOff as VisibilityOffIcon,
-  ContentCopy as ContentCopyIcon
+  ContentCopy as ContentCopyIcon,
+  Key as KeyIcon,
+  ExpandMore as ExpandMoreIcon,
+  DeleteOutline as DeleteOutlineIcon
 } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
-import { updateProfile } from '../../services/userService';
+import { updateProfile, fetchCurrentUser, getUserSshKey, updateUserSshKey, deleteUserSshKey } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
 
 const ProfileManagement = () => {
@@ -49,9 +56,13 @@ const ProfileManagement = () => {
     lastName: '',
     email: '',
     username: '',
-    password: ''
+    password: '',
+    sshPublicKey: ''
   });
+  const [sshKeyExpanded, setSshKeyExpanded] = useState(false);
+  const [loadingSshKey, setLoadingSshKey] = useState(false);
 
+  // Load user profile data
   useEffect(() => {
     if (currentUser) {
       setProfileData({
@@ -59,10 +70,38 @@ const ProfileManagement = () => {
         lastName: currentUser.lastName || '',
         email: currentUser.email || '',
         username: currentUser.username || currentUser.name || '',
-        password: ''
+        password: '',
+        sshPublicKey: currentUser.sshPublicKey || ''
       });
     }
   }, [currentUser]);
+
+  // Load SSH key data if not present in user profile
+  useEffect(() => {
+    const loadSshKey = async () => {
+      if (currentUser && !currentUser.sshPublicKey && isEditing) {
+        setLoadingSshKey(true);
+        try {
+          await withErrorHandling(async () => {
+            const response = await getUserSshKey();
+            if (response && response.sshPublicKey) {
+              setProfileData(prev => ({
+                ...prev,
+                sshPublicKey: response.sshPublicKey
+              }));
+            }
+          }, {
+            errorMessage: t('profile.unableToLoadSshKey'),
+            showError: false
+          });
+        } finally {
+          setLoadingSshKey(false);
+        }
+      }
+    };
+
+    loadSshKey();
+  }, [currentUser, isEditing, withErrorHandling, t]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -81,7 +120,8 @@ const ProfileManagement = () => {
           lastName: currentUser.lastName || '',
           email: currentUser.email || '',
           username: currentUser.username || currentUser.name || '',
-          password: ''
+          password: '',
+          sshPublicKey: currentUser.sshPublicKey || ''
         });
       }
     }
@@ -104,7 +144,8 @@ const ProfileManagement = () => {
       const updatedData = {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
-        email: profileData.email
+        email: profileData.email,
+        sshPublicKey: profileData.sshPublicKey
       };
 
       if (profileData.password) {
@@ -125,6 +166,7 @@ const ProfileManagement = () => {
           firstName: profileData.firstName,
           lastName: profileData.lastName,
           email: profileData.email,
+          sshPublicKey: profileData.sshPublicKey,
           ...user
         };
         
@@ -140,6 +182,34 @@ const ProfileManagement = () => {
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleDeleteSshKey = async () => {
+    if (window.confirm(t('profile.confirmDeleteSshKey'))) {
+      try {
+        await withErrorHandling(async () => {
+          await deleteUserSshKey();
+          setProfileData({
+            ...profileData,
+            sshPublicKey: ''
+          });
+          
+          // Update the current user state to reflect the change
+          const updatedUser = {
+            ...currentUser,
+            sshPublicKey: ''
+          };
+          setCurrentUser(updatedUser);
+          
+          showNotification(t('profile.sshKeyDeleted'));
+        }, {
+          errorMessage: t('profile.unableToDeleteSshKey'),
+          showError: true
+        });
+      } catch (error) {
+        console.error('Error deleting SSH key:', error);
+      }
     }
   };
 
@@ -339,6 +409,88 @@ const ProfileManagement = () => {
                     }}
                   />
                 )}
+
+                {/* SSH Key Management Section */}
+                <Accordion 
+                  expanded={sshKeyExpanded} 
+                  onChange={() => setSshKeyExpanded(!sshKeyExpanded)}
+                  sx={{ mt: 2, bgcolor: 'background.paper' }}
+                >
+                  <AccordionSummary
+                    expandIcon={<ExpandMoreIcon />}
+                    aria-controls="ssh-key-content"
+                    id="ssh-key-header"
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <KeyIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                      <Typography variant="subtitle1">{t('profile.sshKeyManagement')}</Typography>
+                    </Box>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {loadingSshKey ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
+                        <CircularProgress size={24} />
+                      </Box>
+                    ) : (
+                      <>
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                          {t('profile.sshKeyDescription')}
+                        </Typography>
+                        
+                        <TextField
+                          label={t('profile.sshPublicKey')}
+                          name="sshPublicKey"
+                          value={profileData.sshPublicKey}
+                          onChange={handleChange}
+                          fullWidth
+                          multiline
+                          minRows={3}
+                          maxRows={6}
+                          margin="normal"
+                          placeholder={t('profile.sshKeyPlaceholder')}
+                          disabled={!isEditing}
+                          InputProps={{
+                            endAdornment: isEditing && profileData.sshPublicKey ? (
+                              <InputAdornment position="end">
+                                <Tooltip title={t('profile.deleteSshKey')}>
+                                  <IconButton
+                                    edge="end"
+                                    onClick={handleDeleteSshKey}
+                                  >
+                                    <DeleteOutlineIcon color="error" />
+                                  </IconButton>
+                                </Tooltip>
+                              </InputAdornment>
+                            ) : null
+                          }}
+                        />
+                        
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" color="text.secondary">
+                            {t('profile.supportedSshKeyFormats')}: RSA (ssh-rsa), Ed25519 (ssh-ed25519), ECDSA
+                          </Typography>
+                        </Box>
+                        
+                        {profileData.sshPublicKey && (
+                          <Box sx={{ mt: 2 }}>
+                            <Typography variant="body2">
+                              <b>{t('profile.sshKeyUsage')}:</b> 
+                              <code style={{ display: 'block', padding: '8px', margin: '8px 0', backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: '4px', overflowX: 'auto' }}>
+                                ssh -i /path/to/private_key user@resource-hostname
+                              </code>
+                            </Typography>
+                          </Box>
+                        )}
+                        
+                        {!isEditing && profileData.sshPublicKey && (
+                          <Alert severity="info" sx={{ mt: 2 }}>
+                            {t('profile.editToChangeSshKey')}
+                          </Alert>
+                        )}
+                      </>
+                    )}
+                  </AccordionDetails>
+                </Accordion>
 
                 {isEditing && (
                   <Box sx={{ 

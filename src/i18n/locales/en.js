@@ -335,7 +335,19 @@ const en = {
       avatarInitials: "Avatar Initials",
       maxTwoCharacters: "Maximum 2 characters",
       userIdCopied: "User ID copied to clipboard",
-      copyUserId: "Copy ID"
+      copyUserId: "Copy ID",
+      sshKeyManagement: "SSH Key Management",
+      sshPublicKey: "SSH Public Key",
+      sshKeyDescription: "Add your SSH public key to access resources remotely. This key will be used to authenticate you when connecting to resources via SSH.",
+      sshKeyPlaceholder: "Paste your SSH public key here (ssh-rsa AAAAB3Nza...)",
+      supportedSshKeyFormats: "Supported formats",
+      deleteSshKey: "Delete SSH Key",
+      confirmDeleteSshKey: "Are you sure you want to delete your SSH key?",
+      sshKeyDeleted: "SSH key deleted successfully",
+      unableToDeleteSshKey: "Unable to delete SSH key",
+      unableToLoadSshKey: "Unable to load SSH key",
+      sshKeyUsage: "Connection example",
+      editToChangeSshKey: "Click Edit to change or remove your SSH key"
     },
     notificationsPage: {
       title: "Notification Center",

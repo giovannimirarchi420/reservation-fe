@@ -329,7 +329,19 @@ const it = {
       avatarInitials: "Iniziali Avatar",
       maxTwoCharacters: "Massimo 2 caratteri",
       userIdCopied: "User ID copiato",
-      copyUserId: "Copia ID"
+      copyUserId: "Copia ID",
+      sshKeyManagement: "Gestione Chiave SSH",
+      sshPublicKey: "Chiave SSH Pubblica",
+      sshKeyDescription: "Aggiungi la tua chiave SSH pubblica per accedere alle risorse in remoto. Questa chiave verrà utilizzata per autenticarti quando ti connetti alle risorse via SSH.",
+      sshKeyPlaceholder: "Incolla qui la tua chiave SSH pubblica (ssh-rsa AAAAB3Nza...)",
+      supportedSshKeyFormats: "Formati supportati",
+      deleteSshKey: "Elimina Chiave SSH",
+      confirmDeleteSshKey: "Sei sicuro di voler eliminare la tua chiave SSH?",
+      sshKeyDeleted: "Chiave SSH eliminata con successo",
+      unableToDeleteSshKey: "Impossibile eliminare la chiave SSH",
+      unableToLoadSshKey: "Impossibile caricare la chiave SSH",
+      sshKeyUsage: "Esempio di connessione",
+      editToChangeSshKey: "Clicca su Modifica per cambiare o rimuovere la tua chiave SSH"
     },
     notificationsPage: {
       title: "Centro Notifiche",

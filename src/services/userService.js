@@ -23,6 +23,26 @@ export const fetchUser = (id) => apiRequest(`/users/${id}`);
 export const fetchCurrentUser = () => apiRequest('/users/me');
 
 /**
+ * Get the current user's SSH public key
+ * @returns {Promise<Object>} SSH key data
+ */
+export const getUserSshKey = () => apiRequest('/users/me/ssh-key');
+
+/**
+ * Update the current user's SSH public key
+ * @param {string} sshPublicKey - SSH public key string
+ * @returns {Promise<Object>} Updated user data
+ */
+export const updateUserSshKey = (sshPublicKey) => 
+  apiRequest('/users/me/ssh-key', 'PUT', { sshPublicKey });
+
+/**
+ * Delete the current user's SSH public key
+ * @returns {Promise<Object>} Deletion response
+ */
+export const deleteUserSshKey = () => apiRequest('/users/me/ssh-key', 'DELETE');
+
+/**
  * Create a new user
  * @param {Object} userData - New user data (username, email, firstName, lastName, password, roles, avatar)
  * @returns {Promise<Object>} Created user
@@ -36,7 +56,8 @@ export const createUser = (userData) => {
         lastName: userData.lastName,
         password: userData.password,
         roles: userData.roles || ['USER'],
-        avatar: userData.avatar || ''
+        avatar: userData.avatar || '',
+        sshPublicKey: userData.sshPublicKey || ''
     };
 
     return apiRequest('/users', 'POST', preparedData);
@@ -59,6 +80,7 @@ export const updateUser = (id, userData) => {
     if (userData.password) preparedData.password = userData.password;
     if (userData.roles) preparedData.roles = userData.roles;
     if (userData.avatar) preparedData.avatar = userData.avatar;
+    if (userData.sshPublicKey !== undefined) preparedData.sshPublicKey = userData.sshPublicKey;
 
     return apiRequest(`/users/${id}`, 'PUT', preparedData);
 };
@@ -78,6 +100,7 @@ export const updateProfile = (userData) => {
     if (userData.lastName) preparedData.lastName = userData.lastName;
     if (userData.password) preparedData.password = userData.password;
     if (userData.avatar) preparedData.avatar = userData.avatar;
+    if (userData.sshPublicKey !== undefined) preparedData.sshPublicKey = userData.sshPublicKey;
 
     return apiRequest('/users/me', 'PUT', preparedData);
 };
