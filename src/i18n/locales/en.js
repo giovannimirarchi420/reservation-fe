@@ -240,7 +240,17 @@ const en = {
       parentResourceHelp: "Select a parent resource to create a hierarchical relationship",
       childResourceWarning: "This resource is part of a hierarchy. Booking may be affected by its parent's availability.",
       parentResourceWarning: "Booking this resource will make all its sub-resources unavailable during the same period.",
-      affectedSubResources: "Sub-resources that will be affected:"
+      affectedSubResources: "Sub-resources that will be affected:",
+      parentResourceExplanation: "Hierarchical Resource Relationship",
+      childResourceExplanation: "This resource is part of a hierarchy",
+      parentResourceDetail: "When you book this parent resource, all its sub-resources will be automatically blocked during the same time period.",
+      childResourceDetail: "This resource belongs to a parent resource. Its availability may be affected if the parent resource is booked.",
+      dependentResources: "Sub-resources that will be affected",
+      hierarchyStructure: "Hierarchy structure",
+      parentResourceLabel: "Parent Resource",
+      siblingResourcesLabel: "Other resources in the same group",
+      parent: "PARENT",
+      child: "CHILD"
     },
     myBookings: {
       title: "My Bookings",

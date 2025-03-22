@@ -302,15 +302,23 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     }
     
     if (validateForm()) {
-      // First check for conflicts
-      const noConflicts = await checkConflicts();
-      
-      if (noConflicts || window.confirm(t('bookingForm.confirmConflictContinue'))) {
-        onSave(formData);
+      // If validation message is not set or not a success, check for conflicts
+      if (!validationMessage || validationMessage.type !== 'success') {
+        const noConflicts = await checkConflicts();
+        
+        if (!noConflicts) {
+          // If there are conflicts, ask for confirmation
+          if (!window.confirm(t('bookingForm.confirmConflictContinue'))) {
+            return; // User cancelled the operation
+          }
+        }
       }
+      
+      // Proceed with saving
+      onSave(formData);
     } else {
       // Notify form errors
-      const errorFields = Object.keys(errors);
+      const errorFields = Object.keys(errors).map(field => t(`bookingForm.${field}`));
       if (errorFields.length > 0) {
         notifyFormError(`${t('bookingForm.correctErrorFields')} ${errorFields.join(', ')}`);
       }
@@ -340,7 +348,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     return t('bookingForm.unknownUser');
   };
 
-  // Render affected resources section
+  // Render affected resources section with clear hierarchy explanation
   const renderAffectedResources = () => {
     if (affectedResources.length === 0) return null;
     
@@ -351,34 +359,113 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     const isParent = selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0;
     
     return (
-      <Box sx={{ mt: 2, mb: 1 }}>
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-          {isParent ? 
-            t('bookingForm.affectedSubResources') : 
-            t('bookingForm.parentResource')
+      <Paper elevation={0} variant="outlined" sx={{ p: 2, mt: 2, mb: 1, bgcolor: 'background.paper' }}>
+        {/* Clear heading explaining the hierarchy implication */}
+        <Typography variant="subtitle1" color="primary" gutterBottom fontWeight="bold" sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box component="span" sx={{ mr: 1 }}>⚠️</Box>
+          {isParent 
+            ? t('bookingForm.parentResourceExplanation') 
+            : t('bookingForm.childResourceExplanation')
           }
         </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {affectedResources.map(resource => (
-            <Chip
-              key={resource.id}
-              label={resource.name}
-              size="small"
-              color={resource.id === selectedResource.parentId ? "primary" : "default"}
-              variant={resource.id === selectedResource.parentId ? "filled" : "outlined"}
-            />
-          ))}
+        
+        <Divider sx={{ my: 1 }} />
+        
+        {/* Clarified explanation of the relationship */}
+        <Typography variant="body2" gutterBottom>
+          {isParent
+            ? t('bookingForm.parentResourceDetail') 
+            : t('bookingForm.childResourceDetail')
+          }
+        </Typography>
+        
+        {/* Clarified label for the resources list */}
+        <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ mt: 2, mb: 1 }}>
+          {isParent 
+            ? t('bookingForm.dependentResources') 
+            : t('bookingForm.hierarchyStructure')
+          }:
+        </Typography>
+        
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: 'column',
+          gap: 1, 
+          mt: 1,
+          pl: 2
+        }}>
+          {/* For child resources, first show the parent explicitly */}
+          {!isParent && selectedResource.parentId && (
+            <Box sx={{ mb: 1 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+                <Box component="span" sx={{ mr: 1 }}>📂</Box>
+                {t('bookingForm.parentResourceLabel')}: {' '}
+                <Chip
+                  label={affectedResources.find(r => r.id === selectedResource.parentId)?.name}
+                  size="small"
+                  color="primary"
+                  sx={{ ml: 1 }}
+                />
+              </Typography>
+            </Box>
+          )}
+          
+          {/* Show resource list with appropriate labeling */}
+          {isParent ? (
+            // For parent resources, show the child resources that will be affected
+            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+              {affectedResources.map(resource => (
+                <Chip
+                  key={resource.id}
+                  label={resource.name}
+                  size="small"
+                  variant="outlined"
+                  sx={{ my: 0.5 }}
+                />
+              ))}
+            </Typography>
+          ) : (
+            // For child resources, show sibling resources (other children of same parent)
+            <Box>
+              {affectedResources
+                .filter(r => r.id !== selectedResource.parentId)
+                .length > 0 && (
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Box component="span" sx={{ mr: 1 }}>🔄</Box>
+                  {t('bookingForm.siblingResourcesLabel')}: {' '}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, ml: 1 }}>
+                    {affectedResources
+                      .filter(r => r.id !== selectedResource.parentId)
+                      .map(resource => (
+                        <Chip
+                          key={resource.id}
+                          label={resource.name}
+                          size="small"
+                          variant="outlined"
+                          sx={{ my: 0.5 }}
+                        />
+                      ))}
+                  </Box>
+                </Typography>
+              )}
+            </Box>
+          )}
         </Box>
-      </Box>
+      </Paper>
     );
   };
 
-  // Render read-only view
+  // Render read-only view with improved UI
   const renderReadOnlyView = () => {
     // Get resource name
     const resourceName = getResourceName(formData.resourceId);
     // Get user name
     const userName = getUserName(formData.userId);
+    
+    // Check if this resource is part of a hierarchy
+    const selectedResource = resources.find(r => r.id === formData.resourceId);
+    const isHierarchical = selectedResource && 
+      (selectedResource.parentId || (selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0));
     
     return (
       <>
@@ -425,14 +512,14 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>
-            {t('bookingForm.close')}
+            {t('common.close')}
           </Button>
         </DialogActions>
       </>
     );
   };
 
-  // Render edit form
+  // Render edit form with improved structure and UI
   const renderEditForm = () => {
     const selectedResource = resources.find(r => r.id === formData.resourceId);
     const isHierarchical = selectedResource && 
@@ -440,9 +527,16 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     
     return (
       <>
-        <DialogTitle>{formData.id ? t('bookingForm.editBooking') : t('bookingForm.newBooking')}</DialogTitle>
+        <DialogTitle>
+          {formData.id ? t('bookingForm.editBooking') : t('bookingForm.newBooking')}
+        </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
+            {/* Basic booking information section */}
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'medium' }}>
+              {t('bookingForm.bookingDetails')}
+            </Typography>
+            
             <TextField
               label={t('bookingForm.title')}
               name="title"
@@ -465,29 +559,68 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 onChange={handleChange}
               >
                 <MenuItem value="">{t('bookingForm.selectResource')}</MenuItem>
-                {activeResources.map(resource => (
-                  <MenuItem key={resource.id} value={resource.id}>
-                    {resource.name} - {resource.specs}
-                  </MenuItem>
-                ))}
+                {activeResources.map(resource => {
+                  // Identify if this is a parent or child resource
+                  const isParent = resource.subResourceIds && resource.subResourceIds.length > 0;
+                  const isChild = resource.parentId;
+                  
+                  return (
+                    <MenuItem key={resource.id} value={resource.id} sx={{ 
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start'
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                        {/* Show hierarchy indicator icon */}
+                        {(isParent || isChild) && (
+                          <Box 
+                            component="span" 
+                            sx={{ 
+                              mr: 1, 
+                              color: isParent ? 'primary.main' : 'info.main',
+                              fontSize: '1.2rem' 
+                            }}
+                          >
+                            {isParent ? '📂' : '📄'}
+                          </Box>
+                        )}
+                        <Typography component="span" fontWeight="medium">
+                          {resource.name}
+                        </Typography>
+                        
+                        {/* Badge for hierarchical resources */}
+                        {(isParent || isChild) && (
+                          <Box 
+                            component="span" 
+                            sx={{ 
+                              ml: 1,
+                              px: 0.8,
+                              py: 0.2,
+                              borderRadius: 1,
+                              fontSize: '0.7rem',
+                              backgroundColor: isParent ? 'primary.main' : 'info.main',
+                              color: 'white'
+                            }}
+                          >
+                            {isParent ? t('bookingForm.parent') : t('bookingForm.child')}
+                          </Box>
+                        )}
+                      </Box>
+                      <Typography component="span" variant="caption" color="text.secondary">
+                        {resource.specs} - {resource.location}
+                      </Typography>
+                    </MenuItem>
+                  );
+                })}
               </Select>
               {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
               {activeResources.length === 0 && (
-                <FormHelperText>{t('bookingForm.noActiveResources')}</FormHelperText>
+                <FormHelperText error>{t('bookingForm.noActiveResources')}</FormHelperText>
               )}
             </FormControl>
 
             {/* Display affected resources */}
             {renderAffectedResources()}
-
-            {/* Hierarchical resource booking warning */}
-            {isHierarchical && (
-              <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
-                {selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0 ? 
-                  t('bookingForm.parentResourceWarning') : 
-                  t('bookingForm.childResourceWarning')}
-              </Alert>
-            )}
 
             {/* Section for user selection - only available for admins */}
             {isAdmin() && (
@@ -537,13 +670,15 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               </Box>
             )}
             
-            {/* Date/time selection */}
+            {/* Date/time selection with improved labeling */}
+            <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>
+              {t('bookingForm.period')}
+            </Typography>
             <Box 
               sx={{ 
                 display: 'grid', 
                 gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, 
-                gap: 2, 
-                mt: 1 
+                gap: 2
               }}
             >
               <TextField
@@ -572,15 +707,17 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               />
             </Box>
             
-            {/* Button to check for conflicts */}
-            <Box sx={{ mt: 1, mb: 2 }}>
+            {/* Button to check for conflicts with improved UI */}
+            <Box sx={{ mt: 2, mb: 2 }}>
               <Button
                 variant="outlined"
                 color="primary"
                 onClick={checkConflicts}
-                disabled={isChecking || !formData.resourceId || !formData.start || !formData.end}
+                disabled={isChecking || !formData.resourceId || !formData.start || !formData.end || 
+                  (errors.resourceId || errors.start || errors.end)}
                 fullWidth
                 startIcon={isChecking ? <CircularProgress size={20} /> : null}
+                sx={{ py: 1 }}
               >
                 {isChecking ? t('bookingForm.checking') : t('bookingForm.checkAvailability')}
               </Button>
@@ -610,7 +747,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>
-            {t('bookingForm.cancel')}
+            {t('common.cancel')}
           </Button>
           <Button 
             variant="contained" 
@@ -618,7 +755,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             onClick={handleSubmit}
             disabled={isChecking || activeResources.length === 0}
           >
-            {formData.id ? t('bookingForm.update') : t('bookingForm.confirm')}
+            {formData.id ? t('common.update') : t('common.confirm')}
           </Button>
           {formData.id && (
             <Button 
@@ -627,7 +764,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               onClick={() => onDelete(formData.id)}
               disabled={isChecking}
             >
-              {t('bookingForm.delete')}
+              {t('common.delete')}
             </Button>
           )}
         </DialogActions>
@@ -641,6 +778,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       onClose={onClose}
       maxWidth={isReadOnly ? "sm" : "md"}
       fullWidth
+      PaperProps={{
+        sx: {
+          maxHeight: '90vh', // Ensure dialog doesn't get too tall on small screens
+          overflowY: 'auto'  // Enable scrolling when content is too large
+        }
+      }}
     >
       {isReadOnly ? renderReadOnlyView() : renderEditForm()}
     </Dialog>

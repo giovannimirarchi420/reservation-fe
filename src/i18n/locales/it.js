@@ -234,7 +234,17 @@ const it = {
       userRequired: "L'utente è obbligatorio",
       correctErrorFields: "Per favore correggi i campi con errori:",
       affectedSubResources: "Le seguenti risorse secondarie saranno anch'esse bloccate:", 
-      parentResource: "Parte della risorsa principale:" 
+      parentResource: "Parte della risorsa principale:" ,
+      parentResourceExplanation: "Relazione Risorsa Gerarchica",
+      childResourceExplanation: "Questa risorsa fa parte di una gerarchia",
+      parentResourceDetail: "Quando prenoti questa risorsa principale, tutte le sue sotto-risorse saranno automaticamente bloccate durante lo stesso periodo.",
+      childResourceDetail: "Questa risorsa appartiene a una risorsa principale. La sua disponibilità potrebbe essere influenzata se la risorsa principale viene prenotata.",
+      dependentResources: "Sotto-risorse che saranno interessate",
+      hierarchyStructure: "Struttura gerarchica",
+      parentResourceLabel: "Risorsa Principale",
+      siblingResourcesLabel: "Altre risorse nello stesso gruppo",
+      parent: "PRINCIPALE",
+      child: "SECONDARIA"
     },
     myBookings: {
       title: "Le mie prenotazioni",
