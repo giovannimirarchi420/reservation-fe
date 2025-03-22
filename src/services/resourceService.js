@@ -45,13 +45,7 @@ export const fetchResource = (id) => apiRequest(`/resources/${id}`);
  * @returns {Promise<Object>} Created resource
  */
 export const createResource = (resourceData) => {
-  // Assicurati che lo stato sia un numero
-  const preparedData = {
-    ...resourceData,
-    status: resourceData.status
-  };
-
-  return apiRequest('/resources', 'POST', preparedData);
+  return apiRequest('/resources', 'POST', resourceData);
 };
 
 /**
@@ -61,13 +55,7 @@ export const createResource = (resourceData) => {
  * @returns {Promise<Object>} Updated resource
  */
 export const updateResource = (id, resourceData) => {
-  // Assicurati che lo stato sia un numero
-  const preparedData = {
-    ...resourceData,
-    status: Number(resourceData.status)
-  };
-
-  return apiRequest(`/resources/${id}`, 'PUT', preparedData);
+  return apiRequest(`/resources/${id}`, 'PUT', resourceData);
 };
 
 /**
@@ -92,14 +80,4 @@ export const deleteResource = (id) => apiRequest(`/resources/${id}`, 'DELETE');
  * @returns {Promise<Array>} Found resources
  */
 export const searchResources = (query) =>
-  apiRequest(`/resources/search?query=${encodeURIComponent(query)}`);
-
-
-export const updateResourceParent = (resourceId, parentId) => 
-  apiRequest(`/resources/${resourceId}/parent?parentId=${parentId || ''}`, 'PATCH');
-
-export const getSubResources = (resourceId) => 
-  apiRequest(`/resources/${resourceId}/sub-resources`);
-
-export const getResourceHierarchy = () => 
-  apiRequest('/resources/hierarchy');
+apiRequest(`/resources/search?query=${encodeURIComponent(query)}`);

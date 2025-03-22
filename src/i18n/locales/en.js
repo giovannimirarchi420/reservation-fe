@@ -502,6 +502,21 @@ const en = {
       errorLoadingBookings: "Error loading bookings",
       unknownUser: "Unknown user",
     },
+    resourceHierarchy: {
+      title: "Resource Hierarchy",
+      parentResource: "Parent Resource",
+      subResources: "Sub-Resources",
+      dragDropInstructions: "Drag and drop resources to organize the hierarchy. Drag a resource onto another to create a parent-child relationship.",
+      dropToRemoveParent: "Drop here to remove parent relationship",
+      resourceNotFound: "Resource not found",
+      circularReferenceError: "Cannot create circular relationship. A parent cannot be a child of its own descendant.",
+      alreadyParent: "This resource is already the parent of the dragged resource",
+      parentUpdated: "Resource {name} has been moved under {parent}",
+      parentRemoved: "Parent relationship removed from resource {name}",
+      unableToUpdateParent: "Unable to update parent relationship",
+      unableToRemoveParent: "Unable to remove parent relationship",
+      hierarchyUpdated: "Resource hierarchy successfully updated"
+    },
   };
   
   export default en;

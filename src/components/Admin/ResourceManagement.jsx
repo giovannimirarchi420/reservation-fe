@@ -101,8 +101,8 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   const filteredResources = resources.filter(resource => {
     const matchesSearch = searchTerm === '' ||
         resource.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resource.specs.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resource.location.toLowerCase().includes(searchTerm.toLowerCase());
+        resource.specs?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resource.location?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesType = filterType === '' || resource.typeId === parseInt(filterType);
 
@@ -115,6 +115,12 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   .sort((a, b) => {
     return getStatusPriority(a.status) - getStatusPriority(b.status);
   });
+
+  const handleViewModeChange = (event, newMode) => {
+    if (newMode !== null) {
+      setViewMode(newMode);
+    }
+  };
 
   const handleAddResource = () => {
     setSelectedResource(null);
@@ -191,6 +197,15 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     } catch (error) {
       console.error('Unhandled error during resource deletion:', error);
     }
+  };
+
+  // Handle resource hierarchy updates from drag and drop operations
+  const handleResourceHierarchyUpdated = () => {
+    // Trigger a refresh of the resource data
+    setNeedsRefresh(prev => !prev);
+    
+    // Show a notification
+    showNotification(t('resourceHierarchy.hierarchyUpdated'), 'success');
   };
 
   // Modified to redirect to resource type management
@@ -293,7 +308,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
             <ToggleButtonGroup
               value={viewMode}
               exclusive
-              onChange={(e, newMode) => newMode && setViewMode(newMode)}
+              onChange={handleViewModeChange}
               aria-label="view mode"
               size="small"
             >
@@ -349,6 +364,8 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
                 resources={filteredResources}
                 resourceTypes={resourceTypes}
                 onResourceSelect={(resource) => handleEditResource(resource)}
+                isAdminView={true}
+                onResourceHierarchyUpdated={handleResourceHierarchyUpdated}
               />
             )
         )}

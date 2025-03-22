@@ -496,6 +496,21 @@ const it = {
     errorLoadingBookings: "Errore durante il caricamento delle prenotazioni",
     unknownUser: "Utente sconosciuto",
   },
+  resourceHierarchy: {
+    title: "Gerarchia delle Risorse",
+    parentResource: "Risorsa Principale",
+    subResources: "Risorse Secondarie",
+    dragDropInstructions: "Trascina e rilascia le risorse per organizzare la gerarchia. Trascina una risorsa su un'altra per creare una relazione padre-figlio.",
+    dropToRemoveParent: "Rilascia qui per rimuovere la relazione padre",
+    resourceNotFound: "Risorsa non trovata",
+    circularReferenceError: "Impossibile creare una relazione circolare. Un padre non può essere figlio di un suo discendente.",
+    alreadyParent: "Questa risorsa è già il padre della risorsa trascinata",
+    parentUpdated: "La risorsa {name} è stata spostata sotto {parent}",
+    parentRemoved: "Relazione padre rimossa dalla risorsa {name}",
+    unableToUpdateParent: "Impossibile aggiornare la relazione padre",
+    unableToRemoveParent: "Impossibile rimuovere la relazione padre",
+    hierarchyUpdated: "Gerarchia delle risorse aggiornata con successo"
+  },
 };
 
 export default it;
