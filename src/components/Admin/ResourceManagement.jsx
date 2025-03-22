@@ -11,14 +11,19 @@ import {
   MenuItem,
   Snackbar,
   Alert,
-  Stack
+  Stack,
+  ToggleButtonGroup,
+  ToggleButton
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import CategoryIcon from '@mui/icons-material/Category';
+import GridViewIcon from '@mui/icons-material/GridView';
+import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import ResourceCard from '../Resources/ResourceCard';
 import ResourceForm from '../Resources/ResourceForm';
+import ResourceHierarchyView from '../Resources/ResourceHierarchyView';
 import {
   createResource,
   deleteResource,
@@ -42,6 +47,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   const [filterStatus, setFilterStatus] = useState('');
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'hierarchy'
 
   // Show a notification
   const showNotification = (message, severity = 'success') => {
@@ -124,7 +130,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     // Ensure that status and typeId are numbers
     const preparedData = {
       ...resourceData,
-      status: Number(resourceData.status),
+      status: typeof resourceData.status === 'string' ? resourceData.status : Number(resourceData.status),
       typeId: Number(resourceData.typeId)
     };
 
@@ -283,6 +289,25 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
                 <CategoryIcon />
               </Button>
             </Tooltip>
+            
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={(e, newMode) => newMode && setViewMode(newMode)}
+              aria-label="view mode"
+              size="small"
+            >
+              <ToggleButton value="grid" aria-label="grid view">
+                <Tooltip title={t('resourceManagement.gridView')}>
+                  <GridViewIcon />
+                </Tooltip>
+              </ToggleButton>
+              <ToggleButton value="hierarchy" aria-label="hierarchy view">
+                <Tooltip title={t('resourceManagement.hierarchyView')}>
+                  <AccountTreeIcon />
+                </Tooltip>
+              </ToggleButton>
+            </ToggleButtonGroup>
           </Box>
         </Stack>
 
@@ -291,33 +316,41 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
               <CircularProgress />
             </Box>
         ) : (
-            <Box sx={{ 
-              display: 'grid', 
-              gridTemplateColumns: { 
-                xs: '1fr', 
-                sm: 'repeat(2, 1fr)', 
-                lg: 'repeat(3, 1fr)' 
-              }, 
-              gap: 3 
-            }}>
-              {filteredResources.length === 0 ? (
-                  <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
-                    <Typography variant="body1" color="text.secondary">
-                      {t('resourceManagement.noResourcesFound')}
-                    </Typography>
-                  </Box>
-              ) : (
-                  filteredResources.map(resource => (
-                      <ResourceCard
-                          key={resource.id}
-                          resource={resource}
-                          resourceType={resourceTypes.find(t => t.id === resource.typeId)}
-                          onEdit={() => handleEditResource(resource)}
-                          onDelete={() => handleDeleteResource(resource.id)}
-                      />
-                  ))
-              )}
-            </Box>
+            viewMode === 'grid' ? (
+              <Box sx={{ 
+                display: 'grid', 
+                gridTemplateColumns: { 
+                  xs: '1fr', 
+                  sm: 'repeat(2, 1fr)', 
+                  lg: 'repeat(3, 1fr)' 
+                }, 
+                gap: 3 
+              }}>
+                {filteredResources.length === 0 ? (
+                    <Box sx={{ gridColumn: '1 / -1', textAlign: 'center', py: 4 }}>
+                      <Typography variant="body1" color="text.secondary">
+                        {t('resourceManagement.noResourcesFound')}
+                      </Typography>
+                    </Box>
+                ) : (
+                    filteredResources.map(resource => (
+                        <ResourceCard
+                            key={resource.id}
+                            resource={resource}
+                            resourceType={resourceTypes.find(t => t.id === resource.typeId)}
+                            onEdit={() => handleEditResource(resource)}
+                            onDelete={() => handleDeleteResource(resource.id)}
+                        />
+                    ))
+                )}
+              </Box>
+            ) : (
+              <ResourceHierarchyView 
+                resources={filteredResources}
+                resourceTypes={resourceTypes}
+                onResourceSelect={(resource) => handleEditResource(resource)}
+              />
+            )
         )}
 
         <ResourceForm
@@ -325,6 +358,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
             onClose={() => setIsResourceModalOpen(false)}
             resource={selectedResource}
             resourceTypes={resourceTypes}
+            allResources={resources}
             onSave={handleSaveResource}
             onDelete={handleDeleteResource}
         />

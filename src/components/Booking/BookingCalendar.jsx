@@ -374,17 +374,20 @@ const BookingCalendar = () => {
     const compactMode = style['--compact-mode'] === 'true';
     const extremeCompactMode = style['--extreme-compact-mode'] === 'true';
     const isHighlighted = style['--is-highlighted'] === 'true';
+    const isParentResource = event.isParentResource;
     
     // In extreme compact mode, show everything in a single line
     if (extremeCompactMode) {
       return (
         <Box sx={{ 
-          p: 0.25, 
+          p: 0.5, 
           minHeight: '100%',
           fontSize: 'inherit',
-          lineHeight: 1,
+          lineHeight: 1.1,
           fontWeight: isHighlighted ? 'bold' : 'normal',
           backgroundColor: isHighlighted ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
+          borderLeft: isParentResource ? '3px solid yellow' : 
+                    (event.isChildResource ? '3px solid orange' : 'none'),
         }}>
           <Typography 
             variant="caption" 
@@ -399,6 +402,19 @@ const BookingCalendar = () => {
           >
             {`${event.title} (${event.resourceName})`}
           </Typography>
+          {(isParentResource || event.isChildResource) && (
+            <Box 
+              sx={{ 
+                position: 'absolute', 
+                right: 2, 
+                top: 2, 
+                width: 8, 
+                height: 8, 
+                borderRadius: '50%',
+                backgroundColor: isParentResource ? 'yellow' : 'orange',
+              }} 
+            />
+          )}
         </Box>
       );
     }

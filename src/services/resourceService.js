@@ -93,3 +93,13 @@ export const deleteResource = (id) => apiRequest(`/resources/${id}`, 'DELETE');
  */
 export const searchResources = (query) =>
   apiRequest(`/resources/search?query=${encodeURIComponent(query)}`);
+
+
+export const updateResourceParent = (resourceId, parentId) => 
+  apiRequest(`/resources/${resourceId}/parent?parentId=${parentId || ''}`, 'PATCH');
+
+export const getSubResources = (resourceId) => 
+  apiRequest(`/resources/${resourceId}/sub-resources`);
+
+export const getResourceHierarchy = () => 
+  apiRequest('/resources/hierarchy');

@@ -15,21 +15,22 @@ import {
   TextField
 } from '@mui/material';
 
-const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete }) => {
+const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, onSave, onDelete }) => {
   const { t } = useTranslation();
   const [formData, setFormData] = useState({
     name: '',
     type: '',
     specs: '',
     location: '',
-    status: 0 // 0 = active (default)
+    status: 0, // 0 = active (default)
+    parentId: '' // null or empty string means no parent
   });
   const [errors, setErrors] = useState({});
 
   // Populate the form when a resource is selected
   useEffect(() => {
     if (resource) {
-      // Convert string status to numeric value
+      // Convert string status to numeric value if needed
       let statusValue = 0; // Default to ACTIVE
       
       // Handle string status
@@ -37,7 +38,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
         case "ACTIVE": statusValue = 0; break;
         case "MAINTENANCE": statusValue = 1; break;
         case "UNAVAILABLE": statusValue = 2; break;
-        default: statusValue = 0; // Default to ACTIVE
+        default: statusValue = resource.status !== undefined ? resource.status : 0; // Default to ACTIVE
       }
       
       setFormData({
@@ -46,7 +47,8 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
         typeId: resource.typeId || resource.type || '',
         specs: resource.specs || '',
         location: resource.location || '',
-        status: statusValue
+        status: statusValue,
+        parentId: resource.parentId || ''
       });
     } else {
       resetForm();
@@ -59,7 +61,8 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
       typeId: '',
       specs: '',
       location: '',
-      status: 0
+      status: 0,
+      parentId: ''
     });
     setErrors({});
   };
@@ -99,6 +102,23 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
       newErrors.location = t('resourceForm.locationRequired');
     }
 
+    // Check for circular reference in parent-child relationship
+    if (formData.parentId && formData.id) {
+      let currentParentId = formData.parentId;
+      const visited = new Set([formData.id]);
+      
+      while (currentParentId) {
+        if (visited.has(currentParentId)) {
+          newErrors.parentId = t('resourceForm.circularReference');
+          break;
+        }
+        
+        visited.add(currentParentId);
+        const parentResource = allResources.find(r => r.id === currentParentId);
+        currentParentId = parentResource ? parentResource.parentId : null;
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -109,7 +129,8 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
       const preparedData = {
         ...formData,
         typeId: formData.typeId ? parseInt(formData.typeId) : null,
-        status: typeof formData.status === 'string' ? parseInt(formData.status) : formData.status
+        status: typeof formData.status === 'string' ? parseInt(formData.status) : formData.status,
+        parentId: formData.parentId ? parseInt(formData.parentId) : null
       };
       onSave(preparedData);
     }
@@ -193,6 +214,29 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, onSave, onDelete
                 <MenuItem value={1}>{t('resourceForm.maintenance')}</MenuItem>
                 <MenuItem value={2}>{t('resourceForm.unavailable')}</MenuItem>
               </Select>
+            </FormControl>
+
+            <FormControl fullWidth margin="normal" error={!!errors.parentId}>
+              <InputLabel id="parent-resource-label">{t('resourceForm.parentResource')}</InputLabel>
+              <Select
+                labelId="parent-resource-label"
+                name="parentId"
+                value={formData.parentId || ''}
+                label={t('resourceForm.parentResource')}
+                onChange={handleChange}
+              >
+                <MenuItem value="">{t('resourceForm.noParent')}</MenuItem>
+                {allResources
+                  .filter(r => r.id !== formData.id) // Exclude current resource to prevent circular reference
+                  .map(r => (
+                    <MenuItem key={r.id} value={r.id}>
+                      {r.name}
+                    </MenuItem>
+                  ))}
+              </Select>
+              <FormHelperText>
+                {errors.parentId || t('resourceForm.parentResourceHelp')}
+              </FormHelperText>
             </FormControl>
           </Box>
         </DialogContent>

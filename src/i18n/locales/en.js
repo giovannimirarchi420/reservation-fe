@@ -52,7 +52,9 @@ const en = {
       resourceDeletedSuccess: "Resource deleted successfully",
       unableToUpdateResource: "Unable to update resource",
       unableToCreateResource: "Unable to create resource",
-      unableToDeleteResource: "Unable to delete resource"
+      unableToDeleteResource: "Unable to delete resource",
+      gridView: "Grid View",
+      hierarchyView: "Hierarchy View"
     },
     resourceType: {
       title: "Resource Types",
@@ -121,6 +123,11 @@ const en = {
       passwordRequiredForNewUsers: "Password is required for new users",
       unableToCopyPassword: "Unable to copy password to clipboard"
     },
+    resourceHierarchy: {
+      title: "Resource Hierarchy",
+      parentResource: "Parent Resource",
+      subResources: "Sub-Resources"
+    },
     resourceForm: {
       editResource: "Edit Resource",
       newResource: "New Resource",
@@ -140,7 +147,13 @@ const en = {
       nameRequired: "Name is required",
       typeRequired: "Type is required",
       specificationsRequired: "Specifications are required",
-      locationRequired: "Location is required"
+      locationRequired: "Location is required",
+      parentResource: "Parent Resource",
+      noParent: "No Parent (Top Level)",
+      parentResourceHelp: "Select a parent resource to create a hierarchical relationship",
+      childResourceWarning: "This resource is part of a hierarchy. Booking may be affected by its parent's availability.",
+      parentResourceWarning: "Booking this resource will make all its sub-resources unavailable during the same period.",
+      affectedSubResources: "Sub-resources that will be affected:"
     },
     resourceCard: {
       specifications: "Specifications:",
@@ -219,7 +232,15 @@ const en = {
       endDateRequired: "End date is required",
       endDateAfterStart: "End date must be after start date",
       userRequired: "User is required",
-      correctErrorFields: "Please correct the fields with errors:"
+      correctErrorFields: "Please correct the fields with errors:",
+      affectedSubResources: "The following sub-resources will also be blocked:",
+      parentResource: "Part of parent resource:",
+      parentResource: "Parent Resource",
+      noParent: "No Parent (Top Level)",
+      parentResourceHelp: "Select a parent resource to create a hierarchical relationship",
+      childResourceWarning: "This resource is part of a hierarchy. Booking may be affected by its parent's availability.",
+      parentResourceWarning: "Booking this resource will make all its sub-resources unavailable during the same period.",
+      affectedSubResources: "Sub-resources that will be affected:"
     },
     myBookings: {
       title: "My Bookings",

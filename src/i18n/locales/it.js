@@ -52,7 +52,9 @@ const it = {
       resourceDeletedSuccess: "Risorsa eliminata con successo",
       unableToUpdateResource: "Impossibile aggiornare la risorsa",
       unableToCreateResource: "Impossibile creare la risorsa",
-      unableToDeleteResource: "Impossibile eliminare la risorsa"
+      unableToDeleteResource: "Impossibile eliminare la risorsa",
+      gridView: "Vista a Griglia", 
+      hierarchyView: "Vista Gerarchica" 
     },
     resourceType: {
       title: "Tipi di Risorse",
@@ -121,6 +123,11 @@ const it = {
       passwordRequiredForNewUsers: "La password è obbligatoria per i nuovi utenti",
       unableToCopyPassword: "Impossibile copiare la password negli appunti"
     },
+    resourceHierarchy: { 
+      title: "Gerarchia delle Risorse", 
+      parentResource: "Risorsa Principale", 
+      subResources: "Risorse Secondarie" 
+    },
     resourceForm: {
       editResource: "Modifica Risorsa",
       newResource: "Nuova Risorsa",
@@ -140,7 +147,13 @@ const it = {
       nameRequired: "Il nome è obbligatorio",
       typeRequired: "Il tipo è obbligatorio",
       specificationsRequired: "Le specifiche sono obbligatorie",
-      locationRequired: "L'ubicazione è obbligatoria"
+      locationRequired: "L'ubicazione è obbligatoria",
+      parentResource: "Risorsa Principale", 
+      noParent: "Nessuna Risorsa Principale (Livello Superiore)", 
+      parentResourceHelp: "Seleziona una risorsa principale per creare una relazione gerarchica", 
+      childResourceWarning: "Questa risorsa fa parte di una gerarchia. La prenotazione potrebbe essere influenzata dalla disponibilità della sua risorsa principale.", 
+      parentResourceWarning: "La prenotazione di questa risorsa renderà indisponibili tutte le sue risorse secondarie durante lo stesso periodo.", 
+      affectedSubResources: "Risorse secondarie che saranno interessate:" 
     },
     resourceCard: {
       specifications: "Specifiche:",
@@ -219,7 +232,9 @@ const it = {
       endDateRequired: "La data di fine è obbligatoria",
       endDateAfterStart: "La data di fine deve essere successiva alla data di inizio",
       userRequired: "L'utente è obbligatorio",
-      correctErrorFields: "Per favore correggi i campi con errori:"
+      correctErrorFields: "Per favore correggi i campi con errori:",
+      affectedSubResources: "Le seguenti risorse secondarie saranno anch'esse bloccate:", 
+      parentResource: "Parte della risorsa principale:" 
     },
     myBookings: {
       title: "Le mie prenotazioni",

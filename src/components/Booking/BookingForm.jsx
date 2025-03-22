@@ -17,8 +17,8 @@ import {
   Divider,
   Alert,
   CircularProgress,
-  Snackbar,
-  Paper
+  Paper,
+  Chip,
 } from '@mui/material';
 import { fetchUsers } from '../../services/userService';
 import { formatDateForInput, formatDate } from '../../utils/dateUtils';
@@ -45,6 +45,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   const [isChecking, setIsChecking] = useState(false);
   const [validationMessage, setValidationMessage] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [affectedResources, setAffectedResources] = useState([]);
 
   // Filter available resources (only ACTIVE ones)
   const activeResources = resources.filter(resource => resource.status === ResourceStatus.ACTIVE);
@@ -93,6 +94,45 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     }
   }, [booking, currentUser, isAdmin]);
 
+  // Update affected resources when resourceId changes
+  useEffect(() => {
+    if (formData.resourceId) {
+      // Find current resource
+      const selectedResource = resources.find(r => r.id === formData.resourceId);
+      if (!selectedResource) {
+        setAffectedResources([]);
+        return;
+      }
+
+      // If it's a parent resource, find its children
+      if (selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0) {
+        const childResources = resources.filter(r => 
+          selectedResource.subResourceIds.includes(r.id)
+        );
+        setAffectedResources(childResources);
+      } 
+      // If it's a child resource, find its parent and siblings
+      else if (selectedResource.parentId) {
+        const parentResource = resources.find(r => r.id === selectedResource.parentId);
+        if (parentResource) {
+          // Get parent and its other children (siblings of current resource)
+          const siblingResources = resources.filter(r => 
+            r.id !== selectedResource.id && 
+            r.parentId === parentResource.id
+          );
+          
+          setAffectedResources([parentResource, ...siblingResources]);
+        } else {
+          setAffectedResources([]);
+        }
+      } else {
+        setAffectedResources([]);
+      }
+    } else {
+      setAffectedResources([]);
+    }
+  }, [formData.resourceId, resources]);
+
   const resetForm = () => {
     setFormData({
       title: '',
@@ -106,6 +146,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     setErrors({});
     setValidationMessage(null);
     setIsReadOnly(false);
+    setAffectedResources([]);
   };
 
   const handleChange = (e) => {
@@ -299,6 +340,39 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     return t('bookingForm.unknownUser');
   };
 
+  // Render affected resources section
+  const renderAffectedResources = () => {
+    if (affectedResources.length === 0) return null;
+    
+    const selectedResource = resources.find(r => r.id === formData.resourceId);
+    if (!selectedResource) return null;
+    
+    // Determine if we're showing parent or children
+    const isParent = selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0;
+    
+    return (
+      <Box sx={{ mt: 2, mb: 1 }}>
+        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+          {isParent ? 
+            t('bookingForm.affectedSubResources') : 
+            t('bookingForm.parentResource')
+          }
+        </Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+          {affectedResources.map(resource => (
+            <Chip
+              key={resource.id}
+              label={resource.name}
+              size="small"
+              color={resource.id === selectedResource.parentId ? "primary" : "default"}
+              variant={resource.id === selectedResource.parentId ? "filled" : "outlined"}
+            />
+          ))}
+        </Box>
+      </Box>
+    );
+  };
+
   // Render read-only view
   const renderReadOnlyView = () => {
     // Get resource name
@@ -341,6 +415,8 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 <Typography variant="body1">{formData.description}</Typography>
               </Box>
             )}
+
+            {renderAffectedResources()}
           </Paper>
           
           <Alert severity="info">
@@ -358,6 +434,10 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
 
   // Render edit form
   const renderEditForm = () => {
+    const selectedResource = resources.find(r => r.id === formData.resourceId);
+    const isHierarchical = selectedResource && 
+      (selectedResource.parentId || (selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0));
+    
     return (
       <>
         <DialogTitle>{formData.id ? t('bookingForm.editBooking') : t('bookingForm.newBooking')}</DialogTitle>
@@ -396,6 +476,18 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 <FormHelperText>{t('bookingForm.noActiveResources')}</FormHelperText>
               )}
             </FormControl>
+
+            {/* Display affected resources */}
+            {renderAffectedResources()}
+
+            {/* Hierarchical resource booking warning */}
+            {isHierarchical && (
+              <Alert severity="info" sx={{ mt: 2, mb: 2 }}>
+                {selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0 ? 
+                  t('bookingForm.parentResourceWarning') : 
+                  t('bookingForm.childResourceWarning')}
+              </Alert>
+            )}
 
             {/* Section for user selection - only available for admins */}
             {isAdmin() && (
