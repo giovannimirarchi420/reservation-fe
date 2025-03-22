@@ -11,6 +11,7 @@ import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import ErrorNotification from './components/Common/ErrorNotification';
+import ResourceExplorer from './components/Resources/ResourceExplorer';
 
 // Inizializzazione del gestore errori globale
 const ErrorInitializer = ({ children }) => {
@@ -77,6 +78,9 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
             case 'notifications':
                 navigate('/notifications');
                 break;
+            case 'resources':
+                navigate('/resources');
+                break;
             default:
                 navigate('/');
         }
@@ -104,6 +108,16 @@ const App = () => {
                                     element={<Dashboard />}
                                     currentSection="dashboard"
                                     requiredRole="admin"
+                                />
+                            }
+                        />
+                        <Route
+                            path="/resources"
+                            element={
+                                <LayoutWrapper
+                                    element={<ResourceExplorer />}
+                                    currentSection="resources"
+                                    requiredRole="user"
                                 />
                             }
                         />

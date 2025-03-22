@@ -1,89 +1,131 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
-  Card,
-  CardContent,
-  Collapse,
-  IconButton,
+  Paper,
   List,
-  ListItem,
   ListItemIcon,
   ListItemText,
+  ListItemButton,
   Typography,
-  Chip
+  Collapse,
+  Chip,
 } from '@mui/material';
 import {
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   Folder as FolderIcon,
   FolderOpen as FolderOpenIcon,
-  Storage as StorageIcon
+  Storage as StorageIcon,
+  ExpandLess as ExpandLessIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import { ResourceStatus } from '../../services/resourceService';
 
-const ResourceHierarchyItem = ({ resource, level = 0, onResourceSelect, children }) => {
-  const [open, setOpen] = useState(false);
-  const hasChildren = children && children.length > 0;
+const ResourceHierarchyItem = ({ resource, level = 0, resourceType, childResources, onResourceSelect, expandAll }) => {
+  const [open, setOpen] = useState(expandAll);
+  const hasChildren = childResources && childResources.length > 0;
   const { t } = useTranslation();
 
   // Get status display info
   const getStatusInfo = (status) => {
     switch (status) {
       case ResourceStatus.ACTIVE:
-        return { label: t('resourceForm.active'), color: 'success' };
+        return { label: t('resourceExplorer.active'), color: 'success' };
       case ResourceStatus.MAINTENANCE:
-        return { label: t('resourceForm.maintenance'), color: 'warning' };
+        return { label: t('resourceExplorer.maintenance'), color: 'warning' };
       case ResourceStatus.UNAVAILABLE:
-        return { label: t('resourceForm.unavailable'), color: 'error' };
+        return { label: t('resourceExplorer.unavailable'), color: 'error' };
       default:
-        return { label: t('resourceCard.unknown'), color: 'default' };
+        return { label: t('resourceExplorer.unknown'), color: 'default' };
     }
   };
   
   const statusInfo = getStatusInfo(resource.status);
 
-  const handleToggle = (e) => {
-    e.stopPropagation();
+  const handleToggle = (event) => {
+    event.stopPropagation();
     setOpen(!open);
   };
+
+  useEffect(() => {
+    setOpen(expandAll);
+  }, [expandAll]);
   
   return (
     <>
-      <ListItem 
-        button 
+      <ListItemButton 
         onClick={() => onResourceSelect(resource)}
-        sx={{ pl: level * 4 + 2 }}
+        sx={{ 
+          pl: level * 3 + 2,
+          borderLeft: resourceType ? `4px solid ${resourceType.color}` : 'none',
+          '&:hover': {
+            backgroundColor: 'action.hover',
+          }
+        }}
+        data-resource-id={resource.id}
       >
         <ListItemIcon>
-          {hasChildren ? (open ? <FolderOpenIcon /> : <FolderIcon />) : <StorageIcon />}
+          {hasChildren ? (open ? <FolderOpenIcon color="primary" /> : <FolderIcon color="primary" />) : <StorageIcon />}
         </ListItemIcon>
         <ListItemText 
           primary={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              {resource.name}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography 
+                variant="body1" 
+                sx={{ 
+                  fontWeight: 'medium', 
+                  flexGrow: 1,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                {resource.name}
+              </Typography>
               <Chip 
                 label={statusInfo.label} 
                 color={statusInfo.color} 
                 size="small" 
-                sx={{ ml: 1 }}
+                sx={{ ml: 1, minWidth: 100 }}
               />
             </Box>
           }
-          secondary={resource.specs}
+          secondary={
+            <Typography 
+              variant="body2" 
+              color="text.secondary"
+              sx={{ 
+                maxWidth: '90%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {resource.specs}
+            </Typography>
+          }
         />
         
         {hasChildren && (
-          <IconButton edge="end" onClick={handleToggle} size="small">
+          <Box onClick={handleToggle}>
             {open ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </IconButton>
+          </Box>
         )}
-      </ListItem>
+      </ListItemButton>
       
       {hasChildren && (
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
-            {children}
+            {childResources.map(child => (
+              <ResourceHierarchyItem 
+                key={child.resource.id}
+                resource={child.resource}
+                resourceType={child.resourceType}
+                childResources={child.children}
+                level={level + 1}
+                onResourceSelect={onResourceSelect}
+                expandAll={expandAll}
+              />
+            ))}
           </List>
         </Collapse>
       )}
@@ -93,76 +135,98 @@ const ResourceHierarchyItem = ({ resource, level = 0, onResourceSelect, children
 
 const ResourceHierarchyView = ({ resources, resourceTypes, onResourceSelect }) => {
   const { t } = useTranslation();
+  const [expandAll, setExpandAll] = useState(false);
+  const [hierarchyData, setHierarchyData] = useState([]);
   
-  // Build hierarchy
-  const buildHierarchyTree = () => {
-    const resourceMap = {};
-    const topLevelResources = [];
-    
-    // First pass: create map of resources by ID
+  // Build hierarchy tree from flat resources list
+  useEffect(() => {
+    // First, create a map for quick resource lookup
+    const resourceMap = new Map();
     resources.forEach(resource => {
-      resourceMap[resource.id] = {
+      const resourceType = resourceTypes.find(t => t.id === resource.typeId);
+      resourceMap.set(resource.id, {
         resource,
+        resourceType,
         children: []
-      };
+      });
     });
     
-    // Second pass: build the tree structure
+    // Create hierarchy
+    const rootItems = [];
     resources.forEach(resource => {
-      if (resource.parentId) {
-        // This resource has a parent, add it as a child of its parent
-        if (resourceMap[resource.parentId]) {
-          resourceMap[resource.parentId].children.push(resourceMap[resource.id]);
-        } else {
-          // Parent not found, treat as top level
-          topLevelResources.push(resourceMap[resource.id]);
-        }
+      const resourceNode = resourceMap.get(resource.id);
+      
+      if (resource.parentId && resourceMap.has(resource.parentId)) {
+        // This is a child resource, add it to its parent
+        const parentNode = resourceMap.get(resource.parentId);
+        parentNode.children.push(resourceNode);
       } else {
-        // No parent, add to top level
-        topLevelResources.push(resourceMap[resource.id]);
+        // This is a root resource
+        rootItems.push(resourceNode);
       }
     });
     
-    return { resourceMap, topLevelResources };
-  };
-  
-  const { topLevelResources } = buildHierarchyTree();
-  
-  const renderResourceTree = (node, level = 0) => {
-    return (
-      <ResourceHierarchyItem 
-        key={node.resource.id}
-        resource={node.resource}
-        level={level}
-        onResourceSelect={onResourceSelect}
-        children={node.children.length > 0 ? 
-          node.children.map(childNode => renderResourceTree(childNode, level + 1)) : 
-          null
-        }
-      />
-    );
-  };
+    // Sort root items alphabetically
+    rootItems.sort((a, b) => a.resource.name.localeCompare(b.resource.name));
+    
+    // Sort children for each node
+    const sortChildren = (node) => {
+      if (node.children && node.children.length > 0) {
+        node.children.sort((a, b) => a.resource.name.localeCompare(b.resource.name));
+        node.children.forEach(sortChildren);
+      }
+    };
+    
+    rootItems.forEach(sortChildren);
+    
+    setHierarchyData(rootItems);
+  }, [resources, resourceTypes]);
   
   return (
-    <Card>
-      <CardContent>
-        <Typography variant="h6" gutterBottom>
-          {t('resourceHierarchy.title')}
+    <Paper elevation={1} sx={{ width: '100%', height: '100%', minHeight: 500, overflow: 'auto' }}>
+      <Box sx={{ 
+        p: 2, 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        borderBottom: 1,
+        borderColor: 'divider'
+      }}>
+        <Typography variant="h6">
+          {t('resourceExplorer.resourceHierarchy')}
         </Typography>
-        
-        {topLevelResources.length === 0 ? (
-          <Box sx={{ p: 3, textAlign: 'center' }}>
-            <Typography variant="body1" color="text.secondary">
-              {t('resourceManagement.noResourcesFound')}
+        <Box>
+          <Chip
+            label={expandAll ? t('resourceExplorer.collapseAll') : t('resourceExplorer.expandAll')}
+            onClick={() => setExpandAll(!expandAll)}
+            color="primary"
+            variant="outlined"
+            size="small"
+          />
+        </Box>
+      </Box>
+      
+      <List sx={{ width: '100%', bgcolor: 'background.paper', pt: 0 }}>
+        {hierarchyData.length > 0 ? (
+          hierarchyData.map(item => (
+            <ResourceHierarchyItem 
+              key={item.resource.id}
+              resource={item.resource}
+              resourceType={item.resourceType}
+              childResources={item.children}
+              onResourceSelect={onResourceSelect}
+              expandAll={expandAll}
+            />
+          ))
+        ) : (
+          <Box sx={{ py: 4, textAlign: 'center' }}>
+            <Typography color="text.secondary">
+              {t('resourceExplorer.noResourcesFound')}
             </Typography>
           </Box>
-        ) : (
-          <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
-            {topLevelResources.map(node => renderResourceTree(node))}
-          </List>
         )}
-      </CardContent>
-    </Card>
+      </List>
+    </Paper>
   );
 };
 

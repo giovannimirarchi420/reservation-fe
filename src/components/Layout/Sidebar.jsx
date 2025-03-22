@@ -18,6 +18,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import ExploreIcon from '@mui/icons-material/Explore';
 import { AuthContext } from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
@@ -64,6 +65,17 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
               <EventIcon />
             </ListItemIcon>
             <ListItemText primary={t('sidebar.calendar')} />
+          </ListItem>
+          <ListItem
+            button
+            selected={currentSection === 'resources'}
+            onClick={() => onSectionChange('resources')}
+            sx={{ cursor: 'pointer' }}
+          >
+            <ListItemIcon>
+              <ExploreIcon />
+            </ListItemIcon>
+            <ListItemText primary={t('sidebar.resources')} />
           </ListItem>
           <ListItem
             button
