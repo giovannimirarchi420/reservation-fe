@@ -89,22 +89,44 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Check if user is admin
+  // Check if user is admin - Improved to handle various role formats
   const isAdmin = useCallback(() => {
     if (!currentUser) return false;
-    return currentUser.role === 'admin';
+
+    // Check different possible formats for the admin role
+    
+    // 1. Check the role field as a string
+    if (typeof currentUser.role === 'string') {
+      return currentUser.role.toLowerCase() === 'admin';
+    }
+    
+    // 2. Check the roles field as an array
+    if (Array.isArray(currentUser.roles)) {
+      return currentUser.roles.some(role => 
+        typeof role === 'string' && role.toLowerCase() === 'admin'
+      );
+    }
+
+    // 3. Check realm_access.roles from Keycloak token
+    if (currentUser.realm_access && Array.isArray(currentUser.realm_access.roles)) {
+      return currentUser.realm_access.roles.some(role => 
+        typeof role === 'string' && role.toLowerCase() === 'admin'
+      );
+    }
+
+    return false;
   }, [currentUser]);
 
   // Check if user is authorized for a given action
   const isAuthorized = useCallback((requiredRole = 'user') => {
     if (!currentUser) return false;
 
-    if (requiredRole === 'admin') {
-      return currentUser.role === 'admin';
+    if (requiredRole.toLowerCase() === 'admin') {
+      return isAdmin();
     }
 
     return true; // All authenticated users are basic users
-  }, [currentUser]);
+  }, [currentUser, isAdmin]);
 
   // Update token (to call before API requests)
   const updateToken = useCallback(async () => {

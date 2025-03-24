@@ -42,9 +42,26 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
 
-  // Popola il form quando viene selezionato un utente
+  // Populate the form when a user is selected
   useEffect(() => {
     if (user) {
+      // Improved role retrieval logic
+      let userRoles = [];
+      
+      // Case 1: user.roles exists as an array
+      if (Array.isArray(user.roles)) {
+        userRoles = user.roles;
+      } 
+      // Case 2: user.role exists as a string
+      else if (typeof user.role === 'string') {
+        // Convert 'admin' or 'user' to uppercase format for consistency
+        userRoles = [user.role.toUpperCase()];
+      }
+      // If it was not possible to determine a role, use USER as default
+      if (userRoles.length === 0) {
+        userRoles = ['USER'];
+      }
+      
       setFormData({
         id: user.id,
         username: user.username || user.name || '',
@@ -53,7 +70,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         lastName: user.lastName || '',
         password: '',  // Per motivi di sicurezza, non precompilare la password
         avatar: user.avatar || '',
-        roles: user.roles || (user.role === 'admin' ? ['ADMIN'] : ['USER'])
+        roles: userRoles
       });
     } else {
       resetForm();
@@ -80,7 +97,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       [name]: value
     });
 
-    // Rimuovi errori quando l'utente modifica il campo
+    // Remove errors when the user modifies the field
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -91,7 +108,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   const handleRoleChange = (e) => {
     const value = e.target.value;
-    // Garantisci che roles sia sempre un array
+    // Ensure that roles is always an array
     const roles = Array.isArray(value) ? value : [value];
     setFormData({
       ...formData,
@@ -120,7 +137,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       newErrors.lastName = t('userManagement.lastName') + ' ' + t('common.isRequired');
     }
 
-    // Richiedi la password solo per i nuovi utenti
+    // Require password only for new users
     if (!formData.id && !formData.password) {
       newErrors.password = t('userManagement.passwordRequiredForNewUsers');
     }
@@ -131,7 +148,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   const handleSubmit = () => {
     if (validateForm()) {
-      // Genera avatar dalle iniziali se non specificato
+      // Generate avatar from initials if not specified
       let userData = { ...formData };
 
       if (!userData.avatar) {
@@ -140,7 +157,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         userData.avatar = `${firstInitial}${lastInitial}`.toUpperCase();
       }
 
-      // Se è un aggiornamento e la password è vuota, rimuovila
+      // If it's an update and password is empty, remove it
       if (userData.id && !userData.password) {
         const { password, ...dataWithoutPassword } = userData;
         userData = dataWithoutPassword;
@@ -150,7 +167,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Funzione per generare una password casuale
+  // Function to generate a random password
   const generateRandomPassword = () => {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -160,18 +177,18 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     const allChars = lowercase + uppercase + numbers + symbols;
 
     let password = '';
-    // Assicurati che la password contenga almeno un carattere di ogni tipo
+    // Make sure the password contains at least one character of each type
     password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
     password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
     password += numbers.charAt(Math.floor(Math.random() * numbers.length));
     password += symbols.charAt(Math.floor(Math.random() * symbols.length));
 
-    // Aggiungi altri caratteri casuali per arrivare a 12 caratteri
+    // Add more random characters to reach 12 characters
     for (let i = 0; i < 8; i++) {
       password += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
 
-    // Mescola i caratteri della password
+    // Shuffle the password characters
     password = password.split('').sort(() => 0.5 - Math.random()).join('');
 
     setFormData({
@@ -182,7 +199,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     return password;
   };
 
-  // Funzione per copiare la password negli appunti
+  // Function to copy the password to the clipboard
   const copyPasswordToClipboard = async () => {
     if (formData.password) {
       try {
@@ -190,7 +207,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         setCopiedToClipboard(true);
         setShowSnackbar(true);
 
-        // Resetta l'icona dopo 2 secondi
+        // Reset the icon after 2 seconds
         setTimeout(() => {
           setCopiedToClipboard(false);
         }, 2000);
@@ -200,7 +217,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Chiudi lo snackbar
+  // Close the snackbar
   const handleCloseSnackbar = () => {
     setShowSnackbar(false);
   };
@@ -360,7 +377,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         )}
       </DialogActions>
 
-      {/* Feedback per la copia */}
+      {/* Feedback for copy operation */}
       <Snackbar
         open={showSnackbar}
         autoHideDuration={2000}

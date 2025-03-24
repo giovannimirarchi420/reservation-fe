@@ -40,14 +40,38 @@ const UserCard = ({ user, onEdit, onDelete }) => {
     };
 
     // Determine if the user is admin based on roles
-    const isAdmin = user.roles ?
-        user.roles.includes('ADMIN') :
-        user.role === 'admin';
+    const isAdmin = () => {
+        // 1. Check if user.roles exists as an array
+        if (Array.isArray(user.roles)) {
+            // Case-insensitive check for any variant of "admin"
+            return user.roles.some(role => 
+                typeof role === 'string' && role.toLowerCase() === 'admin'
+            );
+        }
+        
+        // 2. Check if user.role exists as a string
+        if (typeof user.role === 'string') {
+            return user.role.toLowerCase() === 'admin';
+        }
+        
+        // 3. Check other possible formats
+        // For example, if roles is an object with string values or an array of objects with a name property
+        if (user.roles && typeof user.roles === 'object' && !Array.isArray(user.roles)) {
+            return Object.values(user.roles).some(role => 
+                typeof role === 'string' && role.toLowerCase() === 'admin'
+            );
+        }
+        
+        return false;
+    };
 
     // Generate the full name for display
     const displayName = user.firstName && user.lastName ?
         `${user.firstName} ${user.lastName}` :
         user.username || user.name || t('userManagement.user');
+
+    // Calculate the isAdmin value only once for this component
+    const userIsAdmin = isAdmin();
 
     return (
         <Card>
@@ -55,7 +79,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar
                         sx={{
-                            bgcolor: isAdmin ? 'secondary.main' : 'primary.main',
+                            bgcolor: userIsAdmin ? 'secondary.main' : 'primary.main',
                             mr: 2
                         }}
                     >
@@ -74,8 +98,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Chip
-                        label={isAdmin ? t('userManagement.administrator') : t('userManagement.user')}
-                        color={isAdmin ? 'secondary' : 'primary'}
+                        label={userIsAdmin ? t('userManagement.administrator') : t('userManagement.user')}
+                        color={userIsAdmin ? 'secondary' : 'primary'}
                         size="small"
                     />
                     <Typography variant="caption" color="text.secondary">
