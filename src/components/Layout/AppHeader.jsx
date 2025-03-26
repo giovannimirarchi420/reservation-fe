@@ -111,7 +111,6 @@ const AppHeader = ({ onMenuClick }) => {
                     width: 32, 
                     height: 32, 
                     bgcolor: getRoleColor(),
-                    border: isGlobalAdmin() ? '2px solid white' : 'none'
                   }}>
                     {currentUser.avatar}
                   </Avatar>

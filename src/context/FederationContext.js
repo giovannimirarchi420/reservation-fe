@@ -6,7 +6,7 @@ import useApiError from '../hooks/useApiError';
 export const FederationContext = createContext();
 
 export const FederationProvider = ({ children }) => {
-  const { currentUser, isAuthorized } = useContext(AuthContext);
+  const { currentUser, isAuthorized, isGlobalAdmin, isFederationAdmin } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
   const [federations, setFederations] = useState([]);
   const [currentFederation, setCurrentFederation] = useState(null);
@@ -27,7 +27,7 @@ export const FederationProvider = ({ children }) => {
           setFederations(federationsData);
           
           // Set the first federation as current if none is already selected
-          if (federationsData.length > 0 && !currentFederation) {
+          if (currentUser.federations.length > 0 && !currentFederation) {
             setCurrentFederation(federationsData[0]);
           }
         }, {
@@ -48,41 +48,6 @@ export const FederationProvider = ({ children }) => {
       setCurrentFederation(null);
     }
   }, [currentUser]);
-
-  // Helper function to check if user is a global admin
-  const isGlobalAdmin = () => {
-    if (!currentUser) return false;
-    
-    if (Array.isArray(currentUser.roles)) {
-      return currentUser.roles.includes(FederationRoles.GLOBAL_ADMIN);
-    }
-    
-    return false;
-  };
-
-  // Helper function to check if user is admin for a specific federation
-  const isFederationAdmin = (federationId) => {
-    if (!currentUser || !federationId) return false;
-    
-    // If user is global admin, they have admin rights to all federations
-    if (isGlobalAdmin()) return true;
-    
-    // If user has the FEDERATION_ADMIN role and the federation is in their admin list
-    if (Array.isArray(currentUser.roles) && currentUser.roles.includes(FederationRoles.FEDERATION_ADMIN)) {
-      // Check if the federation is in the user's admin list (if available)
-      if (Array.isArray(currentUser.adminFederations)) {
-        return currentUser.adminFederations.includes(federationId);
-      }
-      
-      // If adminFederations is not available but federation admins are listed in the federation object
-      const federation = federations.find(f => f.id === federationId);
-      if (federation && Array.isArray(federation.adminIds)) {
-        return federation.adminIds.includes(currentUser.id);
-      }
-    }
-    
-    return false;
-  };
 
   // Check if user has access to a specific federation
   const hasFederationAccess = (federationName) => {
