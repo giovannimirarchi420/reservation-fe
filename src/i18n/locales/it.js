@@ -3,7 +3,8 @@ const it = {
       title: "Controllo Accesso Risorse Cloud",
       profile: "Profilo",
       administration: "Amministrazione",
-      logout: "Logout"
+      logout: "Logout",
+      federationManagement: "Gestione Federazioni"
     },
     footer: {
       title: "Controllo Accesso Risorse Cloud",
@@ -20,7 +21,8 @@ const it = {
       notifications: "Notifiche",
       administration: "Amministrazione",
       resources: "Risorse",
-      logout: "Logout"
+      logout: "Logout",
+      federations: "Federazioni"
     },
     login: {
       title: "Accesso al sistema",
@@ -154,7 +156,10 @@ const it = {
       parentResourceHelp: "Seleziona una risorsa principale per creare una relazione gerarchica", 
       childResourceWarning: "Questa risorsa fa parte di una gerarchia. La prenotazione potrebbe essere influenzata dalla disponibilità della sua risorsa principale.", 
       parentResourceWarning: "La prenotazione di questa risorsa renderà indisponibili tutte le sue risorse secondarie durante lo stesso periodo.", 
-      affectedSubResources: "Risorse secondarie che saranno interessate:" 
+      affectedSubResources: "Risorse secondarie che saranno interessate:" ,
+      federation: "Federazione",
+      selectFederation: "Seleziona una federazione",
+      federationRequired: "La federazione è obbligatoria"
     },
     resourceCard: {
       specifications: "Specifiche:",
@@ -399,7 +404,10 @@ const it = {
     unableToMarkNotificationAsRead: "Impossibile segnare la notifica come letta",
     unableToMarkAllNotificationsAsRead: "Impossibile segnare tutte le notifiche come lette",
     unableToDeleteNotification: "Impossibile eliminare la notifica",
-    moreErrorsNotDisplayed: "Ci sono altri {{count}} errori non visualizzati"
+    moreErrorsNotDisplayed: "Ci sono altri {{count}} errori non visualizzati",
+    federation: "Federazione",
+    selectFederation: "Seleziona una federazione",
+    federationRequired: "La federazione è obbligatoria"
   },
   common: {
     unableToCompleteOperation: "Impossibile completare l'operazione",
@@ -510,6 +518,51 @@ const it = {
     unableToUpdateParent: "Impossibile aggiornare la relazione padre",
     unableToRemoveParent: "Impossibile rimuovere la relazione padre",
     hierarchyUpdated: "Gerarchia delle risorse aggiornata con successo"
+  },
+  federations: {
+    title: "Federazioni",
+    management: "Gestione Federazioni",
+    addFederation: "Aggiungi Federazione",
+    editFederation: "Modifica Federazione",
+    newFederation: "Nuova Federazione",
+    name: "Nome Federazione",
+    description: "Descrizione",
+    searchFederations: "Cerca federazioni...",
+    noFederationsFound: "Nessuna federazione trovata.",
+    federationUpdatedSuccess: "Federazione '{name}' aggiornata con successo",
+    federationCreatedSuccess: "Federazione '{name}' creata con successo",
+    federationDeletedSuccess: "Federazione '{name}' eliminata con successo",
+    unableToUpdateFederation: "Impossibile aggiornare la federazione '{name}'",
+    unableToCreateFederation: "Impossibile creare la federazione '{name}'",
+    unableToDeleteFederation: "Impossibile eliminare la federazione '{name}'",
+    confirmDeleteFederation: "Sei sicuro di voler eliminare la federazione '{name}'? Tutte le risorse e i tipi di risorse associati saranno eliminati.",
+    members: "{count} membri",
+    admins: "Amministratori",
+    unableToLoadFederations: "Impossibile caricare le federazioni",
+    unableToLoadMembers: "Impossibile caricare i membri della federazione",
+    unableToLoadAdmins: "Impossibile caricare gli amministratori della federazione",
+    addUser: "Aggiungi Utente",
+    addAdmin: "Aggiungi Amministratore",
+    selectUser: "Seleziona Utente",
+    searchUsers: "Cerca utenti...",
+    noUsersFound: "Nessun utente trovato.",
+    noUsersMatchingSearch: "Nessun utente corrisponde alla ricerca.",
+    noMembersInFederation: "Nessun membro in questa federazione.",
+    noAdminsInFederation: "Nessun amministratore in questa federazione.",
+    noAdminsMatchingSearch: "Nessun amministratore corrisponde alla ricerca.",
+    unableToAddUser: "Impossibile aggiungere l'utente '{name}' alla federazione",
+    unableToRemoveUser: "Impossibile rimuovere l'utente '{name}' dalla federazione",
+    unableToAddAdmin: "Impossibile aggiungere l'utente '{name}' come amministratore della federazione",
+    unableToRemoveAdmin: "Impossibile rimuovere l'amministratore '{name}'",
+    confirmRemoveUser: "Sei sicuro di voler rimuovere l'utente '{name}' dalla federazione '{federation}'?",
+    confirmRemoveAdmin: "Sei sicuro di voler rimuovere '{name}' come amministratore della federazione '{federation}'?",
+    removeFromFederation: "Rimuovi dalla federazione",
+    removeAdminRole: "Rimuovi ruolo di amministratore",
+    unableToLoadUsers: "Impossibile caricare gli utenti"
+  },
+  federationSelector: {
+    selectFederation: "Seleziona Federazione",
+    allFederations: "Tutte le Federazioni"
   },
 };
 

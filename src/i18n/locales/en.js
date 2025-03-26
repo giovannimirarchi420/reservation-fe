@@ -3,7 +3,8 @@ const en = {
       title: "Cloud Resource Access Control",
       profile: "Profile",
       administration: "Administration",
-      logout: "Logout"
+      logout: "Logout",
+      federationManagement: "Federation Management"
     },
     footer: {
       title: "Cloud Resource Access Control",
@@ -20,7 +21,8 @@ const en = {
       notifications: "Notifications",
       administration: "Administration",
       resources: "Resources",
-      logout: "Logout"
+      logout: "Logout",
+      federations: "Federations"
     },
     login: {
       title: "System Login",
@@ -85,7 +87,10 @@ const en = {
       unableToUpdateResourceType: "Unable to update resource type",
       unableToCreateResourceType: "Unable to create resource type",
       unableToDeleteResourceType: "Unable to delete resource type",
-      selected: "selected"
+      selected: "selected",
+      federation: "Federation",
+      selectFederation: "Select a federation",
+      federationRequired: "Federation is required"
     },
     userManagement: {
       title: "Registered Users",
@@ -154,7 +159,10 @@ const en = {
       parentResourceHelp: "Select a parent resource to create a hierarchical relationship",
       childResourceWarning: "This resource is part of a hierarchy. Booking may be affected by its parent's availability.",
       parentResourceWarning: "Booking this resource will make all its sub-resources unavailable during the same period.",
-      affectedSubResources: "Sub-resources that will be affected:"
+      affectedSubResources: "Sub-resources that will be affected:",
+      federation: "Federation",
+      selectFederation: "Select a federation",
+      federationRequired: "Federation is required"
     },
     resourceCard: {
       specifications: "Specifications:",
@@ -517,6 +525,51 @@ const en = {
       unableToRemoveParent: "Unable to remove parent relationship",
       hierarchyUpdated: "Resource hierarchy successfully updated"
     },
+    federations: {
+      title: "Federations",
+      management: "Federation Management",
+      addFederation: "Add Federation",
+      editFederation: "Edit Federation",
+      newFederation: "New Federation",
+      name: "Federation Name",
+      description: "Description",
+      searchFederations: "Search federations...",
+      noFederationsFound: "No federations found.",
+      federationUpdatedSuccess: "Federation '{name}' updated successfully",
+      federationCreatedSuccess: "Federation '{name}' created successfully",
+      federationDeletedSuccess: "Federation '{name}' deleted successfully",
+      unableToUpdateFederation: "Unable to update federation '{name}'",
+      unableToCreateFederation: "Unable to create federation '{name}'",
+      unableToDeleteFederation: "Unable to delete federation '{name}'",
+      confirmDeleteFederation: "Are you sure you want to delete the federation '{name}'? All associated resources and resource types will also be deleted.",
+      members: "{count} members",
+      admins: "Administrators",
+      unableToLoadFederations: "Unable to load federations",
+      unableToLoadMembers: "Unable to load federation members",
+      unableToLoadAdmins: "Unable to load federation administrators",
+      addUser: "Add User",
+      addAdmin: "Add Admin",
+      selectUser: "Select User",
+      searchUsers: "Search users...",
+      noUsersFound: "No users found.",
+      noUsersMatchingSearch: "No users matching your search.",
+      noMembersInFederation: "No members in this federation.",
+      noAdminsInFederation: "No administrators in this federation.",
+      noAdminsMatchingSearch: "No administrators matching your search.",
+      unableToAddUser: "Unable to add user '{name}' to federation",
+      unableToRemoveUser: "Unable to remove user '{name}' from federation",
+      unableToAddAdmin: "Unable to add user '{name}' as federation administrator",
+      unableToRemoveAdmin: "Unable to remove administrator '{name}'",
+      confirmRemoveUser: "Are you sure you want to remove user '{name}' from federation '{federation}'?",
+      confirmRemoveAdmin: "Are you sure you want to remove '{name}' as administrator of federation '{federation}'?",
+      removeFromFederation: "Remove from federation",
+      removeAdminRole: "Remove administrator role",
+      unableToLoadUsers: "Unable to load users"
+    },
+    federationSelector: {
+      selectFederation: "Select Federation",
+      allFederations: "All Federations"
+    },    
   };
   
   export default en;

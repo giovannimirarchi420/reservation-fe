@@ -7,23 +7,25 @@ import ProfileManagement from './components/Profile/ProfileManagement';
 import Dashboard from './components/Dashboard/Dashboard';
 import MyBookingsPage from './components/Booking/MyBookingsPage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
+import FederationManagement from './components/Admin/FederationManagement';
 import { AuthContext } from './context/AuthContext';
+import { FederationProvider } from './context/FederationContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import ErrorNotification from './components/Common/ErrorNotification';
 import ResourceExplorer from './components/Resources/ResourceExplorer';
 
-// Inizializzazione del gestore errori globale
+// Initialize the global error handler
 const ErrorInitializer = ({ children }) => {
   const { handleApiError } = useError();
   
   useEffect(() => {
-    // Inietta il gestore degli errori nell'ambiente globale
-    // Sarà accessibile dai moduli dei servizi API
+    // Inject the error handler into the global environment
+    // Will be accessible from API service modules
     window.__errorHandler = handleApiError;
     
     return () => {
-      // Rimuovi il gestore degli errori quando il componente viene smontato
+      // Remove the error handler when the component unmounts
       delete window.__errorHandler;
     };
   }, [handleApiError]);
@@ -31,7 +33,7 @@ const ErrorInitializer = ({ children }) => {
   return children;
 };
 
-// Componente wrapper per le rotte con layout
+// Wrapper component for routes with layout
 const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
     const { currentUser, loading, isAuthorized } = useContext(AuthContext);
     const navigate = useNavigate();
@@ -40,7 +42,7 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
         return (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column', gap: 2 }}>
                 <CircularProgress />
-                <Typography>Caricamento...</Typography>
+                <Typography>Loading...</Typography>
             </Box>
         );
     }
@@ -50,11 +52,11 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
     }
 
     if (requiredRole && !isAuthorized(requiredRole)) {
-        // Se l'utente sta tentando di accedere alla dashboard ma non è admin, reindirizza al calendario
+        // If user attempts to access dashboard but is not admin, redirect to calendar
         if (currentSection === 'dashboard') {
             return <Navigate to="/calendar" replace />;
         }
-        // Per altre sezioni admin-only, reindirizza alla home
+        // For other admin-only sections, redirect to home
         return <Navigate to="/calendar" replace />;
     }
 
@@ -81,6 +83,9 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
             case 'resources':
                 navigate('/resources');
                 break;
+            case 'federations':
+                navigate('/federations');
+                break;
             default:
                 navigate('/');
         }
@@ -99,87 +104,100 @@ const App = () => {
     return (
         <ErrorProvider>
             <ErrorInitializer>
-                <Router>
-                    <Routes>
-                        <Route
-                            path="/"
-                            element={
-                                <LayoutWrapper
-                                    element={<Dashboard />}
-                                    currentSection="dashboard"
-                                    requiredRole="admin"
-                                />
-                            }
-                        />
-                        <Route
-                            path="/resources"
-                            element={
-                                <LayoutWrapper
-                                    element={<ResourceExplorer />}
-                                    currentSection="resources"
-                                    requiredRole="user"
-                                />
-                            }
-                        />
-                        <Route
-                            path="/calendar"
-                            element={
-                                <LayoutWrapper
-                                    element={<BookingCalendar />}
-                                    currentSection="calendar"
-                                    requiredRole="user"
-                                />
-                            }
-                        />
-                        <Route
-                            path="/mybookings"
-                            element={
-                                <LayoutWrapper
-                                    element={<MyBookingsPage />}
-                                    currentSection="mybookings"
-                                    requiredRole="user"
-                                />
-                            }
-                        />
-                        <Route
-                            path="/admin"
-                            element={
-                                <LayoutWrapper
-                                    element={<AdminPanel />}
-                                    currentSection="admin"
-                                    requiredRole="admin"
-                                />
-                            }
-                        />
-                        <Route
-                            path="/profile"
-                            element={
-                                <LayoutWrapper
-                                    element={<ProfileManagement />}
-                                    currentSection="profile"
-                                    requiredRole="user"
-                                />
-                            }
-                        />
-                        <Route
-                            path="/notifications"
-                            element={
-                                <LayoutWrapper
-                                    element={<NotificationsPage />}
-                                    currentSection="notifications"
-                                    requiredRole="user"
-                                />
-                            }
-                        />
-                        {/* Rotta per gestire i reindirizzamenti da Keycloak */}
-                        <Route path="/callback" element={<Navigate to="/" replace />} />
-                        {/* Rotta fallback */}
-                        <Route path="*" element={<Navigate to="/calendar" replace />} />
-                    </Routes>
-                    
-                    {/* Componente per visualizzare le notifiche di errore */}
-                    <ErrorNotification />
-                </Router>
+                <FederationProvider>
+                    <Router>
+                        <Routes>
+                            <Route
+                                path="/"
+                                element={
+                                    <LayoutWrapper
+                                        element={<Dashboard />}
+                                        currentSection="dashboard"
+                                        requiredRole="federation_admin"
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/resources"
+                                element={
+                                    <LayoutWrapper
+                                        element={<ResourceExplorer />}
+                                        currentSection="resources"
+                                        requiredRole="user"
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/calendar"
+                                element={
+                                    <LayoutWrapper
+                                        element={<BookingCalendar />}
+                                        currentSection="calendar"
+                                        requiredRole="user"
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/mybookings"
+                                element={
+                                    <LayoutWrapper
+                                        element={<MyBookingsPage />}
+                                        currentSection="mybookings"
+                                        requiredRole="user"
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/admin"
+                                element={
+                                    <LayoutWrapper
+                                        element={<AdminPanel />}
+                                        currentSection="admin"
+                                        requiredRole="federation_admin"
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/profile"
+                                element={
+                                    <LayoutWrapper
+                                        element={<ProfileManagement />}
+                                        currentSection="profile"
+                                        requiredRole="user"
+                                    />
+                                }
+                            />
+                            <Route
+                                path="/notifications"
+                                element={
+                                    <LayoutWrapper
+                                        element={<NotificationsPage />}
+                                        currentSection="notifications"
+                                        requiredRole="user"
+                                    />
+                                }
+                            />
+                            {/* New route for federation management */}
+                            <Route
+                                path="/federations"
+                                element={
+                                    <LayoutWrapper
+                                        element={<FederationManagement />}
+                                        currentSection="federations"
+                                        requiredRole="global_admin"
+                                    />
+                                }
+                            />
+                            {/* Route for Keycloak redirects */}
+                            <Route path="/callback" element={<Navigate to="/" replace />} />
+                            {/* Fallback route */}
+                            <Route path="*" element={<Navigate to="/calendar" replace />} />
+                        </Routes>
+                        
+                        {/* Error notification component */}
+                        <ErrorNotification />
+                    </Router>
+                </FederationProvider>
             </ErrorInitializer>
         </ErrorProvider>
     );

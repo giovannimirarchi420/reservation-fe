@@ -1,6 +1,7 @@
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import keycloak from '../config/keycloak';
 import * as authService from '../services/authService';
+import { FederationRoles } from '../services/federationService';
 
 // Create context
 export const AuthContext = createContext();
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }) => {
         if (authenticated) {
           console.log('User is already authenticated');
           const userInfo = authService.getUserInfo();
+          
           setCurrentUser(userInfo);
           setLoading(false);
           
@@ -89,44 +91,47 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Check if user is admin - Improved to handle various role formats
-  const isAdmin = useCallback(() => {
+  // Check if user is a global admin
+  const isGlobalAdmin = useCallback(() => {
     if (!currentUser) return false;
 
-    // Check different possible formats for the admin role
+    // Check different possible formats for the GLOBAL_ADMIN role
     
-    // 1. Check the role field as a string
-    if (typeof currentUser.role === 'string') {
-      return currentUser.role.toLowerCase() === 'admin';
-    }
-    
-    // 2. Check the roles field as an array
-    if (Array.isArray(currentUser.roles)) {
-      return currentUser.roles.some(role => 
-        typeof role === 'string' && role.toLowerCase() === 'admin'
-      );
-    }
-
-    // 3. Check realm_access.roles from Keycloak token
-    if (currentUser.realm_access && Array.isArray(currentUser.realm_access.roles)) {
-      return currentUser.realm_access.roles.some(role => 
-        typeof role === 'string' && role.toLowerCase() === 'admin'
-      );
+    // 1. Check the roles field as an array
+    if (currentUser.role) {
+      return currentUser.role == FederationRoles.GLOBAL_ADMIN.toString().toLowerCase();
     }
 
     return false;
   }, [currentUser]);
 
-  // Check if user is authorized for a given action
-  const isAuthorized = useCallback((requiredRole = 'user') => {
+  // Check if user is a federation admin
+  const isFederationAdmin = useCallback((federationName) => {
     if (!currentUser) return false;
 
-    if (requiredRole.toLowerCase() === 'admin') {
-      return isAdmin();
-    }
+    // Global admins are automatically federation admins for all federations
+    if (isGlobalAdmin()) return true;
 
-    return true; // All authenticated users are basic users
-  }, [currentUser, isAdmin]);
+    if (currentUser.role == FederationRoles.FEDERATION_ADMIN.toString().toLowerCase()) {
+      return currentUser.federations.includes(federationName);
+    }
+  }, [currentUser, isGlobalAdmin]);
+
+  // Check if user is authorized for a given action
+  const isAuthorized = useCallback((requiredRole = "user") => {
+    if (!currentUser) return false;
+  
+    switch (requiredRole.toUpperCase()) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return isGlobalAdmin();
+      case FederationRoles.FEDERATION_ADMIN:
+        return isFederationAdmin();
+      case FederationRoles.USER:
+        return true; // All authenticated users are basic users
+      default:
+        return false;
+    }
+  }, [currentUser, isGlobalAdmin, isFederationAdmin]);
 
   // Update token (to call before API requests)
   const updateToken = useCallback(async () => {
@@ -152,7 +157,8 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     logout,
-    isAdmin,
+    isGlobalAdmin,
+    isFederationAdmin,
     isAuthorized,
     updateToken,
     getAccessToken

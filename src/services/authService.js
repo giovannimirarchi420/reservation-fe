@@ -81,9 +81,8 @@ export const getUserInfo = () => {
             email: keycloak.tokenParsed.email,
             firstName: keycloak.tokenParsed.given_name,
             lastName: keycloak.tokenParsed.family_name,
-            // Some Keycloak implementations might have the role in different formats
-            role: keycloak.tokenParsed.realm_access?.roles?.includes('admin') ? 'admin' : 'user',
-            // Create an avatar from the name initials
+            role: keycloak.tokenParsed.realm_access.roles[0],
+            federations: keycloak.tokenParsed.group,
             avatar: createAvatarFromName(keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username)
         };
     }

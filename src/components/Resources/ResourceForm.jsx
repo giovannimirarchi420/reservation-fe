@@ -14,16 +14,19 @@ import {
   Select,
   TextField
 } from '@mui/material';
+import { useFederation } from '../../context/FederationContext';
 
 const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, onSave, onDelete }) => {
   const { t } = useTranslation();
+  const { federations, currentFederation, isGlobalAdmin, isFederationAdmin } = useFederation();
   const [formData, setFormData] = useState({
     name: '',
     type: '',
     specs: '',
     location: '',
     status: 0, // 0 = active (default)
-    parentId: '' // null or empty string means no parent
+    parentId: '', // null or empty string means no parent
+    federationId: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -48,12 +51,13 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
         specs: resource.specs || '',
         location: resource.location || '',
         status: statusValue,
-        parentId: resource.parentId || ''
+        parentId: resource.parentId || '',
+        federationId: resource.federationId || ''
       });
     } else {
       resetForm();
     }
-  }, [resource]);
+  }, [resource, currentFederation]);
 
   const resetForm = () => {
     setFormData({
@@ -62,7 +66,9 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
       specs: '',
       location: '',
       status: 0,
-      parentId: ''
+      parentId: '',
+      // If user is in a federation context or is a federation admin, pre-select their federation
+      federationId: currentFederation ? currentFederation.id : ''
     });
     setErrors({});
   };
@@ -102,6 +108,10 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
       newErrors.location = t('resourceForm.locationRequired');
     }
 
+    if (!formData.federationId) {
+      newErrors.federationId = t('resourceForm.federationRequired');
+    }
+
     // Check for circular reference in parent-child relationship
     if (formData.parentId && formData.id) {
       let currentParentId = formData.parentId;
@@ -130,10 +140,30 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
         ...formData,
         typeId: formData.typeId ? parseInt(formData.typeId) : null,
         status: typeof formData.status === 'string' ? parseInt(formData.status) : formData.status,
-        parentId: formData.parentId ? parseInt(formData.parentId) : null
+        parentId: formData.parentId ? parseInt(formData.parentId) : null,
+        federationId: formData.federationId
       };
       onSave(preparedData);
     }
+  };
+
+  // Filter parent resources to only show those from the same federation
+  const getFilteredParentResources = () => {
+    if (!formData.federationId) return [];
+    
+    return allResources.filter(r => 
+      r.id !== formData.id && // Cannot be its own parent
+      r.federationId === formData.federationId // Must be in the same federation
+    );
+  };
+
+  // Filter resource types to only show those from the same federation
+  const getFilteredResourceTypes = () => {
+    if (!formData.federationId) return [];
+    
+    return resourceTypes.filter(type => 
+      type.federationId === formData.federationId
+    );
   };
 
   return (
@@ -158,6 +188,31 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
                 helperText={errors.name}
             />
 
+            {/* Federation selector */}
+            <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
+              <InputLabel id="federation-label">{t('resourceForm.federation')}</InputLabel>
+              <Select
+                  labelId="federation-label"
+                  name="federationId"
+                  value={formData.federationId || ''}
+                  label={t('resourceForm.federation')}
+                  onChange={handleChange}
+                  disabled={!isGlobalAdmin()} // Only global admins can change the federation
+              >
+                <MenuItem value="">{t('resourceForm.selectFederation')}</MenuItem>
+                {federations.map(federation => (
+                    <MenuItem 
+                      key={federation.id} 
+                      value={federation.id}
+                      disabled={!isGlobalAdmin() && !isFederationAdmin(federation.id)}
+                    >
+                      {federation.name}
+                    </MenuItem>
+                ))}
+              </Select>
+              {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+            </FormControl>
+
             <FormControl fullWidth margin="normal" required error={!!errors.typeId}>
               <InputLabel id="resource-type-label">{t('resourceForm.resourceType')}</InputLabel>
               <Select
@@ -168,7 +223,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
                   onChange={handleChange}
               >
                 <MenuItem value="">{t('resourceForm.selectType')}</MenuItem>
-                {resourceTypes.map(type => (
+                {getFilteredResourceTypes().map(type => (
                     <MenuItem key={type.id} value={type.id}>
                       {type.name}
                     </MenuItem>
@@ -226,13 +281,11 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
                 onChange={handleChange}
               >
                 <MenuItem value="">{t('resourceForm.noParent')}</MenuItem>
-                {allResources
-                  .filter(r => r.id !== formData.id) // Exclude current resource to prevent circular reference
-                  .map(r => (
-                    <MenuItem key={r.id} value={r.id}>
-                      {r.name}
-                    </MenuItem>
-                  ))}
+                {getFilteredParentResources().map(r => (
+                  <MenuItem key={r.id} value={r.id}>
+                    {r.name}
+                  </MenuItem>
+                ))}
               </Select>
               <FormHelperText>
                 {errors.parentId || t('resourceForm.parentResourceHelp')}

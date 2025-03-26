@@ -8,19 +8,26 @@ import {
     DialogContent,
     DialogTitle,
     TextField,
-    FormHelperText
+    FormHelperText,
+    FormControl,
+    InputLabel,
+    Select,
+    MenuItem
 } from '@mui/material';
 import { getRandomColor } from '../../utils/colorUtils';
+import { useFederation } from '../../context/FederationContext';
 
 /**
  * Form for creating/editing a resource type
  */
 const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => {
     const { t } = useTranslation();
+    const { federations, currentFederation, isGlobalAdmin, isFederationAdmin } = useFederation();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
-        color: getRandomColor()
+        color: getRandomColor(),
+        federationId: ''
     });
     const [errors, setErrors] = useState({});
 
@@ -31,18 +38,21 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                 id: resourceType.id,
                 name: resourceType.name || '',
                 description: resourceType.description || '',
-                color: resourceType.color || getRandomColor()
+                color: resourceType.color || getRandomColor(),
+                federationId: resourceType.federationId || ''
             });
         } else {
             resetForm();
         }
-    }, [resourceType]);
+    }, [resourceType, currentFederation]);
 
     const resetForm = () => {
         setFormData({
             name: '',
             description: '',
-            color: getRandomColor()
+            color: getRandomColor(),
+            // If user is in a federation context or is a federation admin, pre-select their federation
+            federationId: currentFederation ? currentFederation.id : ''
         });
         setErrors({});
     };
@@ -72,6 +82,10 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
 
         if (!formData.color || !/^#[0-9A-F]{6}$/i.test(formData.color)) {
             newErrors.color = t('resourceType.invalidColorCode');
+        }
+
+        if (!formData.federationId) {
+            newErrors.federationId = t('resourceType.federationRequired');
         }
 
         setErrors(newErrors);
@@ -113,6 +127,31 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                         error={!!errors.name}
                         helperText={errors.name}
                     />
+
+                    {/* Federation selector */}
+                    <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
+                        <InputLabel id="federation-label">{t('resourceType.federation')}</InputLabel>
+                        <Select
+                            labelId="federation-label"
+                            name="federationId"
+                            value={formData.federationId || ''}
+                            label={t('resourceType.federation')}
+                            onChange={handleChange}
+                            disabled={!isGlobalAdmin()} // Only global admins can change the federation
+                        >
+                            <MenuItem value="">{t('resourceType.selectFederation')}</MenuItem>
+                            {federations.map(federation => (
+                                <MenuItem 
+                                    key={federation.id} 
+                                    value={federation.id}
+                                    disabled={!isGlobalAdmin() && !isFederationAdmin(federation.id)}
+                                >
+                                    {federation.name}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                        {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+                    </FormControl>
 
                     <TextField
                         label={t('resourceType.description')}
@@ -161,7 +200,6 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                             {t('resourceType.random')}
                         </Button>
                     </Box>
-
                 </Box>
             </DialogContent>
             <DialogActions>

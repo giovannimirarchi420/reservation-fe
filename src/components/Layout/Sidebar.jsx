@@ -19,12 +19,13 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import ListAltIcon from '@mui/icons-material/ListAlt';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ExploreIcon from '@mui/icons-material/Explore';
+import DomainIcon from '@mui/icons-material/Domain';
 import { AuthContext } from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
   const { t } = useTranslation();
-  const { currentUser, logout } = useContext(AuthContext);
-  const isAdmin = currentUser?.role === 'admin';
+  const { currentUser, logout, isGlobalAdmin } = useContext(AuthContext);
+  const isAdmin = currentUser?.role === 'admin' || isGlobalAdmin();
 
   return (
     <Drawer
@@ -124,6 +125,20 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
                 <SettingsIcon />
               </ListItemIcon>
               <ListItemText primary={t('sidebar.administration')} />
+            </ListItem>
+          )}
+          {/* Only show the federations menu item if user is a global admin */}
+          {isGlobalAdmin && isGlobalAdmin() && (
+            <ListItem
+              button
+              selected={currentSection === 'federations'}
+              onClick={() => onSectionChange('federations')}
+              sx={{ cursor: 'pointer' }}
+            >
+              <ListItemIcon>
+                <DomainIcon />
+              </ListItemIcon>
+              <ListItemText primary={t('sidebar.federations')} />
             </ListItem>
           )}
           <ListItem

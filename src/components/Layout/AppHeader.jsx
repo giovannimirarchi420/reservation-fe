@@ -22,11 +22,12 @@ import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../Notifications/NotificationMenu';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
+import FederationSelector from '../Federation/FederationSelector';
 
 const AppHeader = ({ onMenuClick }) => {
   const { t } = useTranslation();
   const { notifications } = useNotification();
-  const { currentUser, logout } = useContext(AuthContext);
+  const { currentUser, logout, isGlobalAdmin } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
 
@@ -53,6 +54,11 @@ const AppHeader = ({ onMenuClick }) => {
     handleProfileMenuClose();
   };
 
+  const handleNavigateToFederations = () => {
+    navigate('/federations');
+    handleProfileMenuClose();
+  };
+
   return (
     <>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
@@ -70,6 +76,9 @@ const AppHeader = ({ onMenuClick }) => {
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {/* Federation Selector */}
+            <FederationSelector />
+            
             <LanguageSelector />
             <ThemeSwitcher />
             <NotificationMenu />
@@ -102,12 +111,23 @@ const AppHeader = ({ onMenuClick }) => {
           <PersonIcon fontSize="small" sx={{ mr: 1 }} />
           {t('appHeader.profile')}
         </MenuItem>
+        
+        {/* Show Admin menu item if user is admin */}
         {currentUser?.role === 'admin' && (
           <MenuItem onClick={handleNavigateToAdmin}>
             <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
             {t('appHeader.administration')}
           </MenuItem>
         )}
+        
+        {/* Show Federations menu item if user is GLOBAL_ADMIN */}
+        {isGlobalAdmin && isGlobalAdmin() && (
+          <MenuItem onClick={handleNavigateToFederations}>
+            <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
+            {t('appHeader.federationManagement')}
+          </MenuItem>
+        )}
+        
         <Divider />
         <MenuItem onClick={handleLogout}>
           <LogoutIcon fontSize="small" sx={{ mr: 1 }} />
