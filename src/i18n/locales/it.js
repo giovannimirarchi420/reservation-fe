@@ -90,6 +90,9 @@ const it = {
       selected: "selezionato"
     },
     userManagement: {
+      globalAdministrator: "Amministratore Globale",
+      federationAdministrator: "Amministratore Federazione",
+      user: "Utente",
       title: "Utenti Registrati",
       addUser: "Aggiungi Utente",
       searchUsers: "Cerca utenti...",

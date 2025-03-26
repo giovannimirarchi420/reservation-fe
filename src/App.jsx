@@ -14,6 +14,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import ErrorNotification from './components/Common/ErrorNotification';
 import ResourceExplorer from './components/Resources/ResourceExplorer';
+import { FederationRoles } from './services/federationService';
 
 // Initialize the global error handler
 const ErrorInitializer = ({ children }) => {
@@ -113,7 +114,7 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<Dashboard />}
                                         currentSection="dashboard"
-                                        requiredRole="federation_admin"
+                                        requiredRole={FederationRoles.FEDERATION_ADMIN}
                                     />
                                 }
                             />
@@ -123,7 +124,7 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<ResourceExplorer />}
                                         currentSection="resources"
-                                        requiredRole="user"
+                                        requiredRole={FederationRoles.USER}
                                     />
                                 }
                             />
@@ -133,7 +134,7 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<BookingCalendar />}
                                         currentSection="calendar"
-                                        requiredRole="user"
+                                        requiredRole={FederationRoles.USER}
                                     />
                                 }
                             />
@@ -143,7 +144,7 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<MyBookingsPage />}
                                         currentSection="mybookings"
-                                        requiredRole="user"
+                                        requiredRole={FederationRoles.USER}
                                     />
                                 }
                             />
@@ -153,7 +154,7 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<AdminPanel />}
                                         currentSection="admin"
-                                        requiredRole="federation_admin"
+                                        requiredRole={FederationRoles.FEDERATION_ADMIN}
                                     />
                                 }
                             />
@@ -163,7 +164,7 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<ProfileManagement />}
                                         currentSection="profile"
-                                        requiredRole="user"
+                                        requiredRole={FederationRoles.USER}
                                     />
                                 }
                             />
@@ -173,18 +174,18 @@ const App = () => {
                                     <LayoutWrapper
                                         element={<NotificationsPage />}
                                         currentSection="notifications"
-                                        requiredRole="user"
+                                        requiredRole={FederationRoles.USER}
                                     />
                                 }
                             />
-                            {/* New route for federation management */}
+                            {/* Route for federation management */}
                             <Route
                                 path="/federations"
                                 element={
                                     <LayoutWrapper
                                         element={<FederationManagement />}
                                         currentSection="federations"
-                                        requiredRole="global_admin"
+                                        requiredRole={FederationRoles.GLOBAL_ADMIN}
                                     />
                                 }
                             />

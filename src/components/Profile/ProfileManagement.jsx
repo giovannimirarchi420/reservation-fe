@@ -30,15 +30,19 @@ import {
   ContentCopy as ContentCopyIcon,
   Key as KeyIcon,
   ExpandMore as ExpandMoreIcon,
-  DeleteOutline as DeleteOutlineIcon
+  DeleteOutline as DeleteOutlineIcon,
+  Security,
+  SupervisorAccount,
+  Person
 } from '@mui/icons-material';
 import { AuthContext } from '../../context/AuthContext';
 import { updateProfile, fetchCurrentUser, getUserSshKey, updateUserSshKey, deleteUserSshKey } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
+import { FederationRoles } from '../../services/federationService';
 
 const ProfileManagement = () => {
   const { t } = useTranslation();
-  const { currentUser, setCurrentUser, loading } = useContext(AuthContext);
+  const { currentUser, setCurrentUser, loading, getUserHighestRole } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -49,7 +53,7 @@ const ProfileManagement = () => {
   const profileTranslations = {
     userIdCopied: t('profile.userIdCopied') || 'User ID copied to clipboard',
     copyUserId: t('profile.copyUserId') || 'Copy User ID'
-  };
+  }
 
   const [profileData, setProfileData] = useState({
     firstName: '',
@@ -75,6 +79,36 @@ const ProfileManagement = () => {
       });
     }
   }, [currentUser]);
+
+  // Get user highest role
+  const userHighestRole = currentUser ? getUserHighestRole() : FederationRoles.USER;
+
+  // Get role info based on role
+  const getRoleInfo = (role) => {
+    switch (role) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return { 
+          color: 'gold', 
+          label: t('userManagement.globalAdministrator'),
+          icon: <Security fontSize="small" />
+        };
+      case FederationRoles.FEDERATION_ADMIN:
+        return { 
+          color: '#f44336', 
+          label: t('userManagement.federationAdministrator'),
+          icon: <SupervisorAccount fontSize="small" />
+        };
+      default:
+        return { 
+          color: 'primary.main', 
+          label: t('userManagement.user'),
+          icon: <Person fontSize="small" />
+        };
+    }
+  };
+
+  // Get role information
+  const roleInfo = getRoleInfo(userHighestRole);
 
   // Load SSH key data if not present in user profile
   useEffect(() => {
@@ -273,10 +307,11 @@ const ProfileManagement = () => {
                   height: 120,
                   fontSize: '3rem',
                   mb: 2,
-                  bgcolor: currentUser.role === 'admin' ? 'secondary.main' : 'primary.main'
+                  bgcolor: roleInfo.color,
+                  border: userHighestRole === FederationRoles.GLOBAL_ADMIN ? '2px solid white' : 'none'
                 }}
               >
-                {currentUser.avatar || currentUser.username?.[0]?.toUpperCase() || 'U'}
+                {currentUser.avatar || 'U'}
               </Avatar>
 
               <Card sx={{ width: '100%', mt: 2 }}>
@@ -295,10 +330,16 @@ const ProfileManagement = () => {
                         {t('profile.role')}
                       </Typography>
                       <Chip
-                        label={currentUser.role === 'admin' 
-                          ? t('profile.administrator') 
-                          : t('profile.user')}
-                        color={currentUser.role === 'admin' ? 'secondary' : 'primary'}
+                        icon={roleInfo.icon}
+                        label={roleInfo.label}
+                        sx={{ 
+                          bgcolor: userHighestRole === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
+                                  userHighestRole === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
+                                  'rgba(25, 118, 210, 0.1)',
+                          color: roleInfo.color,
+                          fontWeight: 'bold',
+                          border: `1px solid ${roleInfo.color}`
+                        }}
                         size="small"
                       />
                     </Box>

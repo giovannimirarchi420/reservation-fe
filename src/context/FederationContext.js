@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { fetchFederations } from '../services/federationService';
+import { FederationRoles, fetchFederations } from '../services/federationService';
 import { AuthContext } from './AuthContext';
 import useApiError from '../hooks/useApiError';
 
@@ -54,7 +54,7 @@ export const FederationProvider = ({ children }) => {
     if (!currentUser) return false;
     
     if (Array.isArray(currentUser.roles)) {
-      return currentUser.roles.includes('GLOBAL_ADMIN');
+      return currentUser.roles.includes(FederationRoles.GLOBAL_ADMIN);
     }
     
     return false;
@@ -68,7 +68,7 @@ export const FederationProvider = ({ children }) => {
     if (isGlobalAdmin()) return true;
     
     // If user has the FEDERATION_ADMIN role and the federation is in their admin list
-    if (Array.isArray(currentUser.roles) && currentUser.roles.includes('FEDERATION_ADMIN')) {
+    if (Array.isArray(currentUser.roles) && currentUser.roles.includes(FederationRoles.FEDERATION_ADMIN)) {
       // Check if the federation is in the user's admin list (if available)
       if (Array.isArray(currentUser.adminFederations)) {
         return currentUser.adminFederations.includes(federationId);

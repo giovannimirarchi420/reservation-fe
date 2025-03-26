@@ -94,14 +94,10 @@ export const AuthProvider = ({ children }) => {
   // Check if user is a global admin
   const isGlobalAdmin = useCallback(() => {
     if (!currentUser) return false;
-
-    // Check different possible formats for the GLOBAL_ADMIN role
-    
-    // 1. Check the roles field as an array
-    if (currentUser.role) {
-      return currentUser.role == FederationRoles.GLOBAL_ADMIN.toString().toLowerCase();
+    // Check for GLOBAL_ADMIN role
+    if (Array.isArray(currentUser.roles)) {
+      return currentUser.roles.includes(FederationRoles.GLOBAL_ADMIN.toString());
     }
-
     return false;
   }, [currentUser]);
 
@@ -112,20 +108,43 @@ export const AuthProvider = ({ children }) => {
     // Global admins are automatically federation admins for all federations
     if (isGlobalAdmin()) return true;
 
-    if (currentUser.role == FederationRoles.FEDERATION_ADMIN.toString().toLowerCase()) {
-      return currentUser.federations.includes(federationName);
+    // Check for FEDERATION_ADMIN role
+    if (Array.isArray(currentUser.roles)) {
+      const isFedAdmin = currentUser.roles.includes(FederationRoles.FEDERATION_ADMIN.toString());
+      
+      // If federationName is provided, check if user has access to that federation
+      if (federationName && isFedAdmin) {
+        return Array.isArray(currentUser.adminFederations) && 
+               currentUser.federations.includes(federationName);
+      }
+      
+      return isFedAdmin;
     }
+    return false;
   }, [currentUser, isGlobalAdmin]);
 
+  // Check if user is a regular user
+  const isUser = useCallback(() => {
+    // All authenticated users have basic user role
+    return !!currentUser;
+  }, [currentUser]);
+
+  // Get highest user role for UI purposes (used for color coding)
+  const getUserHighestRole = useCallback(() => {
+    if (isGlobalAdmin()) return FederationRoles.GLOBAL_ADMIN;
+    if (isFederationAdmin()) return FederationRoles.FEDERATION_ADMIN;
+    return FederationRoles.USER;
+  }, [isGlobalAdmin, isFederationAdmin]);
+
   // Check if user is authorized for a given action
-  const isAuthorized = useCallback((requiredRole = "user") => {
+  const isAuthorized = useCallback((requiredRole = FederationRoles.USER) => {
     if (!currentUser) return false;
   
-    switch (requiredRole.toUpperCase()) {
+    switch (requiredRole) {
       case FederationRoles.GLOBAL_ADMIN:
         return isGlobalAdmin();
       case FederationRoles.FEDERATION_ADMIN:
-        return isFederationAdmin();
+        return isGlobalAdmin() || isFederationAdmin();
       case FederationRoles.USER:
         return true; // All authenticated users are basic users
       default:
@@ -159,6 +178,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     isGlobalAdmin,
     isFederationAdmin,
+    isUser,
+    getUserHighestRole,
     isAuthorized,
     updateToken,
     getAccessToken

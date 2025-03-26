@@ -24,8 +24,15 @@ import { AuthContext } from '../../context/AuthContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
   const { t } = useTranslation();
-  const { currentUser, logout, isGlobalAdmin } = useContext(AuthContext);
-  const isAdmin = currentUser?.role === 'admin' || isGlobalAdmin();
+  const { 
+    currentUser, 
+    logout, 
+    isGlobalAdmin, 
+    isFederationAdmin 
+  } = useContext(AuthContext);
+  
+  // Check if user has admin rights (either global or federation)
+  const isAdmin = isGlobalAdmin() || isFederationAdmin();
 
   return (
     <Drawer
@@ -127,8 +134,7 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
               <ListItemText primary={t('sidebar.administration')} />
             </ListItem>
           )}
-          {/* Only show the federations menu item if user is a global admin */}
-          {isGlobalAdmin && isGlobalAdmin() && (
+          {isGlobalAdmin() && (
             <ListItem
               button
               selected={currentSection === 'federations'}

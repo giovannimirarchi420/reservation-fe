@@ -9,13 +9,16 @@ import {
   Toolbar,
   Typography,
   Box,
-  Divider
+  Divider,
+  Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AccountCircle from '@mui/icons-material/AccountCircle';
 import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
-import SettingsIcon from '@mui/icons-material/Settings';
+import DomainIcon from '@mui/icons-material/Domain';
+import SecurityIcon from '@mui/icons-material/Security';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useNotification } from '../../hooks/useNotification';
 import { AuthContext } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -23,11 +26,12 @@ import NotificationMenu from '../Notifications/NotificationMenu';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
 import FederationSelector from '../Federation/FederationSelector';
+import { FederationRoles } from '../../services/federationService';
 
 const AppHeader = ({ onMenuClick }) => {
   const { t } = useTranslation();
   const { notifications } = useNotification();
-  const { currentUser, logout, isGlobalAdmin } = useContext(AuthContext);
+  const { currentUser, logout, isGlobalAdmin, isFederationAdmin, getUserHighestRole } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
 
@@ -59,6 +63,19 @@ const AppHeader = ({ onMenuClick }) => {
     handleProfileMenuClose();
   };
 
+  // Get the appropriate color based on user role
+  const getRoleColor = () => {
+    const highestRole = getUserHighestRole();
+    switch(highestRole) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return 'gold'; // Gold for global admins
+      case FederationRoles.FEDERATION_ADMIN:
+        return '#f44336'; // Red for federation admins
+      default:
+        return 'primary.main'; // Default blue for regular users
+    }
+  };
+
   return (
     <>
       <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
@@ -83,19 +100,26 @@ const AppHeader = ({ onMenuClick }) => {
             <ThemeSwitcher />
             <NotificationMenu />
 
-            <IconButton
-              color="inherit"
-              onClick={handleProfileMenuOpen}
-              sx={{ ml: 1 }}
-            >
-              {currentUser?.avatar ? (
-                <Avatar sx={{ width: 32, height: 32, bgcolor: currentUser.role === 'admin' ? 'secondary.main' : 'primary.main' }}>
-                  {currentUser.avatar}
-                </Avatar>
-              ) : (
-                <AccountCircle />
-              )}
-            </IconButton>
+            <Tooltip title={currentUser && isGlobalAdmin() ? "Global Admin" : (isFederationAdmin() ? "Federation Admin" : "User")}>
+              <IconButton
+                color="inherit"
+                onClick={handleProfileMenuOpen}
+                sx={{ ml: 1 }}
+              >
+                {currentUser?.avatar ? (
+                  <Avatar sx={{ 
+                    width: 32, 
+                    height: 32, 
+                    bgcolor: getRoleColor(),
+                    border: isGlobalAdmin() ? '2px solid white' : 'none'
+                  }}>
+                    {currentUser.avatar}
+                  </Avatar>
+                ) : (
+                  <AccountCircle />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
         </Toolbar>
       </AppBar>
@@ -112,18 +136,27 @@ const AppHeader = ({ onMenuClick }) => {
           {t('appHeader.profile')}
         </MenuItem>
         
-        {/* Show Admin menu item if user is admin */}
-        {currentUser?.role === 'admin' && (
+        {/* Show Admin menu item if user is either global or federation admin */}
+        {(isGlobalAdmin() || isFederationAdmin()) && (
           <MenuItem onClick={handleNavigateToAdmin}>
-            <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
-            {t('appHeader.administration')}
+            {isGlobalAdmin() ? (
+              <>
+                <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />
+                {t('appHeader.administration')}
+              </>
+            ) : (
+              <>
+                <SupervisorAccountIcon fontSize="small" sx={{ mr: 1, color: '#f44336' }} />
+                {t('appHeader.administration')}
+              </>
+            )}
           </MenuItem>
         )}
         
-        {/* Show Federations menu item if user is GLOBAL_ADMIN */}
-        {isGlobalAdmin && isGlobalAdmin() && (
+        {/* Show Federations menu item only for global admins */}
+        {isGlobalAdmin() && (
           <MenuItem onClick={handleNavigateToFederations}>
-            <SettingsIcon fontSize="small" sx={{ mr: 1 }} />
+            <DomainIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />
             {t('appHeader.federationManagement')}
           </MenuItem>
         )}

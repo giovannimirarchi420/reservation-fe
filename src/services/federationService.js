@@ -5,9 +5,9 @@ import apiRequest from './apiCore';
 
 // Define federation types for clarity
 export const FederationRoles = {
-  GLOBAL_ADMIN: 'GLOBAL_ADMIN',
-  FEDERATION_ADMIN: 'FEDERATION_ADMIN',
-  USER: 'USER'
+  GLOBAL_ADMIN: 'global_admin',
+  FEDERATION_ADMIN: 'federation_admin',
+  USER: 'user'
 };
 
 /**

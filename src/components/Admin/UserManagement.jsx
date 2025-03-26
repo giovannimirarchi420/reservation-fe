@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -10,19 +10,26 @@ import {
   TextField,
   Typography,
   Snackbar,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import SecurityIcon from '@mui/icons-material/Security';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import PersonIcon from '@mui/icons-material/Person';
 import UserCard from '../Users/UserCard';
 import UserForm from '../Users/UserForm';
 import { createUser, deleteUser, fetchUsers, updateUser } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
+import { FederationRoles } from '../../services/federationService';
+import { AuthContext } from '../../context/AuthContext';
 
 const UserManagement = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
+  const { isGlobalAdmin } = useContext(AuthContext);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -30,6 +37,9 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('');
   const [notification, setNotification] = useState(null);
+
+  // Check if user can manage Global Admins
+  const canManageGlobalAdmins = isGlobalAdmin && isGlobalAdmin();
 
   // Show a notification
   const showNotification = (message, severity = 'success') => {
@@ -69,12 +79,15 @@ const UserManagement = () => {
         (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesRole = filterRole === '' ||
-        (user.roles && user.roles.includes(filterRole)) ||
-        (filterRole === 'ADMIN' && user.role === 'admin') ||
-        (filterRole === 'USER' && user.role === 'user');
-
-    return matchesSearch && matchesRole;
+    // Handle role filtering with the new role structure
+    if (filterRole === '') return matchesSearch;
+    
+    // Handle array of roles
+    if (Array.isArray(user.roles)) {
+      return matchesSearch && 
+             user.roles.some(role => role.toUpperCase() === filterRole.toUpperCase());
+    }  
+    return false;
   });
 
   const handleAddUser = () => {
@@ -105,7 +118,7 @@ const UserManagement = () => {
       showError: true
     });
 
-    if (result.success) {
+    if (result && result.success) {
       if (result.updated) {
         // Update existing users
         setUsers(users.map(user =>
@@ -149,6 +162,30 @@ const UserManagement = () => {
     }
   };
 
+  // Get role display elements based on role name
+  const getRoleDisplay = (role) => {
+    switch (role.toUpperCase()) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return {
+          label: t('userManagement.globalAdministrator'),
+          icon: <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />,
+          color: 'gold'
+        };
+      case FederationRoles.FEDERATION_ADMIN:
+        return {
+          label: t('userManagement.federationAdministrator'),
+          icon: <SupervisorAccountIcon fontSize="small" sx={{ mr: 1, color: '#f44336' }} />,
+          color: '#f44336'
+        };
+      default:
+        return {
+          label: t('userManagement.user'),
+          icon: <PersonIcon fontSize="small" sx={{ mr: 1 }} />,
+          color: 'primary.main'
+        };
+    }
+  };
+
   return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
@@ -186,7 +223,7 @@ const UserManagement = () => {
               value={filterRole}
               onChange={(e) => setFilterRole(e.target.value)}
               size="small"
-              sx={{ minWidth: 150 }}
+              sx={{ minWidth: 200 }}
               InputProps={{
                 startAdornment: (
                     <InputAdornment position="start">
@@ -196,8 +233,32 @@ const UserManagement = () => {
               }}
           >
             <MenuItem value="">{t('userManagement.allRoles')}</MenuItem>
-            <MenuItem value="ADMIN">{t('userManagement.administrator')}</MenuItem>
-            <MenuItem value="USER">{t('userManagement.user')}</MenuItem>
+            
+            {/* Regular user option */}
+            <MenuItem value={FederationRoles.USER}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <PersonIcon color="primary" />
+                <Typography>{t('userManagement.user')}</Typography>
+              </Stack>
+            </MenuItem>
+            
+            {/* Federation admin option */}
+            <MenuItem value={FederationRoles.FEDERATION_ADMIN}>
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <SupervisorAccountIcon sx={{ color: '#f44336' }} />
+                <Typography>{t('userManagement.federationAdministrator')}</Typography>
+              </Stack>
+            </MenuItem>
+            
+            {/* Global admin option - only visible to global admins */}
+            {canManageGlobalAdmins && (
+              <MenuItem value={FederationRoles.GLOBAL_ADMIN}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <SecurityIcon sx={{ color: 'gold' }} />
+                  <Typography>{t('userManagement.globalAdministrator')}</Typography>
+                </Stack>
+              </MenuItem>
+            )}
           </TextField>
         </Stack>
 

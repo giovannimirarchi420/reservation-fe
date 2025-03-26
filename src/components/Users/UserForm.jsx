@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -18,16 +18,23 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SecurityIcon from '@mui/icons-material/Security';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import PersonIcon from '@mui/icons-material/Person';
+import { FederationRoles } from '../../services/federationService';
+import { AuthContext } from '../../context/AuthContext';
 
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const { t } = useTranslation();
+  const { isGlobalAdmin } = useContext(AuthContext);
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -35,12 +42,15 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     lastName: '',
     password: '',
     avatar: '',
-    roles: ['USER']
+    roles: [FederationRoles.USER.toLowerCase()]
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
+
+  // Check if user is global admin (to determine if they can assign GLOBAL_ADMIN role)
+  const canAssignGlobalAdmin = isGlobalAdmin && isGlobalAdmin();
 
   // Populate the form when a user is selected
   useEffect(() => {
@@ -54,12 +64,21 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       } 
       // Case 2: user.role exists as a string
       else if (typeof user.role === 'string') {
-        // Convert 'admin' or 'user' to uppercase format for consistency
-        userRoles = [user.role.toUpperCase()];
+        // Legacy role mapping - BE sends lowercase roles, convert to our constants
+        const roleMapping = {
+          'global_admin': FederationRoles.GLOBAL_ADMIN, 
+          'admin': FederationRoles.GLOBAL_ADMIN, // Backward compatibility
+          'federation_admin': FederationRoles.FEDERATION_ADMIN,
+          'user': FederationRoles.USER
+        };
+        
+        const role = roleMapping[user.role.toLowerCase()] || FederationRoles.USER;
+        userRoles = [role];
       }
+      
       // If it was not possible to determine a role, use USER as default
       if (userRoles.length === 0) {
-        userRoles = ['USER'];
+        userRoles = [FederationRoles.USER.toLowerCase()];
       }
       
       setFormData({
@@ -70,7 +89,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         lastName: user.lastName || '',
         password: '',  // Per motivi di sicurezza, non precompilare la password
         avatar: user.avatar || '',
-        roles: userRoles
+        roles: userRoles // Keep the roles in their original format as the backend expects
       });
     } else {
       resetForm();
@@ -85,7 +104,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       lastName: '',
       password: '',
       avatar: '',
-      roles: ['USER']
+      roles: [FederationRoles.USER.toLowerCase()] // Backend expects lowercase
     });
     setErrors({});
   };
@@ -108,8 +127,11 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   const handleRoleChange = (e) => {
     const value = e.target.value;
-    // Ensure that roles is always an array
-    const roles = Array.isArray(value) ? value : [value];
+    // Ensure that roles is always an array and lowercase for the backend
+    const roles = Array.isArray(value) ? 
+      value.map(role => role.toLowerCase()) : 
+      [value.toLowerCase()];
+      
     setFormData({
       ...formData,
       roles
@@ -164,6 +186,12 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       }
 
       onSave(userData);
+    } else {
+      // Notify form errors
+      const errorFields = Object.keys(errors).map(field => t(`userManagement.${field}`));
+      if (errorFields.length > 0) {
+        console.error(`${t('userManagement.correctErrorFields')} ${errorFields.join(', ')}`);
+      }
     }
   };
 
@@ -220,6 +248,42 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   // Close the snackbar
   const handleCloseSnackbar = () => {
     setShowSnackbar(false);
+  };
+
+  // Get role color based on role
+  const getRoleColor = (role) => {
+    switch (role.toUpperCase()) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return 'gold'; // Gold for global admins
+      case FederationRoles.FEDERATION_ADMIN:
+        return '#f44336'; // Red for federation admins
+      default:
+        return 'primary.main'; // Default blue for regular users
+    }
+  };
+
+  // Get role name for display
+  const getRoleName = (role) => {
+    switch (role.toUpperCase()) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return t('userManagement.globalAdministrator');
+      case FederationRoles.FEDERATION_ADMIN:
+        return t('userManagement.federationAdministrator');
+      default:
+        return t('userManagement.user');
+    }
+  };
+
+  // Get role icon
+  const getRoleIcon = (role) => {
+    switch (role.toUpperCase()) {
+      case FederationRoles.GLOBAL_ADMIN:
+        return <SecurityIcon fontSize="small" sx={{ color: 'gold' }} />;
+      case FederationRoles.FEDERATION_ADMIN:
+        return <SupervisorAccountIcon fontSize="small" sx={{ color: '#f44336' }} />;
+      default:
+        return <PersonIcon fontSize="small" />;
+    }
   };
 
   return (
@@ -334,13 +398,53 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             <Select
               labelId="user-role-label"
               name="roles"
-              value={formData.roles || ['USER']}
+              value={formData.roles || [FederationRoles.USER.toLowerCase()]}
               label={t('userManagement.role')}
               onChange={handleRoleChange}
               multiple
+              renderValue={(selected) => (
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                  {selected.map((value) => (
+                    <Chip 
+                      key={value} 
+                      label={getRoleName(value)}
+                      icon={getRoleIcon(value)}
+                      sx={{ 
+                        bgcolor: value.toUpperCase() === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
+                               value.toUpperCase() === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
+                               'rgba(25, 118, 210, 0.1)',
+                        color: getRoleColor(value),
+                        fontWeight: 'bold',
+                        border: `1px solid ${getRoleColor(value)}`
+                      }}
+                    />
+                  ))}
+                </Box>
+              )}
             >
-              <MenuItem value="USER">{t('userManagement.user')}</MenuItem>
-              <MenuItem value="ADMIN">{t('userManagement.administrator')}</MenuItem>
+              <MenuItem value={FederationRoles.USER.toLowerCase()}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <PersonIcon color="primary" />
+                  <Typography>{t('userManagement.user')}</Typography>
+                </Stack>
+              </MenuItem>
+              
+              <MenuItem value={FederationRoles.FEDERATION_ADMIN.toLowerCase()}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  <SupervisorAccountIcon sx={{ color: '#f44336' }} />
+                  <Typography>{t('userManagement.federationAdministrator')}</Typography>
+                </Stack>
+              </MenuItem>
+              
+              {/* Only show Global Admin option for users who are Global Admins themselves */}
+              {canAssignGlobalAdmin && (
+                <MenuItem value={FederationRoles.GLOBAL_ADMIN.toLowerCase()}>
+                  <Stack direction="row" alignItems="center" spacing={1}>
+                    <SecurityIcon sx={{ color: 'gold' }} />
+                    <Typography>{t('userManagement.globalAdministrator')}</Typography>
+                  </Stack>
+                </MenuItem>
+              )}
             </Select>
           </FormControl>
 

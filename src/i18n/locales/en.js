@@ -127,7 +127,10 @@ const en = {
       actionCannotBeUndone: "Warning: All bookings associated with this user will also be deleted. This action cannot be undone.",
       invalidEmail: "Invalid email format",
       passwordRequiredForNewUsers: "Password is required for new users",
-      unableToCopyPassword: "Unable to copy password to clipboard"
+      unableToCopyPassword: "Unable to copy password to clipboard",
+      globalAdministrator: "Global Administrator",
+      federationAdministrator: "Federation Administrator",
+      user: "User",
     },
     resourceHierarchy: {
       title: "Resource Hierarchy",
