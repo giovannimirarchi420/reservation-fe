@@ -9,7 +9,6 @@ import MyBookingsPage from './components/Booking/MyBookingsPage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
 import FederationManagement from './components/Admin/FederationManagement';
 import { AuthContext } from './context/AuthContext';
-import { FederationProvider } from './context/FederationContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import ErrorNotification from './components/Common/ErrorNotification';
@@ -105,100 +104,98 @@ const App = () => {
     return (
         <ErrorProvider>
             <ErrorInitializer>
-                <FederationProvider>
-                    <Router>
-                        <Routes>
-                            <Route
-                                path="/"
-                                element={
-                                    <LayoutWrapper
-                                        element={<Dashboard />}
-                                        currentSection="dashboard"
-                                        requiredRole={FederationRoles.FEDERATION_ADMIN}
-                                    />
-                                }
-                            />
-                            <Route
-                                path="/resources"
-                                element={
-                                    <LayoutWrapper
-                                        element={<ResourceExplorer />}
-                                        currentSection="resources"
-                                        requiredRole={FederationRoles.USER}
-                                    />
-                                }
-                            />
-                            <Route
-                                path="/calendar"
-                                element={
-                                    <LayoutWrapper
-                                        element={<BookingCalendar />}
-                                        currentSection="calendar"
-                                        requiredRole={FederationRoles.USER}
-                                    />
-                                }
-                            />
-                            <Route
-                                path="/mybookings"
-                                element={
-                                    <LayoutWrapper
-                                        element={<MyBookingsPage />}
-                                        currentSection="mybookings"
-                                        requiredRole={FederationRoles.USER}
-                                    />
-                                }
-                            />
-                            <Route
-                                path="/admin"
-                                element={
-                                    <LayoutWrapper
-                                        element={<AdminPanel />}
-                                        currentSection="admin"
-                                        requiredRole={FederationRoles.FEDERATION_ADMIN}
-                                    />
-                                }
-                            />
-                            <Route
-                                path="/profile"
-                                element={
-                                    <LayoutWrapper
-                                        element={<ProfileManagement />}
-                                        currentSection="profile"
-                                        requiredRole={FederationRoles.USER}
-                                    />
-                                }
-                            />
-                            <Route
-                                path="/notifications"
-                                element={
-                                    <LayoutWrapper
-                                        element={<NotificationsPage />}
-                                        currentSection="notifications"
-                                        requiredRole={FederationRoles.USER}
-                                    />
-                                }
-                            />
-                            {/* Route for federation management */}
-                            <Route
-                                path="/federations"
-                                element={
-                                    <LayoutWrapper
-                                        element={<FederationManagement />}
-                                        currentSection="federations"
-                                        requiredRole={FederationRoles.GLOBAL_ADMIN}
-                                    />
-                                }
-                            />
-                            {/* Route for Keycloak redirects */}
-                            <Route path="/callback" element={<Navigate to="/" replace />} />
-                            {/* Fallback route */}
-                            <Route path="*" element={<Navigate to="/calendar" replace />} />
-                        </Routes>
-                        
-                        {/* Error notification component */}
-                        <ErrorNotification />
-                    </Router>
-                </FederationProvider>
+                <Router>
+                    <Routes>
+                        <Route
+                            path="/"
+                            element={
+                                <LayoutWrapper
+                                    element={<Dashboard />}
+                                    currentSection="dashboard"
+                                    requiredRole={FederationRoles.FEDERATION_ADMIN}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/resources"
+                            element={
+                                <LayoutWrapper
+                                    element={<ResourceExplorer />}
+                                    currentSection="resources"
+                                    requiredRole={FederationRoles.USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/calendar"
+                            element={
+                                <LayoutWrapper
+                                    element={<BookingCalendar />}
+                                    currentSection="calendar"
+                                    requiredRole={FederationRoles.USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/mybookings"
+                            element={
+                                <LayoutWrapper
+                                    element={<MyBookingsPage />}
+                                    currentSection="mybookings"
+                                    requiredRole={FederationRoles.USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/admin"
+                            element={
+                                <LayoutWrapper
+                                    element={<AdminPanel />}
+                                    currentSection="admin"
+                                    requiredRole={FederationRoles.FEDERATION_ADMIN}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/profile"
+                            element={
+                                <LayoutWrapper
+                                    element={<ProfileManagement />}
+                                    currentSection="profile"
+                                    requiredRole={FederationRoles.USER}
+                                />
+                            }
+                        />
+                        <Route
+                            path="/notifications"
+                            element={
+                                <LayoutWrapper
+                                    element={<NotificationsPage />}
+                                    currentSection="notifications"
+                                    requiredRole={FederationRoles.USER}
+                                />
+                            }
+                        />
+                        {/* Route for federation management */}
+                        <Route
+                            path="/federations"
+                            element={
+                                <LayoutWrapper
+                                    element={<FederationManagement />}
+                                    currentSection="federations"
+                                    requiredRole={FederationRoles.GLOBAL_ADMIN}
+                                />
+                            }
+                        />
+                        {/* Route for Keycloak redirects */}
+                        <Route path="/callback" element={<Navigate to="/" replace />} />
+                        {/* Fallback route */}
+                        <Route path="*" element={<Navigate to="/calendar" replace />} />
+                    </Routes>
+                    
+                    {/* Error notification component */}
+                    <ErrorNotification />
+                </Router>
             </ErrorInitializer>
         </ErrorProvider>
     );

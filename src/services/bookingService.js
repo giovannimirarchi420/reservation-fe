@@ -5,12 +5,16 @@ import apiRequest from './apiCore';
 
 /**
  * Get all events/bookings
- * @param {Object} filters - Optional filters (resourceId, startDate, endDate)
+ * @param {Object} filters - Optional filters (resourceId, startDate, endDate, federationId)
  * @returns {Promise<Array>} List of events
  */
 export const fetchEvents = (filters = {}) => {
   const queryParams = [];
   
+  if (filters.federationId) {
+    queryParams.push(`federationId=${filters.federationId}`);
+  }
+
   if (filters.resourceId) {
     queryParams.push(`resourceId=${filters.resourceId}`);
   }

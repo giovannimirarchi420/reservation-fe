@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -24,6 +24,7 @@ import {
 import { fetchResources } from '../../services/resourceService';
 import { fetchResourceTypes } from '../../services/resourceTypeService';
 import ResourceList from './ResourceList';
+import { FederationContext } from '../../context/FederationContext';
 import ResourceHierarchyView from './ResourceHierarchyView';
 import ResourceDetailDrawer from './ResourceDetailDrawer';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -33,6 +34,7 @@ import { ResourceStatus } from '../../services/resourceService';
 const ResourceExplorer = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
+  const { currentFederation } = useContext(FederationContext);
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
@@ -52,8 +54,8 @@ const ResourceExplorer = () => {
       try {
         await withErrorHandling(async () => {
           const [resourcesData, resourceTypesData] = await Promise.all([
-            fetchResources(),
-            fetchResourceTypes()
+            fetchResources(currentFederation?.id ? {federationId: currentFederation.id} : {}),
+            fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
           ]);
           setResources(resourcesData);
           setResourceTypes(resourceTypesData);
@@ -68,7 +70,7 @@ const ResourceExplorer = () => {
     };
 
     loadData();
-  }, [withErrorHandling, t]);
+  }, [withErrorHandling, t, currentFederation]);
 
   // Apply filters when search, filter type, filter status, or status tab changes
   useEffect(() => {

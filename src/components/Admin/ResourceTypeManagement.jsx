@@ -31,6 +31,8 @@ import {
 import ResourceTypeForm from './ResourceTypeForm';
 import { getContrastTextColor } from '../../utils/colorUtils';
 import useApiError from '../../hooks/useApiError';
+import { useFederation } from '../../context/FederationContext';
+
 
 const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const { t } = useTranslation();
@@ -43,6 +45,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const [menuAnchorEl, setMenuAnchorEl] = useState(null);
     const [activeResourceTypeId, setActiveResourceTypeId] = useState(null);
     const [notification, setNotification] = useState(null);
+    const { currentFederation } = useFederation();
 
     // Show a notification
     const showNotification = (message, severity = 'success') => {
@@ -60,7 +63,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
             setIsLoading(true);
             try {
                 await withErrorHandling(async () => {
-                    const data = await fetchResourceTypes();
+                    const data = await fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
                     setResourceTypes(data);
                 }, {
                     errorMessage: t('errors.unableToLoadResourceTypes'),
@@ -72,7 +75,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
         };
 
         loadResourceTypes();
-    }, [withErrorHandling, t]);
+    }, [withErrorHandling, t, currentFederation]);
 
     // Effect to handle opening the form when directed from another component
     useEffect(() => {
@@ -130,7 +133,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
             showError: true
         });
 
-        if (result) {
+        if (result.success) {
             if (result.updated) {
                 // Update existing resource types
                 setResourceTypes(resourceTypes.map(type =>

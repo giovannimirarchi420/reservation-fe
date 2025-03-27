@@ -6,6 +6,7 @@ import {
   MenuItem,
   ListItemText,
   ListItemIcon,
+  CircularProgress,
   Typography,
   Tooltip
 } from '@mui/material';
@@ -21,7 +22,8 @@ const FederationSelector = () => {
     federations, 
     currentFederation, 
     setCurrentFederation,
-    isGlobalAdmin
+    isGlobalAdmin,
+    STARTER_FEDERATION
   } = useFederation();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -35,6 +37,7 @@ const FederationSelector = () => {
   };
 
   const handleSelect = (federation) => {
+    console.log(federation)
     setCurrentFederation(federation);
     handleClose();
   };
@@ -68,7 +71,7 @@ const FederationSelector = () => {
               textOverflow: 'ellipsis'
             }}
           >
-            {currentFederation?.name || t('federationSelector.allFederations')}
+            {currentFederation?.name || 'All Federations'}
           </Typography>
         </Button>
       </Tooltip>
@@ -91,11 +94,11 @@ const FederationSelector = () => {
       >
         {isGlobalAdmin() && (
           <MenuItem 
-            onClick={() => handleSelect(null)}
+            onClick={() => handleSelect(STARTER_FEDERATION)}
             selected={!currentFederation}
           >
             <ListItemIcon sx={{ minWidth: 36 }}>
-              {!currentFederation && <CheckIcon fontSize="small" />}
+              {currentFederation == STARTER_FEDERATION && <CheckIcon fontSize="small" />}
             </ListItemIcon>
             <ListItemText primary={t('federationSelector.allFederations')} />
           </MenuItem>

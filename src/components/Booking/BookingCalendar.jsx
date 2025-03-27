@@ -41,6 +41,7 @@ import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
 import { RESOURCE_COLORS } from '../../utils/colorUtils';
 import { useColorMode } from '../../theme/ThemeProvider';
+import { FederationContext } from '../../context/FederationContext';
 
 // Configure moment.js for localization
 const localizer = momentLocalizer(moment);
@@ -48,6 +49,7 @@ const localizer = momentLocalizer(moment);
 const BookingCalendar = () => {
   const { t, i18n } = useTranslation();
   const { currentUser } = useContext(AuthContext);
+  const { currentFederation } = useContext(FederationContext)
   const { withErrorHandling } = useApiError();
   const theme = useTheme();
   const { mode } = useColorMode();
@@ -121,9 +123,10 @@ const BookingCalendar = () => {
       setIsLoading(true);
       try {
         await withErrorHandling(async () => {
+
           const [eventsData, resourcesData] = await Promise.all([
-            fetchEvents(),
-            fetchResources()
+            fetchEvents(currentFederation?.id ? {federationId: currentFederation.id} : {}),
+            fetchResources(currentFederation?.id ? {federationId: currentFederation.id} : {})
           ]);
           
           // Assign colors to resources
@@ -167,7 +170,7 @@ const BookingCalendar = () => {
     };
 
     loadData();
-  }, [withErrorHandling, bookingToHighlight, t]);
+  }, [withErrorHandling, bookingToHighlight, t, currentFederation]);
 
   // Update calendar height based on current view
   useEffect(() => {

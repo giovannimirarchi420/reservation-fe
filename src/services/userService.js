@@ -7,7 +7,16 @@ import apiRequest from './apiCore';
  * Get all users
  * @returns {Promise<Array>} List of users
  */
-export const fetchUsers = () => apiRequest('/users');
+export const fetchUsers = (filters = {}) => {
+    const queryParams = [];
+  
+    if (filters.federationId) {
+      queryParams.push(`federationId=${filters.federationId}`);
+    }
+
+    const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+    return apiRequest(`/users${queryString}`);
+};
 
 /**
  * Get user by ID
@@ -57,6 +66,7 @@ export const createUser = (userData) => {
         password: userData.password,
         roles: userData.roles || ['USER'],
         avatar: userData.avatar || '',
+        federationId: userData.federationId || '',
         sshPublicKey: userData.sshPublicKey || ''
     };
 

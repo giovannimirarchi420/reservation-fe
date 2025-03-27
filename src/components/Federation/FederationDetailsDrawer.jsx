@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -44,6 +44,7 @@ import {
   removeFederationAdmin
 } from '../../services/federationService';
 import { fetchUsers } from '../../services/userService';
+import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
 
 // User selection dialog component
@@ -161,6 +162,7 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
 const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFederationChanged }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
+  const { currentUser } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState(0);
   const [members, setMembers] = useState([]);
   const [admins, setAdmins] = useState([]);
@@ -186,7 +188,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
     try {
       await withErrorHandling(async () => {
         const membersData = await fetchFederationUsers(federation.id);
-        setMembers(membersData);
+        setMembers(membersData.filter(member => member.id !== currentUser.id));
       }, {
         errorMessage: t('federations.unableToLoadMembers'),
         showError: true
@@ -381,7 +383,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
-          <Tab label={t('federations.members')} />
+          <Tab label={t('federations.members', {count: members.length })} />
           <Tab label={t('federations.admins')} />
         </Tabs>
       </Box>
@@ -402,17 +404,8 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
             }}
             sx={{ flexGrow: 1, mr: 1 }}
           />
-          {activeTab === 0 ? (
-            <Button
-              startIcon={<GroupAddIcon />}
-              variant="outlined"
-              size="small"
-              onClick={() => setIsAddUserDialogOpen(true)}
-            >
-              {t('federations.addUser')}
-            </Button>
-          ) : (
-            <Button
+          {activeTab === 1 && 
+            (<Button
               startIcon={<AdminPanelSettingsIcon />}
               variant="outlined"
               size="small"

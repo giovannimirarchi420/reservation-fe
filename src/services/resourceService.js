@@ -19,6 +19,10 @@ export const ResourceStatus = {
  */
 export const fetchResources = (filters = {}) => {
   const queryParams = [];
+
+  if (filters.federationId) {
+    queryParams.push(`federationId=${filters.federationId}`);
+  }
   
   if (filters.status !== undefined) {
     queryParams.push(`status=${filters.status}`);

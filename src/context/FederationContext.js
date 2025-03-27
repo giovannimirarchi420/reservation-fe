@@ -11,6 +11,7 @@ export const FederationProvider = ({ children }) => {
   const [federations, setFederations] = useState([]);
   const [currentFederation, setCurrentFederation] = useState(null);
   const [loading, setLoading] = useState(true);
+  const STARTER_FEDERATION = 'ALL';
 
   // Load user's federations
   useEffect(() => {
@@ -25,11 +26,7 @@ export const FederationProvider = ({ children }) => {
         await withErrorHandling(async () => {
           const federationsData = await fetchFederations();
           setFederations(federationsData);
-          
-          // Set the first federation as current if none is already selected
-          if (currentUser.federations.length > 0 && !currentFederation) {
-            setCurrentFederation(federationsData[0]);
-          }
+          setCurrentFederation(STARTER_FEDERATION)
         }, {
           errorMessage: 'Unable to load federations',
           showError: true
@@ -42,12 +39,7 @@ export const FederationProvider = ({ children }) => {
     loadFederations();
   }, [currentUser, withErrorHandling]);
 
-  // Reset state when user changes
-  useEffect(() => {
-    if (!currentUser) {
-      setCurrentFederation(null);
-    }
-  }, [currentUser]);
+
 
   // Check if user has access to a specific federation
   const hasFederationAccess = (federationName) => {
@@ -73,6 +65,7 @@ export const FederationProvider = ({ children }) => {
         currentFederation,
         setCurrentFederation,
         loading,
+        STARTER_FEDERATION,
         isGlobalAdmin,
         isFederationAdmin,
         hasFederationAccess

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Box, 
@@ -12,6 +12,7 @@ import {
   useTheme 
 } from '@mui/material';
 import { fetchEvents } from '../../services/bookingService';
+import { FederationContext } from '../../context/FederationContext';
 import { fetchResources } from '../../services/resourceService';
 import { fetchResourceTypes } from '../../services/resourceTypeService';
 import { ResourceStatus } from '../../services/resourceService';
@@ -27,6 +28,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { withErrorHandling } = useApiError();
+  const { currentFederation } = useContext(FederationContext)
   const [events, setEvents] = useState([]);
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
@@ -45,8 +47,14 @@ const Dashboard = () => {
       try {
         // Utilizziamo withErrorHandling per ogni chiamata API individuale
         // in modo da gestire meglio gli errori parziali
+        let filter = {}
+        if(currentFederation?.id){
+          filter = {federationId: currentFederation.id};
+        }
+        
+
         const eventsData = await withErrorHandling(async () => {
-          return await fetchEvents();
+          return await fetchEvents(filter);
         }, {
           errorMessage: t('errors.unableToLoadBookingData'),
           showError: true,
@@ -54,7 +62,7 @@ const Dashboard = () => {
         }) || [];
 
         const resourcesData = await withErrorHandling(async () => {
-          return await fetchResources();
+          return await fetchResources(filter);
         }, {
           errorMessage: t('errors.unableToLoadResourceData'),
           showError: true,
@@ -62,7 +70,7 @@ const Dashboard = () => {
         }) || [];
 
         const resourceTypesData = await withErrorHandling(async () => {
-          return await fetchResourceTypes();
+          return await fetchResourceTypes(filter);
         }, {
           errorMessage: t('errors.unableToLoadResourceTypes'),
           showError: true,
@@ -88,7 +96,7 @@ const Dashboard = () => {
     };
 
     loadData();
-  }, [withErrorHandling, t]);
+  }, [withErrorHandling, t, currentFederation]);
 
   // Calcola le statistiche principali
   const calculateStats = (eventsData, resourcesData) => {

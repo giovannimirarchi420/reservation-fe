@@ -7,7 +7,16 @@ import apiRequest from './apiCore';
  * Get all resource types
  * @returns {Promise<Array>} List of resource types
  */
-export const fetchResourceTypes = () => apiRequest('/resource-types');
+export const fetchResourceTypes = (filters = {}) => {
+    const queryParams = [];
+    
+    if (filters.federationId) {
+        queryParams.push(`federationId=${filters.federationId}`);
+    }
+    
+    const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+    return apiRequest(`/resource-types${queryString}`);
+}
 
 /**
  * Get a resource type by ID

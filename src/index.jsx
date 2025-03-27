@@ -5,6 +5,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import { AuthProvider } from './context/AuthContext';
 import { ErrorProvider } from './context/ErrorContext';
 import { ThemeProvider } from './theme/ThemeProvider';
+import { FederationProvider } from './context/FederationContext';
 
 // Import i18n configuration
 import './i18n';
@@ -16,9 +17,11 @@ root.render(
         <ErrorProvider>
             <ThemeProvider>
                 <AuthProvider>
-                    <NotificationProvider>
-                        <App />
-                    </NotificationProvider>
+                    <FederationProvider>
+                        <NotificationProvider>
+                            <App />
+                        </NotificationProvider>
+                    </FederationProvider>
                 </AuthProvider>
             </ThemeProvider>
         </ErrorProvider>

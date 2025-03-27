@@ -33,6 +33,7 @@ import {
 } from '../../services/resourceService';
 import { fetchResourceTypes } from '../../services/resourceTypeService';
 import useApiError from '../../hooks/useApiError';
+import { useFederation } from '../../context/FederationContext';
 
 const ResourceManagement = ({ onSwitchToResourceType }) => {
   const { t } = useTranslation();
@@ -47,6 +48,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
   const [filterStatus, setFilterStatus] = useState('');
   const [needsRefresh, setNeedsRefresh] = useState(false);
   const [notification, setNotification] = useState(null);
+  const { currentFederation } = useFederation();
   const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'hierarchy'
 
   // Show a notification
@@ -66,8 +68,8 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
       try {
         await withErrorHandling(async () => {
           const [resourcesData, resourceTypesData] = await Promise.all([
-            fetchResources(),
-            fetchResourceTypes()
+            fetchResources(currentFederation?.id ? {federationId: currentFederation.id} : {}),
+            fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
           ]);
           setResources(resourcesData);
           setResourceTypes(resourceTypesData);
@@ -81,7 +83,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     };
 
     loadData();
-  }, [needsRefresh, withErrorHandling, t]);
+  }, [needsRefresh, withErrorHandling, t, currentFederation]);
 
   // Helper function to get status priority for sorting
   const getStatusPriority = (status) => {

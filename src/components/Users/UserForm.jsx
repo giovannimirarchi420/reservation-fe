@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormHelperText,
   IconButton,
   InputAdornment,
   InputLabel,
@@ -31,10 +32,12 @@ import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import PersonIcon from '@mui/icons-material/Person';
 import { FederationRoles } from '../../services/federationService';
 import { AuthContext } from '../../context/AuthContext';
+import { useFederation } from '../../context/FederationContext';
 
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const { t } = useTranslation();
   const { isGlobalAdmin } = useContext(AuthContext);
+  const { federations, currentFederation } = useFederation();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -42,7 +45,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     lastName: '',
     password: '',
     avatar: '',
-    roles: [FederationRoles.USER.toLowerCase()]
+    roles: [FederationRoles.USER.toLowerCase()],
+    federationId: ''
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +71,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         // Legacy role mapping - BE sends lowercase roles, convert to our constants
         const roleMapping = {
           'global_admin': FederationRoles.GLOBAL_ADMIN, 
-          'admin': FederationRoles.GLOBAL_ADMIN, // Backward compatibility
           'federation_admin': FederationRoles.FEDERATION_ADMIN,
           'user': FederationRoles.USER
         };
@@ -89,12 +92,13 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         lastName: user.lastName || '',
         password: '',  // Per motivi di sicurezza, non precompilare la password
         avatar: user.avatar || '',
-        roles: userRoles // Keep the roles in their original format as the backend expects
+        roles: userRoles, // Keep the roles in their original format as the backend expects
+        federationId: user.federationId || (currentFederation ? currentFederation.id : '')
       });
     } else {
       resetForm();
     }
-  }, [user]);
+  }, [user, currentFederation]);
 
   const resetForm = () => {
     setFormData({
@@ -104,7 +108,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       lastName: '',
       password: '',
       avatar: '',
-      roles: [FederationRoles.USER.toLowerCase()] // Backend expects lowercase
+      roles: [FederationRoles.USER.toLowerCase()], // Backend expects lowercase
+      federationId: currentFederation ? currentFederation.id : ''
     });
     setErrors({});
   };
@@ -164,6 +169,11 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       newErrors.password = t('userManagement.passwordRequiredForNewUsers');
     }
 
+    // Require federation selection when currentFederation is null or "all"
+    if (!formData.federationId && (!currentFederation || currentFederation === "all")) {
+      newErrors.federationId = t('errors.federation') + ' ' + t('common.isRequired');
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -184,6 +194,13 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         const { password, ...dataWithoutPassword } = userData;
         userData = dataWithoutPassword;
       }
+
+      // If no federation is explicitly selected but current federation exists, use that
+      if (!userData.federationId && currentFederation && currentFederation !== "all") {
+        userData.federationId = currentFederation.id;
+      }
+      console.log("test:")
+      console.log(userData)
 
       onSave(userData);
     } else {
@@ -285,6 +302,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         return <PersonIcon fontSize="small" />;
     }
   };
+
+  // Determine if we need to show federation selection
+  const showFederationSelection = !currentFederation || currentFederation === "all";
 
   return (
     <Dialog
@@ -447,6 +467,28 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               )}
             </Select>
           </FormControl>
+
+          {/* Federation selection field - only shown when currentFederation is null or "all" */}
+          {showFederationSelection && (
+            <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
+              <InputLabel id="federation-label">{t('errors.federation')}</InputLabel>
+              <Select
+                labelId="federation-label"
+                name="federationId"
+                value={formData.federationId || ''}
+                label={t('errors.federation')}
+                onChange={handleChange}
+              >
+                <MenuItem value="">{t('errors.selectFederation')}</MenuItem>
+                {federations.map(federation => (
+                  <MenuItem key={federation.id} value={federation.id}>
+                    {federation.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+            </FormControl>
+          )}
 
           <TextField
             label={t('userManagement.avatarInitials')}

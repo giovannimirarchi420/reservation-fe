@@ -25,11 +25,13 @@ import { createUser, deleteUser, fetchUsers, updateUser } from '../../services/u
 import useApiError from '../../hooks/useApiError';
 import { FederationRoles } from '../../services/federationService';
 import { AuthContext } from '../../context/AuthContext';
+import { useFederation } from '../../context/FederationContext';
 
 const UserManagement = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const { isGlobalAdmin } = useContext(AuthContext);
+  const { currentFederation } = useFederation();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -57,7 +59,7 @@ const UserManagement = () => {
       setIsLoading(true);
       try {
         await withErrorHandling(async () => {
-          const usersData = await fetchUsers();
+          const usersData = await fetchUsers(currentFederation ? { federationId: currentFederation.id } : {});
           setUsers(usersData);
         }, {
           errorMessage: t('errors.unableToLoadUserList'),
@@ -69,7 +71,7 @@ const UserManagement = () => {
     };
 
     loadUsers();
-  }, [withErrorHandling, t]);
+  }, [withErrorHandling, t, currentFederation]);
 
   // Filter users based on search and role
   const filteredUsers = users.filter(user => {
