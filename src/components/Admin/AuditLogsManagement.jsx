@@ -529,20 +529,8 @@ const AuditLogsManagement = () => {
                 placeholder={t('auditLogs.search')}
                 value={searchParams.searchQuery}
                 onChange={(e) => handleSearchParamChange('searchQuery', e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchIcon />
-                    </InputAdornment>
-                  ),
-                  endAdornment: searchParams.searchQuery && (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => handleSearchParamChange('searchQuery', '')}>
-                        <CloseIcon fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
+                startAdornment={<SearchIcon />}
+                endAdornment={<CloseIcon />}
               />
             </Box>
             

@@ -546,7 +546,7 @@ const en = {
       unableToCreateFederation: "Unable to create federation '{name}'",
       unableToDeleteFederation: "Unable to delete federation '{name}'",
       confirmDeleteFederation: "Are you sure you want to delete the federation '{name}'? All associated resources and resource types will also be deleted.",
-      members: "{count} members",
+      members: "{{count}} members",
       admins: "Administrators",
       unableToLoadFederations: "Unable to load federations",
       unableToLoadMembers: "Unable to load federation members",

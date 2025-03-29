@@ -188,7 +188,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
     try {
       await withErrorHandling(async () => {
         const membersData = await fetchFederationUsers(federation.id);
-        setMembers(membersData.filter(member => member.id !== currentUser.id));
+        setMembers(membersData);
       }, {
         errorMessage: t('federations.unableToLoadMembers'),
         showError: true
@@ -451,11 +451,14 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
                           secondary={user.email}
                         />
                         <ListItemSecondaryAction>
+                        {currentUser.id === user.id ? '' : 
                           <Tooltip title={t('federations.removeFromFederation')}>
-                            <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
-                              <PersonRemoveIcon />
-                            </IconButton>
-                          </Tooltip>
+                          <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
+                            <PersonRemoveIcon />
+                          </IconButton>
+                        </Tooltip>
+                        }
+                          
                         </ListItemSecondaryAction>
                       </ListItem>
                       <Divider variant="inset" component="li" />
@@ -498,11 +501,14 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
                           secondary={user.email}
                         />
                         <ListItemSecondaryAction>
-                          <Tooltip title={t('federations.removeAdminRole')}>
+                        {currentUser.id === user.id ? '' : 
+                            <Tooltip title={t('federations.removeAdminRole')}>
                             <IconButton edge="end" onClick={() => handleRemoveAdmin(user)}>
                               <PersonRemoveIcon />
                             </IconButton>
                           </Tooltip>
+                        }
+                        
                         </ListItemSecondaryAction>
                       </ListItem>
                       <Divider variant="inset" component="li" />

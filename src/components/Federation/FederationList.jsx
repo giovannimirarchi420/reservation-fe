@@ -58,6 +58,7 @@ const FederationList = () => {
     try {
       await withErrorHandling(async () => {
         const federationsData = await fetchFederations();
+        console.log(federationsData)
         setFederations(federationsData);
         setFilteredFederations(federationsData);
       }, {
