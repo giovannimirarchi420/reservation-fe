@@ -159,7 +159,9 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
 
   // Filter resource types to only show those from the same federation
   const getFilteredResourceTypes = () => {
-    if (!formData.federationId) return [];
+    const federationIdToUse = formData.federationId || (currentFederation ? currentFederation.id : '');
+    console.log(federationIdToUse)
+    if (!federationIdToUse) return [];
     
     return resourceTypes.filter(type => 
       type.federationId === formData.federationId

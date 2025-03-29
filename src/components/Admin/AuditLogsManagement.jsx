@@ -17,7 +17,6 @@ import {
   Select,
   FormControl,
   InputLabel,
-  Grid,
   Chip,
   InputAdornment,
   IconButton,
@@ -38,14 +37,12 @@ import {
   FilterList as FilterIcon,
   EventNote as EventNoteIcon,
   Person as PersonIcon,
-  Category as CategoryIcon,
   Refresh as RefreshIcon,
   MoreVert as MoreVertIcon,
   Close as CloseIcon,
   ErrorOutline as ErrorIcon,
   WarningAmber as WarningIcon,
   Info as InfoIcon,
-  DateRange as DateRangeIcon
 } from '@mui/icons-material';
 import moment from 'moment';
 import 'moment/locale/it';
@@ -296,15 +293,18 @@ const AuditLogsManagement = () => {
         if (searchParams.severity) filters.severity = searchParams.severity;
         
         // Add date range if both are provided
-        if (searchParams.startDate && searchParams.endDate) {
+        if (searchParams.startDate) {
           filters.startDate = searchParams.startDate.toISOString();
+        }
+
+        if(searchParams.endDate) {
           filters.endDate = searchParams.endDate.toISOString();
         }
         
         // Add pagination
         filters.page = page;
         filters.size = rowsPerPage;
-        
+        console.log(filters)
         const result = await fetchAuditLogs(filters);
         
         // Handle the same specific response structure
@@ -360,6 +360,7 @@ const AuditLogsManagement = () => {
 
   // Handle search parameter changes
   const handleSearchParamChange = (param, value) => {
+    console.log("yessss", param, value)
     setSearchParams(prev => ({
       ...prev,
       [param]: value
