@@ -35,7 +35,8 @@ const it = {
     adminPanel: {
       resourceManagement: "Gestione Risorse",
       resourceTypes: "Tipi di Risorse",
-      userManagement: "Gestione Utenti"
+      userManagement: "Gestione Utenti",
+      auditLogs: "Log di Audit"
     },
     resourceManagement: {
       title: "Risorse Disponibili",
@@ -567,6 +568,46 @@ const it = {
     selectFederation: "Seleziona Federazione",
     allFederations: "Tutte le Federazioni"
   },
+  auditLogs: {
+    title: "Log di Audit",
+    totalLogs: "Log Totali",
+    adminLogs: "Log Amministrativi",
+    userLogs: "Log Utente",
+    errorLogs: "Log di Errore",
+    search: "Cerca nei log...",
+    showFilters: "Mostra Filtri",
+    hideFilters: "Nascondi Filtri",
+    refresh: "Aggiorna",
+    resetFilters: "Reimposta Filtri",
+    noLogsFound: "Nessun log trovato",
+    id: "ID",
+    timestamp: "Data e Ora",
+    username: "Nome Utente",
+    federation: "Federazione",
+    type: "Tipo",
+    entityType: "Tipo Entità",
+    entityId: "ID Entità",
+    action: "Azione",
+    severity: "Severità",
+    details: "Dettagli",
+    shortDetails: "Riepilogo",
+    actions: "Azioni",
+    viewDetails: "Visualizza Dettagli",
+    logDetails: "Dettagli Log",
+    close: "Chiudi",
+    notApplicable: "N/D",
+    allTypes: "Tutti i Tipi",
+    allActions: "Tutte le Azioni",
+    allSeverities: "Tutte le Severità",
+    allEntityTypes: "Tutti i Tipi di Entità",
+    filterByUsername: "Filtra per nome utente",
+    filterByEntityId: "Filtra per ID entità",
+    startDate: "Data Inizio",
+    endDate: "Data Fine",
+    dateRange: "Intervallo Date",
+    errorLoadingLogs: "Errore durante il caricamento dei log",
+    errorLoadingLogDetails: "Errore durante il caricamento dei dettagli del log"
+  }
 };
 
 export default it;

@@ -6,7 +6,6 @@ import {
   MenuItem,
   ListItemText,
   ListItemIcon,
-  CircularProgress,
   Typography,
   Tooltip
 } from '@mui/material';

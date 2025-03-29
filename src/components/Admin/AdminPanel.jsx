@@ -4,9 +4,11 @@ import { Box, Paper, Tab, Tabs } from '@mui/material';
 import StorageIcon from '@mui/icons-material/Storage';
 import PeopleIcon from '@mui/icons-material/People';
 import CategoryIcon from '@mui/icons-material/Category';
+import ReceiptIcon from '@mui/icons-material/Receipt';
 import ResourceManagement from './ResourceManagement';
 import UserManagement from './UserManagement';
 import ResourceTypeManagement from './ResourceTypeManagement';
+import AuditLogsManagement from './AuditLogsManagement';
 
 const AdminPanel = () => {
   const { t } = useTranslation();
@@ -45,6 +47,10 @@ const AdminPanel = () => {
             label={t('adminPanel.userManagement')} 
             icon={<PeopleIcon />} 
           />
+          <Tab 
+            label={t('adminPanel.auditLogs')} 
+            icon={<ReceiptIcon />} 
+          />
         </Tabs>
 
         <Box sx={{ mt: 3 }}>
@@ -60,6 +66,7 @@ const AdminPanel = () => {
             />
           )}
           {currentTab === 2 && <UserManagement />}
+          {currentTab === 3 && <AuditLogsManagement />}
         </Box>
       </Paper>
     </Box>

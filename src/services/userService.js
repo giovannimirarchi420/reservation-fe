@@ -121,10 +121,3 @@ export const updateProfile = (userData) => {
  * @returns {Promise<Object>} Deletion response
  */
 export const deleteUser = (id) => apiRequest(`/users/${id}`, 'DELETE');
-
-/**
- * Get users by role
- * @param {string} role - Role (ADMIN, USER, etc.)
- * @returns {Promise<Array>} List of users with the specified role
- */
-export const getUsersByRole = (role) => apiRequest(`/users/by-role/${role}`);

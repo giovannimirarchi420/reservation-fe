@@ -35,7 +35,8 @@ const en = {
     adminPanel: {
       resourceManagement: "Resource Management",
       resourceTypes: "Resource Types",
-      userManagement: "User Management"
+      userManagement: "User Management",
+      auditLogs: "Audit Logs"
     },
     resourceManagement: {
       title: "Available Resources",
@@ -572,7 +573,47 @@ const en = {
     federationSelector: {
       selectFederation: "Select Federation",
       allFederations: "All Federations"
-    },    
+    },
+    auditLogs: {
+      title: "Audit Logs",
+      totalLogs: "Total Logs",
+      adminLogs: "Admin Logs",
+      userLogs: "User Logs",
+      errorLogs: "Error Logs",
+      search: "Search logs...",
+      showFilters: "Show Filters",
+      hideFilters: "Hide Filters",
+      refresh: "Refresh",
+      resetFilters: "Reset Filters",
+      noLogsFound: "No logs found",
+      id: "ID",
+      timestamp: "Timestamp",
+      username: "Username",
+      federation: "Federation",
+      type: "Type",
+      entityType: "Entity Type",
+      entityId: "Entity ID",
+      action: "Action",
+      severity: "Severity",
+      details: "Details",
+      shortDetails: "Summary",
+      actions: "Actions",
+      viewDetails: "View Details",
+      logDetails: "Log Details",
+      close: "Close",
+      notApplicable: "N/A",
+      allTypes: "All Types",
+      allActions: "All Actions",
+      allSeverities: "All Severities",
+      allEntityTypes: "All Entity Types",
+      filterByUsername: "Filter by username",
+      filterByEntityId: "Filter by entity ID",
+      startDate: "Start Date",
+      endDate: "End Date",
+      dateRange: "Date Range",
+      errorLoadingLogs: "Error loading logs",
+      errorLoadingLogDetails: "Error loading log details"
+    }
   };
   
   export default en;

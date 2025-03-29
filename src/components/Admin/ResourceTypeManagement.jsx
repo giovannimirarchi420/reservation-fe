@@ -133,7 +133,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
             showError: true
         });
 
-        if (result.success) {
+        if (result) {
             if (result.updated) {
                 // Update existing resource types
                 setResourceTypes(resourceTypes.map(type =>
