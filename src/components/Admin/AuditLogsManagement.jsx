@@ -18,7 +18,6 @@ import {
   FormControl,
   InputLabel,
   Chip,
-  InputAdornment,
   IconButton,
   Divider,
   Stack,
@@ -51,7 +50,7 @@ import { formatDate } from '../../utils/dateUtils';
 import useApiError from '../../hooks/useApiError';
 
 // Import the audit log service (you'll need to create this)
-import { fetchAuditLogs, fetchAuditLogById, searchAuditLogs } from '../../services/auditLogService';
+import { fetchAuditLogs, fetchAuditLogById } from '../../services/auditLogService';
 
 // Utility function to get severity color
 const getSeverityColor = (severity) => {
@@ -264,27 +263,8 @@ const AuditLogsManagement = () => {
         // Build filters from search params
         const filters = {};
         
-        if (searchParams.searchQuery) {
-          // If a search query is provided, use the search endpoint
-          const result = await searchAuditLogs({
-            query: searchParams.searchQuery,
-            page: page,
-            size: rowsPerPage
-          });
 
-          // Handle the specific response structure:
-          // {"success":true,"message":"string","data":{"content":[...logs...],"totalElements":number}}
-          if (result && result.success && result.data && Array.isArray(result.data.content)) {
-            setLogs(result.data.content);
-            setTotalLogs(result.data.totalElements || 0);
-          } else {
-            console.error('Unexpected API response structure:', result);
-            setLogs([]);
-            setTotalLogs(0);
-          }
-          return;
-        }
-        
+        if (searchParams.searchQuery) filters.searchQuery = searchParams.searchQuery;
         if (searchParams.username) filters.username = searchParams.username;
         if (searchParams.entityType) filters.entityType = searchParams.entityType;
         if (searchParams.entityId) filters.entityId = searchParams.entityId;

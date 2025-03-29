@@ -142,8 +142,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                     </IconButton>
                 </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Tooltip title={roleIcon}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0.5 }}>
+                    <Tooltip title={roleName}>
                         <Chip
                             icon={roleIcon}
                             label={roleName}
@@ -153,7 +153,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                                         'rgba(25, 118, 210, 0.1)',
                                 color: roleColor,
                                 fontWeight: 'bold',
-                                border: `1px solid ${roleColor}`
+                                border: `1px solid ${roleColor}`,
+                                width: 'fit-content'
                             }}
                             size="small"
                         />

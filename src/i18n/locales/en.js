@@ -66,7 +66,6 @@ const en = {
       searchResourceTypes: "Search resource types...",
       noResourceTypesFound: "No resource types found.",
       id: "ID:",
-      color: "Color:",
       edit: "Edit",
       delete: "Delete",
       editResourceType: "Edit Resource Type",
@@ -131,12 +130,6 @@ const en = {
       unableToCopyPassword: "Unable to copy password to clipboard",
       globalAdministrator: "Global Administrator",
       federationAdministrator: "Federation Administrator",
-      user: "User",
-    },
-    resourceHierarchy: {
-      title: "Resource Hierarchy",
-      parentResource: "Parent Resource",
-      subResources: "Sub-Resources"
     },
     resourceForm: {
       editResource: "Edit Resource",
@@ -232,7 +225,6 @@ const en = {
       close: "Close",
       confirmConflictContinue: "There may be conflicts with other bookings. Do you want to continue?",
       unableToCheckAvailability: "Unable to check resource availability",
-      resource: "Resource",
       unknownResource: "Unknown resource",
       period: "Period",
       bookedBy: "Booked by",
@@ -248,12 +240,10 @@ const en = {
       correctErrorFields: "Please correct the fields with errors:",
       affectedSubResources: "The following sub-resources will also be blocked:",
       parentResource: "Part of parent resource:",
-      parentResource: "Parent Resource",
       noParent: "No Parent (Top Level)",
       parentResourceHelp: "Select a parent resource to create a hierarchical relationship",
       childResourceWarning: "This resource is part of a hierarchy. Booking may be affected by its parent's availability.",
       parentResourceWarning: "Booking this resource will make all its sub-resources unavailable during the same period.",
-      affectedSubResources: "Sub-resources that will be affected:",
       parentResourceExplanation: "Hierarchical Resource Relationship",
       childResourceExplanation: "This resource is part of a hierarchy",
       parentResourceDetail: "When you book this parent resource, all its sub-resources will be automatically blocked during the same time period.",
@@ -280,8 +270,6 @@ const en = {
       duration: "Duration:",
       hours: "hours",
       resource: "Resource:",
-      future: "Future",
-      completed: "Completed",
       viewInCalendar: "View in calendar"
     },
     dashboard: {
@@ -450,11 +438,6 @@ const en = {
       lightMode: "Light mode",
       systemPreference: "Use system preference"
     },
-    themeToggler: {
-      darkMode: "Dark mode",
-      lightMode: "Light mode",
-      systemPreference: "Use system preference"
-    },
     resourceExplorer: {
       title: "Resource Explorer",
       searchResources: "Search resources...",
@@ -506,7 +489,6 @@ const en = {
       hierarchyView: "Hierarchy view",
       expandAll: "Expand all",
       collapseAll: "Collapse all",
-      resourceHierarchy: "Resource hierarchy",
       recentBookings: "Recent bookings",
       completed: "Completed",
       andMorePastBookings: "and {count} more past bookings",
@@ -527,7 +509,7 @@ const en = {
       parentRemoved: "Parent relationship removed from resource {name}",
       unableToUpdateParent: "Unable to update parent relationship",
       unableToRemoveParent: "Unable to remove parent relationship",
-      hierarchyUpdated: "Resource hierarchy successfully updated"
+      hierarchyUpdated: "Resource hierarchy successfully updated",
     },
     federations: {
       title: "Federations",

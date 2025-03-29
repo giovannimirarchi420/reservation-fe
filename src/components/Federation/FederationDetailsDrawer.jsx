@@ -28,12 +28,9 @@ import {
   Close as CloseIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  GroupAdd as GroupAddIcon,
-  PersonAdd as PersonAddIcon,
   Search as SearchIcon,
   PersonRemove as PersonRemoveIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
-  Person as PersonIcon
 } from '@mui/icons-material';
 import {
   fetchFederationUsers,

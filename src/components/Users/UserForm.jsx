@@ -10,7 +10,6 @@ import {
   FormControl,
   FormHelperText,
   IconButton,
-  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
@@ -45,7 +44,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     lastName: '',
     password: '',
     avatar: '',
-    roles: [FederationRoles.USER.toLowerCase()],
+    role: FederationRoles.USER.toLowerCase(),
     federationId: ''
   });
   const [errors, setErrors] = useState({});
@@ -59,29 +58,25 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   // Populate the form when a user is selected
   useEffect(() => {
     if (user) {
-      // Improved role retrieval logic
-      let userRoles = [];
+      // Determine the highest role for single selection
+      let highestRole = FederationRoles.USER;
       
       // Case 1: user.roles exists as an array
       if (Array.isArray(user.roles)) {
-        userRoles = user.roles;
+        if (user.roles.includes(FederationRoles.GLOBAL_ADMIN)) {
+          highestRole = FederationRoles.GLOBAL_ADMIN;
+        } else if (user.roles.includes(FederationRoles.FEDERATION_ADMIN)) {
+          highestRole = FederationRoles.FEDERATION_ADMIN;
+        }
       } 
       // Case 2: user.role exists as a string
       else if (typeof user.role === 'string') {
-        // Legacy role mapping - BE sends lowercase roles, convert to our constants
-        const roleMapping = {
-          'global_admin': FederationRoles.GLOBAL_ADMIN, 
-          'federation_admin': FederationRoles.FEDERATION_ADMIN,
-          'user': FederationRoles.USER
-        };
-        
-        const role = roleMapping[user.role.toLowerCase()] || FederationRoles.USER;
-        userRoles = [role];
-      }
-      
-      // If it was not possible to determine a role, use USER as default
-      if (userRoles.length === 0) {
-        userRoles = [FederationRoles.USER.toLowerCase()];
+        // Legacy role mapping
+        if (user.role.toLowerCase() === 'global_admin') {
+          highestRole = FederationRoles.GLOBAL_ADMIN;
+        } else if (user.role.toLowerCase() === 'federation_admin') {
+          highestRole = FederationRoles.FEDERATION_ADMIN;
+        }
       }
       
       setFormData({
@@ -90,9 +85,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         email: user.email || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        password: '',  // Per motivi di sicurezza, non precompilare la password
+        password: '',  // For security reasons, don't prefill password
         avatar: user.avatar || '',
-        roles: userRoles, // Keep the roles in their original format as the backend expects
+        role: highestRole, // Single role selection
         federationId: user.federationId || (currentFederation ? currentFederation.id : '')
       });
     } else {
@@ -108,7 +103,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       lastName: '',
       password: '',
       avatar: '',
-      roles: [FederationRoles.USER.toLowerCase()], // Backend expects lowercase
+      role: FederationRoles.USER, // Default to regular user
       federationId: currentFederation ? currentFederation.id : ''
     });
     setErrors({});
@@ -116,6 +111,12 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    
+    // Log the role change to debug
+    if (name === 'role') {
+      console.log('Role changed to:', value);
+    }
+    
     setFormData({
       ...formData,
       [name]: value
@@ -128,19 +129,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         [name]: undefined
       });
     }
-  };
-
-  const handleRoleChange = (e) => {
-    const value = e.target.value;
-    // Ensure that roles is always an array and lowercase for the backend
-    const roles = Array.isArray(value) ? 
-      value.map(role => role.toLowerCase()) : 
-      [value.toLowerCase()];
-      
-    setFormData({
-      ...formData,
-      roles
-    });
   };
 
   const validateForm = () => {
@@ -199,8 +187,12 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       if (!userData.federationId && currentFederation && currentFederation !== "all") {
         userData.federationId = currentFederation.id;
       }
-      console.log("test:")
-      console.log(userData)
+
+      // Convert single role to array for backend
+      userData.roles = [userData.role]; 
+      
+      console.log('Saving user with role:', userData.role);
+      console.log('Converting to roles array:', userData.roles);
 
       onSave(userData);
     } else {
@@ -269,7 +261,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   // Get role color based on role
   const getRoleColor = (role) => {
-    switch (role.toUpperCase()) {
+    switch (role) {
       case FederationRoles.GLOBAL_ADMIN:
         return 'gold'; // Gold for global admins
       case FederationRoles.FEDERATION_ADMIN:
@@ -281,7 +273,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   // Get role name for display
   const getRoleName = (role) => {
-    switch (role.toUpperCase()) {
+    switch (role) {
       case FederationRoles.GLOBAL_ADMIN:
         return t('userManagement.globalAdministrator');
       case FederationRoles.FEDERATION_ADMIN:
@@ -293,7 +285,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
 
   // Get role icon
   const getRoleIcon = (role) => {
-    switch (role.toUpperCase()) {
+    switch (role) {
       case FederationRoles.GLOBAL_ADMIN:
         return <SecurityIcon fontSize="small" sx={{ color: 'gold' }} />;
       case FederationRoles.FEDERATION_ADMIN:
@@ -304,7 +296,10 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   };
 
   // Determine if we need to show federation selection
-  const showFederationSelection = !currentFederation || currentFederation === "all";
+  const showFederationSelection = isGlobalAdmin() || (!currentFederation || currentFederation === "all" || currentFederation === null);
+  
+  // Should we show available federations to select from?
+  const showAvailableFederations = showFederationSelection && federations.length > 0;
 
   return (
     <Dialog
@@ -378,37 +373,35 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             helperText={errors.password}
             InputProps={{
               endAdornment: (
-                <InputAdornment position="end">
-                  <Stack direction="row">
-                    <Tooltip title={t('userManagement.generatePassword')}>
-                      <IconButton
-                        onClick={() => generateRandomPassword()}
-                        edge="end"
-                      >
-                        <VpnKeyIcon />
-                      </IconButton>
-                    </Tooltip>
+                <Box sx={{ display: 'flex' }}>
+                  <Tooltip title={t('userManagement.generatePassword')}>
+                    <IconButton
+                      onClick={() => generateRandomPassword()}
+                      edge="end"
+                    >
+                      <VpnKeyIcon />
+                    </IconButton>
+                  </Tooltip>
 
-                    <Tooltip title={t('userManagement.copyPassword')}>
-                      <IconButton
-                        onClick={copyPasswordToClipboard}
-                        edge="end"
-                        color={copiedToClipboard ? "success" : "default"}
-                      >
-                        {copiedToClipboard ? <CheckCircleIcon /> : <ContentCopyIcon />}
-                      </IconButton>
-                    </Tooltip>
+                  <Tooltip title={t('userManagement.copyPassword')}>
+                    <IconButton
+                      onClick={copyPasswordToClipboard}
+                      edge="end"
+                      color={copiedToClipboard ? "success" : "default"}
+                    >
+                      {copiedToClipboard ? <CheckCircleIcon /> : <ContentCopyIcon />}
+                    </IconButton>
+                  </Tooltip>
 
-                    <Tooltip title={showPassword ? t('userManagement.hidePassword') : t('userManagement.showPassword')}>
-                      <IconButton
-                        onClick={() => setShowPassword(!showPassword)}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                </InputAdornment>
+                  <Tooltip title={showPassword ? t('userManagement.hidePassword') : t('userManagement.showPassword')}>
+                    <IconButton
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                    </IconButton>
+                  </Tooltip>
+                </Box>
               ),
             }}
           />
@@ -417,39 +410,33 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             <InputLabel id="user-role-label">{t('userManagement.role')}</InputLabel>
             <Select
               labelId="user-role-label"
-              name="roles"
-              value={formData.roles || [FederationRoles.USER.toLowerCase()]}
+              name="role"
+              value={formData.role || FederationRoles.USER}
               label={t('userManagement.role')}
-              onChange={handleRoleChange}
-              multiple
+              onChange={handleChange}
               renderValue={(selected) => (
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                  {selected.map((value) => (
-                    <Chip 
-                      key={value} 
-                      label={getRoleName(value)}
-                      icon={getRoleIcon(value)}
-                      sx={{ 
-                        bgcolor: value.toUpperCase() === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
-                               value.toUpperCase() === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
-                               'rgba(25, 118, 210, 0.1)',
-                        color: getRoleColor(value),
-                        fontWeight: 'bold',
-                        border: `1px solid ${getRoleColor(value)}`
-                      }}
-                    />
-                  ))}
-                </Box>
+                <Chip 
+                  label={getRoleName(selected)}
+                  icon={getRoleIcon(selected)}
+                  sx={{ 
+                    bgcolor: selected === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
+                           selected === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
+                           'rgba(25, 118, 210, 0.1)',
+                    color: getRoleColor(selected),
+                    fontWeight: 'bold',
+                    border: `1px solid ${getRoleColor(selected)}`
+                  }}
+                />
               )}
             >
-              <MenuItem value={FederationRoles.USER.toLowerCase()}>
+                              <MenuItem value={FederationRoles.USER}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <PersonIcon color="primary" />
                   <Typography>{t('userManagement.user')}</Typography>
                 </Stack>
               </MenuItem>
               
-              <MenuItem value={FederationRoles.FEDERATION_ADMIN.toLowerCase()}>
+              <MenuItem value={FederationRoles.FEDERATION_ADMIN}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <SupervisorAccountIcon sx={{ color: '#f44336' }} />
                   <Typography>{t('userManagement.federationAdministrator')}</Typography>
@@ -458,7 +445,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               
               {/* Only show Global Admin option for users who are Global Admins themselves */}
               {canAssignGlobalAdmin && (
-                <MenuItem value={FederationRoles.GLOBAL_ADMIN.toLowerCase()}>
+                <MenuItem value={FederationRoles.GLOBAL_ADMIN}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <SecurityIcon sx={{ color: 'gold' }} />
                     <Typography>{t('userManagement.globalAdministrator')}</Typography>
@@ -468,8 +455,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             </Select>
           </FormControl>
 
-          {/* Federation selection field - only shown when currentFederation is null or "all" */}
-          {showFederationSelection && (
+          {/* Federation selection field */}
+          {showAvailableFederations && (
             <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
               <InputLabel id="federation-label">{t('errors.federation')}</InputLabel>
               <Select

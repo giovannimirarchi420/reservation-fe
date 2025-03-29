@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -6,14 +6,18 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Grid,
   IconButton,
-  InputAdornment,
   TextField,
   Typography,
   Chip,
   Snackbar,
-  Alert
+  Alert,
+  Stack,
+  useTheme,
+  Fade,
+  Divider,
+  Tooltip,
+  Skeleton
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -21,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupIcon from '@mui/icons-material/Group';
 import DomainIcon from '@mui/icons-material/Domain';
+import InfoIcon from '@mui/icons-material/Info';
 import { fetchFederations, deleteFederation } from '../../services/federationService';
 import FederationForm from './FederationForm';
 import FederationDetailsDrawer from './FederationDetailsDrawer';
@@ -29,6 +34,7 @@ import useApiError from '../../hooks/useApiError';
 const FederationList = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
+  const theme = useTheme();
   const [federations, setFederations] = useState([]);
   const [filteredFederations, setFilteredFederations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,11 +43,6 @@ const FederationList = () => {
   const [selectedFederation, setSelectedFederation] = useState(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [notification, setNotification] = useState(null);
-
-  // Load federations
-  useEffect(() => {
-    loadFederations();
-  }, []);
 
   // Filter federations when search term changes
   useEffect(() => {
@@ -52,13 +53,12 @@ const FederationList = () => {
     setFilteredFederations(filtered);
   }, [federations, searchTerm]);
 
-  // Load federations from API
-  const loadFederations = async () => {
+  // Load federations from API with useCallback to avoid ESLint dependency warnings
+  const loadFederations = useCallback(async () => {
     setIsLoading(true);
     try {
       await withErrorHandling(async () => {
         const federationsData = await fetchFederations();
-        console.log(federationsData)
         setFederations(federationsData);
         setFilteredFederations(federationsData);
       }, {
@@ -68,8 +68,13 @@ const FederationList = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [withErrorHandling, t]);
 
+  // Load federations
+  useEffect(() => {
+    loadFederations();
+  }, [loadFederations]);
+  
   // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
@@ -141,6 +146,109 @@ const FederationList = () => {
     setIsFormOpen(false);
   };
 
+  // Federation card component
+  const FederationCard = ({ federation }) => {
+    return (
+      <Fade in={true} timeout={300}>
+        <Card 
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            cursor: 'pointer',
+            transition: 'transform 0.2s, box-shadow 0.2s',
+            '&:hover': {
+              transform: 'translateY(-4px)',
+              boxShadow: 6
+            },
+            position: 'relative',
+            overflow: 'visible'
+          }} 
+          onClick={() => handleViewFederationDetails(federation)}
+        >
+
+          
+          <CardContent sx={{ flexGrow: 1, p: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <DomainIcon sx={{ fontSize: 28, mr: 1, color: 'primary.main' }} />
+              <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'medium' }}>
+                {federation.name}
+              </Typography>
+              <Box>
+                <Tooltip title={t('common.edit')}>
+                  <IconButton
+                    size="small"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleEditFederation(federation);
+                    }}
+                  >
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={t('common.delete')}>
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteFederation(federation);
+                    }}
+                  >
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </Tooltip>
+              </Box>
+            </Box>
+
+            {federation.description && (
+              <>
+                <Divider sx={{ my: 1 }} />
+                <Typography 
+                  variant="body2" 
+                  color="text.secondary" 
+                  sx={{ 
+                    mb: 2,
+                    display: '-webkit-box',
+                    overflow: 'hidden',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 3,
+                    lineHeight: '1.5em',
+                    maxHeight: '4.5em'
+                  }}
+                >
+                  {federation.description}
+                </Typography>
+              </>
+            )}
+
+            <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Chip
+                icon={<GroupIcon />}
+                label={t('federations.members', { count: federation.memberCount || 0 })}
+                size="small"
+                variant="outlined"
+                color="primary"
+              />
+              <Typography variant="caption" color="text.secondary">
+                ID: {federation.id}
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      </Fade>
+    );
+  };
+
+  // Rendering the skeleton loader
+  const renderSkeletons = () => {
+    return Array(6).fill(0).map((_, index) => (
+      <Box key={index} sx={{ width: '100%', height: '100%' }}>
+        <Skeleton variant="rectangular" height={180} animation="wave" />
+      </Box>
+    ));
+  };
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
@@ -155,104 +263,80 @@ const FederationList = () => {
         </Button>
       </Box>
 
-      <TextField
-        placeholder={t('federations.searchFederations')}
-        variant="outlined"
-        size="small"
-        fullWidth
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-        sx={{ mb: 3 }}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          ),
-        }}
-      />
+      <Box sx={{ position: 'relative', mb: 3 }}>
+        <Box sx={{ position: 'absolute', left: 10, top: 8, zIndex: 1 }}>
+          <SearchIcon color="action" />
+        </Box>
+        <TextField
+          placeholder={t('federations.searchFederations')}
+          variant="outlined"
+          size="small"
+          fullWidth
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          sx={{ 
+            '& .MuiOutlinedInput-root': { 
+              paddingLeft: '36px' 
+            }
+          }}
+        />
+        {searchTerm && (
+          <Box sx={{ position: 'absolute', right: 10, top: 8, zIndex: 1 }}>
+            <IconButton 
+              size="small" 
+              onClick={() => setSearchTerm('')} 
+              aria-label="clear search"
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
+          </Box>
+        )}
+      </Box>
 
       {isLoading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <CircularProgress />
+        <Box sx={{ 
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+          gap: 3
+        }}>
+          {renderSkeletons()}
         </Box>
       ) : (
-        <Grid container spacing={3}>
+        <>
           {filteredFederations.length === 0 ? (
-            <Grid item xs={12}>
-              <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Typography color="text.secondary">
-                  {t('federations.noFederationsFound')}
-                </Typography>
-              </Box>
-            </Grid>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: 'column',
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              py: 8,
+              textAlign: 'center'
+            }}>
+              <InfoIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+              <Typography color="text.secondary" variant="h6">
+                {t('federations.noFederationsFound')}
+              </Typography>
+              <Button 
+                variant="outlined" 
+                startIcon={<AddIcon />} 
+                onClick={handleAddFederation}
+                sx={{ mt: 2 }}
+              >
+                {t('federations.addFederation')}
+              </Button>
+            </Box>
           ) : (
-            filteredFederations.map((federation) => (
-              <Grid item xs={12} md={6} lg={4} key={federation.id}>
-                <Card sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  cursor: 'pointer',
-                  transition: 'transform 0.2s, box-shadow 0.2s',
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 6
-                  }
-                }} onClick={() => handleViewFederationDetails(federation)}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <DomainIcon sx={{ fontSize: 28, mr: 1, color: 'primary.main' }} />
-                      <Typography variant="h6" sx={{ flexGrow: 1 }}>
-                        {federation.name}
-                      </Typography>
-                      <Box>
-                        <IconButton
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleEditFederation(federation);
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteFederation(federation);
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </Box>
-
-                    {federation.description && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                        {federation.description}
-                      </Typography>
-                    )}
-
-                    <Box sx={{ mt: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Chip
-                        icon={<GroupIcon />}
-                        label={t('federations.members', { count: federation.memberCount || 0 })}
-                        size="small"
-                        variant="outlined"
-                        color="primary"
-                      />
-                      <Typography variant="caption" color="text.secondary">
-                        ID: {federation.id}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))
+            <Box sx={{ 
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+              gap: 3
+            }}>
+              {filteredFederations.map((federation) => (
+                <FederationCard key={federation.id} federation={federation} />
+              ))}
+            </Box>
           )}
-        </Grid>
+        </>
       )}
 
       {/* Federation Form Dialog */}
