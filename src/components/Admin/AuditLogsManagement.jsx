@@ -275,8 +275,16 @@ const AuditLogsManagement = () => {
             size: rowsPerPage
           });
 
-          setLogs(result.data || []);
-          setTotalLogs(result.totalElements || 0);
+          // Handle the specific response structure:
+          // {"success":true,"message":"string","data":{"content":[...logs...],"totalElements":number}}
+          if (result && result.success && result.data && Array.isArray(result.data.content)) {
+            setLogs(result.data.content);
+            setTotalLogs(result.data.totalElements || 0);
+          } else {
+            console.error('Unexpected API response structure:', result);
+            setLogs([]);
+            setTotalLogs(0);
+          }
           return;
         }
         
@@ -298,8 +306,16 @@ const AuditLogsManagement = () => {
         filters.size = rowsPerPage;
         
         const result = await fetchAuditLogs(filters);
-        setLogs(result.data.content || []);
-        setTotalLogs(result.data.totalElements || 0);
+        
+        // Handle the same specific response structure
+        if (result && result.success && result.data && Array.isArray(result.data.content)) {
+          setLogs(result.data.content);
+          setTotalLogs(result.data.totalElements || 0);
+        } else {
+          console.error('Unexpected API response structure:', result);
+          setLogs([]);
+          setTotalLogs(0);
+        }
       }, {
         errorMessage: t('auditLogs.errorLoadingLogs'),
         showError: true
