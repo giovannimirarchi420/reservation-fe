@@ -5,14 +5,12 @@ import {
   Button,
   Card,
   CardContent,
-  CircularProgress,
   IconButton,
   TextField,
   Typography,
   Chip,
   Snackbar,
   Alert,
-  Stack,
   useTheme,
   Fade,
   Divider,
@@ -34,7 +32,6 @@ import useApiError from '../../hooks/useApiError';
 const FederationList = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const theme = useTheme();
   const [federations, setFederations] = useState([]);
   const [filteredFederations, setFilteredFederations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);

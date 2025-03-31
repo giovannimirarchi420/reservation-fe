@@ -15,34 +15,65 @@ import {
   FormHelperText,
   Switch,
   FormControlLabel,
-  Tooltip,
-  IconButton,
-  InputAdornment,
   CircularProgress,
   Alert,
-  Grid,
+  Stack,
+  Typography,
   Divider,
-  Typography
+  Radio,
+  RadioGroup,
+  FormLabel,
+  Checkbox
 } from '@mui/material';
 import {
   Info as InfoIcon,
-  Refresh as RefreshIcon,
-  VisibilityOff as VisibilityOffIcon,
-  Visibility as VisibilityIcon
 } from '@mui/icons-material';
 import { useFederation } from '../../../context/FederationContext';
 import { WebhookEventTypes, defaultWebhookConfig } from '../../../models/webhook';
 import { createWebhook, updateWebhook } from '../../../services/webhookService';
+import { fetchResources } from '../../../services/resourceService';
+import { fetchResourceTypes } from '../../../services/resourceTypeService';
 import useApiError from '../../../hooks/useApiError';
 
 const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const { federations, currentFederation } = useFederation();
-  const [formData, setFormData] = useState({ ...defaultWebhookConfig });
+  const [formData, setFormData] = useState({
+    ...defaultWebhookConfig,
+    resourceSelectionType: 'all', // 'all', 'resource', or 'resourceType'
+  });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showSecret, setShowSecret] = useState(false);
+  const [resources, setResources] = useState([]);
+  const [resourceTypes, setResourceTypes] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Load resources and resource types
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      try {
+        await withErrorHandling(async () => {
+          const [resourcesData, resourceTypesData] = await Promise.all([
+            fetchResources(currentFederation?.id ? {federationId: currentFederation.id} : {}),
+            fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
+          ]);
+          setResources(resourcesData);
+          setResourceTypes(resourceTypesData);
+        }, {
+          errorMessage: t('webhooks.unableToLoadResourceData'),
+          showError: true
+        });
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (open) {
+      loadData();
+    }
+  }, [open, withErrorHandling, t, currentFederation]);
 
   // Use federation context for default federation
   useEffect(() => {
@@ -57,12 +88,22 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
   // Initialize form with webhook data if editing
   useEffect(() => {
     if (webhook) {
+      // Determine the resource selection type
+      let resourceSelectionType = 'all';
+      if (webhook.resourceId) {
+        resourceSelectionType = 'resource';
+      } else if (webhook.resourceTypeId) {
+        resourceSelectionType = 'resourceType';
+      }
+
       setFormData({
-        ...webhook
+        ...webhook,
+        resourceSelectionType
       });
     } else {
       setFormData({
         ...defaultWebhookConfig,
+        resourceSelectionType: 'all',
         federationId: currentFederation && currentFederation !== 'ALL' ? currentFederation.id : ''
       });
     }
@@ -84,6 +125,47 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     }
   };
 
+  // Handle resource selection type change
+  const handleResourceSelectionTypeChange = (e) => {
+    const selectionType = e.target.value;
+    
+    // Update the form data with the new selection type and reset related fields
+    const updatedData = {
+      ...formData,
+      resourceSelectionType: selectionType,
+      resourceId: null,
+      resourceName: null,
+      resourceTypeId: null,
+      resourceTypeName: null
+    };
+    
+    setFormData(updatedData);
+  };
+
+  // Handle resource selection
+  const handleResourceSelect = (e) => {
+    const resourceId = e.target.value;
+    const selectedResource = resources.find(r => r.id === resourceId);
+    
+    setFormData({
+      ...formData,
+      resourceId,
+      resourceName: selectedResource ? selectedResource.name : null
+    });
+  };
+
+  // Handle resource type selection
+  const handleResourceTypeSelect = (e) => {
+    const resourceTypeId = e.target.value;
+    const selectedType = resourceTypes.find(t => t.id === resourceTypeId);
+    
+    setFormData({
+      ...formData,
+      resourceTypeId,
+      resourceTypeName: selectedType ? selectedType.name : null
+    });
+  };
+
   const handleToggleEnabled = () => {
     setFormData({
       ...formData,
@@ -91,14 +173,10 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     });
   };
 
-  const generateRandomSecret = () => {
-    const array = new Uint8Array(32);
-    window.crypto.getRandomValues(array);
-    const secret = Array.from(array, b => b.toString(16).padStart(2, '0')).join('');
-    
+  const handleToggleIncludeSubResources = () => {
     setFormData({
       ...formData,
-      secret
+      includeSubResources: !formData.includeSubResources
     });
   };
 
@@ -127,6 +205,15 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
       newErrors.federationId = t('webhooks.federationRequired');
     }
 
+    // Validate resource selection based on selection type
+    if (formData.resourceSelectionType === 'resource' && !formData.resourceId) {
+      newErrors.resourceId = t('webhooks.resourceRequired');
+    }
+
+    if (formData.resourceSelectionType === 'resourceType' && !formData.resourceTypeId) {
+      newErrors.resourceTypeId = t('webhooks.resourceTypeRequired');
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -137,13 +224,34 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     setIsSubmitting(true);
     try {
       await withErrorHandling(async () => {
+        // Prepare data based on resource selection type
+        const webhookData = { ...formData };
+        
+        // Remove fields not needed based on selection type
+        if (formData.resourceSelectionType === 'all') {
+          delete webhookData.resourceId;
+          delete webhookData.resourceName;
+          delete webhookData.resourceTypeId;
+          delete webhookData.resourceTypeName;
+          delete webhookData.includeSubResources;
+        } else if (formData.resourceSelectionType === 'resource') {
+          delete webhookData.resourceTypeId;
+          delete webhookData.resourceTypeName;
+        } else if (formData.resourceSelectionType === 'resourceType') {
+          delete webhookData.resourceId;
+          delete webhookData.resourceName;
+        }
+        
+        // Remove the resourceSelectionType property as it's not needed in the API
+        delete webhookData.resourceSelectionType;
+        
         if (formData.id) {
           // Update existing webhook
-          const updated = await updateWebhook(formData.id, formData);
+          const updated = await updateWebhook(formData.id, webhookData);
           onSaved(updated);
         } else {
           // Create new webhook
-          const created = await createWebhook(formData);
+          const created = await createWebhook(webhookData);
           onSaved(created);
         }
       }, {
@@ -170,15 +278,19 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
       
       <DialogContent>
         <Box sx={{ pt: 2 }}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+          <Stack spacing={3}>
+            {/* Basic Information */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t('webhooks.basicInformation')}
+              </Typography>
+              
               <TextField
                 label={t('webhooks.name')}
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
                 required
                 error={!!errors.name}
                 helperText={errors.name}
@@ -190,14 +302,13 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                 value={formData.url}
                 onChange={handleChange}
                 fullWidth
-                margin="normal"
                 required
                 error={!!errors.url}
                 helperText={errors.url || t('webhooks.urlHelp')}
                 placeholder="https://example.com/webhook"
               />
               
-              <FormControl fullWidth margin="normal" required error={!!errors.eventType}>
+              <FormControl fullWidth required error={!!errors.eventType}>
                 <InputLabel>{t('webhooks.eventType')}</InputLabel>
                 <Select
                   name="eventType"
@@ -216,7 +327,7 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                 {errors.eventType && <FormHelperText>{errors.eventType}</FormHelperText>}
               </FormControl>
               
-              <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
+              <FormControl fullWidth required error={!!errors.federationId}>
                 <InputLabel>{t('webhooks.federation')}</InputLabel>
                 <Select
                   name="federationId"
@@ -233,51 +344,100 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                 </Select>
                 {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
               </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-            <Box sx={{ mt: 2 }}>
-              <Alert severity="info" sx={{ mb: 2 }}>
-                <Typography variant="body2">
-                  {t('webhooks.webhookInfo')}
-                </Typography>
-              </Alert>
-            </Box>
-          </Grid>
-        </Grid>
-          
-            <Grid item xs={12} md={6}>
-              <TextField
-                label={t('webhooks.secret')}
-                name="secret"
-                value={formData.secret || ''}
-                onChange={handleChange}
-                fullWidth
-                margin="normal"
-                type={showSecret ? 'text' : 'password'}
-                helperText={t('webhooks.secretHelp')}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <Tooltip title={t('webhooks.generateSecret')}>
-                        <IconButton
-                          onClick={generateRandomSecret}
-                          edge="end"
-                        >
-                          <RefreshIcon />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title={showSecret ? t('webhooks.hideSecret') : t('webhooks.showSecret')}>
-                        <IconButton
-                          onClick={() => setShowSecret(!showSecret)}
-                          edge="end"
-                        >
-                          {showSecret ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                        </IconButton>
-                      </Tooltip>
-                    </InputAdornment>
-                  ),
-                }}
-              />
+            </Stack>
+            
+            <Divider />
+            
+            {/* Resource Selection */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t('webhooks.resourceSelection')}
+              </Typography>
+              
+              <FormControl component="fieldset">
+                <FormLabel component="legend">{t('webhooks.selectResourceScope')}</FormLabel>
+                <RadioGroup
+                  name="resourceSelectionType"
+                  value={formData.resourceSelectionType}
+                  onChange={handleResourceSelectionTypeChange}
+                >
+                  <FormControlLabel 
+                    value="all" 
+                    control={<Radio />} 
+                    label={t('webhooks.allResources')} 
+                  />
+                  <FormControlLabel 
+                    value="resource" 
+                    control={<Radio />} 
+                    label={t('webhooks.specificResource')} 
+                  />
+                  <FormControlLabel 
+                    value="resourceType" 
+                    control={<Radio />} 
+                    label={t('webhooks.resourcesByType')} 
+                  />
+                </RadioGroup>
+              </FormControl>
+              
+              {/* Resource Selection */}
+              {formData.resourceSelectionType === 'resource' && (
+                <FormControl fullWidth required error={!!errors.resourceId}>
+                  <InputLabel>{t('webhooks.selectResource')}</InputLabel>
+                  <Select
+                    value={formData.resourceId || ''}
+                    label={t('webhooks.selectResource')}
+                    onChange={handleResourceSelect}
+                  >
+                    <MenuItem value="">{t('webhooks.pleaseSelectResource')}</MenuItem>
+                    {resources.map(resource => (
+                      <MenuItem key={resource.id} value={resource.id}>
+                        {resource.name} - {resource.specs}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
+                  {formData.resourceId && (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={formData.includeSubResources}
+                          onChange={handleToggleIncludeSubResources}
+                        />
+                      }
+                      label={t('webhooks.includeSubResources')}
+                    />
+                  )}
+                </FormControl>
+              )}
+              
+              {/* Resource Type Selection */}
+              {formData.resourceSelectionType === 'resourceType' && (
+                <FormControl fullWidth required error={!!errors.resourceTypeId}>
+                  <InputLabel>{t('webhooks.selectResourceType')}</InputLabel>
+                  <Select
+                    value={formData.resourceTypeId || ''}
+                    label={t('webhooks.selectResourceType')}
+                    onChange={handleResourceTypeSelect}
+                  >
+                    <MenuItem value="">{t('webhooks.pleaseSelectResourceType')}</MenuItem>
+                    {resourceTypes.map(type => (
+                      <MenuItem key={type.id} value={type.id}>
+                        {type.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.resourceTypeId && <FormHelperText>{errors.resourceTypeId}</FormHelperText>}
+                </FormControl>
+              )}
+            </Stack>
+            
+            <Divider />
+            
+            {/* Advanced Configuration */}
+            <Stack spacing={2}>
+              <Typography variant="subtitle1" fontWeight="bold">
+                {t('webhooks.advancedConfiguration')}
+              </Typography>
               
               <TextField
                 label={t('webhooks.maxRetries')}
@@ -286,7 +446,6 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                 onChange={handleChange}
                 type="number"
                 fullWidth
-                margin="normal"
                 InputProps={{ inputProps: { min: 0, max: 10 } }}
                 helperText={t('webhooks.maxRetriesHelp')}
               />
@@ -298,7 +457,6 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                 onChange={handleChange}
                 type="number"
                 fullWidth
-                margin="normal"
                 InputProps={{ inputProps: { min: 10, max: 3600 } }}
                 helperText={t('webhooks.retryDelayHelp')}
               />
@@ -312,10 +470,14 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                   />
                 }
                 label={t('webhooks.enabled')}
-                sx={{ mt: 2 }}
               />
-            </Grid>
-      </Box>
+            </Stack>
+            
+            <Alert severity="info" icon={<InfoIcon />}>
+              {t('webhooks.secretGeneratedByServer')}
+            </Alert>
+          </Stack>
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={isSubmitting}>

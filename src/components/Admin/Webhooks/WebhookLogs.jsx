@@ -50,24 +50,44 @@ const WebhookLogs = ({ webhooks }) => {
   const [webhookFilter, setWebhookFilter] = useState('');
   const [successFilter, setSuccessFilter] = useState('');
   const [totalLogs, setTotalLogs] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-  // Load webhook logs
+  // Load webhook logs with pagination
   useEffect(() => {
     const loadLogs = async () => {
       setIsLoading(true);
       try {
         await withErrorHandling(async () => {
-          const filters = {};
+          const filters = {
+            page: page,
+            size: rowsPerPage
+          };
+          
           if (webhookFilter) {
             filters.webhookId = webhookFilter;
           }
+          
           if (successFilter !== '') {
             filters.success = successFilter === 'true';
           }
           
-          const logsData = await fetchWebhookLogs(filters);
-          setLogs(logsData);
-          setTotalLogs(logsData.length); // Update this if BE returns paginated data with a count
+          const response = await fetchWebhookLogs(filters);
+          
+          // Handle the new response structure
+          if (response && response.success && response.data) {
+            // Extract logs from the nested structure
+            const logsData = response.data.logs.content || [];
+            setLogs(logsData);
+            
+            // Extract pagination information
+            setTotalLogs(response.data.totalElements || 0);
+            setTotalPages(response.data.totalPages || 0);
+          } else {
+            console.error('Unexpected API response structure:', response);
+            setLogs([]);
+            setTotalLogs(0);
+            setTotalPages(0);
+          }
         }, {
           errorMessage: t('webhooks.unableToLoadLogs'),
           showError: true
@@ -78,7 +98,7 @@ const WebhookLogs = ({ webhooks }) => {
     };
 
     loadLogs();
-  }, [withErrorHandling, t, webhookFilter, successFilter]);
+  }, [withErrorHandling, t, webhookFilter, successFilter, page, rowsPerPage]);
 
   // Handle page change
   const handleChangePage = (event, newPage) => {
@@ -120,14 +140,16 @@ const WebhookLogs = ({ webhooks }) => {
     setLogDetails(log);
   };
 
-  // Get paginated logs
-  const getPaginatedLogs = () => {
-    return logs.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-  };
-
   return (
     <>
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+      <Stack 
+        direction="row" 
+        spacing={2} 
+        sx={{ mb: 3 }}
+        alignItems="center"
+        flexWrap="wrap"
+        useFlexGap
+      >
         <FormControl sx={{ minWidth: 200 }}>
           <InputLabel>{t('webhooks.filterByWebhook')}</InputLabel>
           <Select
@@ -162,7 +184,7 @@ const WebhookLogs = ({ webhooks }) => {
             <RefreshIcon />
           </IconButton>
         </Tooltip>
-      </Box>
+      </Stack>
 
       <TableContainer component={Paper}>
         <Table size="small">
@@ -192,7 +214,7 @@ const WebhookLogs = ({ webhooks }) => {
                 </TableCell>
               </TableRow>
             ) : (
-              getPaginatedLogs().map((log) => (
+              logs.map((log) => (
                 <TableRow key={log.id} hover>
                   <TableCell>
                     <Chip
@@ -205,7 +227,9 @@ const WebhookLogs = ({ webhooks }) => {
                   <TableCell>
                     {formatDate(log.createdAt, 'DD/MM/YYYY HH:mm:ss')}
                   </TableCell>
-                  <TableCell>{getWebhookName(log.webhook?.id || log.webhookId)}</TableCell>
+                  <TableCell>
+                    {log.webhook ? getWebhookName(log.webhook.id) : getWebhookName(log.webhookId)}
+                  </TableCell>
                   <TableCell>{getEventTypeName(log.eventType)}</TableCell>
                   <TableCell>
                     {log.statusCode ? log.statusCode : '-'}
@@ -231,7 +255,7 @@ const WebhookLogs = ({ webhooks }) => {
         onPageChange={handleChangePage}
         rowsPerPage={rowsPerPage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-        rowsPerPageOptions={[5, 10, 25, 50]}
+        rowsPerPageOptions={[5, 10, 20, 50]}
       />
 
       {/* Log details dialog */}
@@ -253,7 +277,9 @@ const WebhookLogs = ({ webhooks }) => {
                     {t('webhooks.webhook')}
                   </Typography>
                   <Typography>
-                    {getWebhookName(logDetails.webhook?.id || logDetails.webhookId)}
+                    {logDetails.webhook 
+                      ? getWebhookName(logDetails.webhook.id) 
+                      : getWebhookName(logDetails.webhookId)}
                   </Typography>
                 </Box>
 
@@ -338,6 +364,17 @@ const WebhookLogs = ({ webhooks }) => {
                     </Typography>
                     <Typography>
                       {formatDate(logDetails.nextRetryAt, 'DD/MM/YYYY HH:mm:ss')}
+                    </Typography>
+                  </Box>
+                )}
+
+                {logDetails.resource && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      {t('webhooks.resource')}
+                    </Typography>
+                    <Typography>
+                      {logDetails.resource.name} (ID: {logDetails.resource.id})
                     </Typography>
                   </Box>
                 )}

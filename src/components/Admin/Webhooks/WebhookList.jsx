@@ -24,7 +24,6 @@ import {
   PlayArrow as PlayArrowIcon,
   Link as LinkIcon,
   VpnKey as VpnKeyIcon,
-  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { testWebhook, deleteWebhook } from '../../../services/webhookService';
 import { getEventTypeName } from '../../../models/webhook';

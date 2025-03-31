@@ -74,7 +74,6 @@ const it = {
       newResourceType: "Nuovo Tipo Risorsa",
       typeName: "Nome Tipo",
       description: "Descrizione",
-      color: "Colore",
       random: "Casuale",
       cancel: "Annulla",
       confirm: "Conferma",
@@ -101,7 +100,6 @@ const it = {
       role: "Ruolo",
       allRoles: "Tutti i ruoli",
       administrator: "Amministratore",
-      user: "Utente",
       noUsersFound: "Nessun utente trovato.",
       editUser: "Modifica Utente",
       delete: "Elimina Utente",
@@ -130,11 +128,6 @@ const it = {
       invalidEmail: "Formato email non valido",
       passwordRequiredForNewUsers: "La password è obbligatoria per i nuovi utenti",
       unableToCopyPassword: "Impossibile copiare la password negli appunti"
-    },
-    resourceHierarchy: { 
-      title: "Gerarchia delle Risorse", 
-      parentResource: "Risorsa Principale", 
-      subResources: "Risorse Secondarie" 
     },
     resourceForm: {
       editResource: "Modifica Risorsa",
@@ -230,7 +223,6 @@ const it = {
       close: "Chiudi",
       confirmConflictContinue: "Ci potrebbero essere conflitti con altre prenotazioni. Vuoi continuare?",
       unableToCheckAvailability: "Impossibile verificare la disponibilità della risorsa",
-      resource: "Risorsa",
       unknownResource: "Risorsa sconosciuta",
       period: "Periodo",
       bookedBy: "Prenotato da",
@@ -272,8 +264,6 @@ const it = {
       duration: "Durata:",
       hours: "ore",
       resource: "Risorsa:",
-      future: "Futura",
-      completed: "Completata",
       viewInCalendar: "Vedi nel calendario"
     },
     dashboard: {
@@ -435,17 +425,13 @@ const it = {
     update: "Aggiorna",
     isRequired: "è obbligatorio",
     save: "Salva",
-    saving: "Salvataggio.."
+    saving: "Salvataggio..",
+    create: "Crea"
   },
   languageSelector: {
     language: "Lingua",
     english: "Inglese",
     italian: "Italiano"
-  },
-  themeToggler: {
-    darkMode: "Modalità scura",
-    lightMode: "Modalità chiara",
-    systemPreference: "Usa preferenza di sistema"
   },
   themeToggler: {
     darkMode: "Modalità scura",
@@ -503,7 +489,6 @@ const it = {
     hierarchyView: "Vista gerarchica",
     expandAll: "Espandi tutto",
     collapseAll: "Comprimi tutto",
-    resourceHierarchy: "Gerarchia risorse",
     recentBookings: "Prenotazioni recenti",
     completed: "Completata",
     andMorePastBookings: "e altre {count} prenotazioni passate",
@@ -656,7 +641,6 @@ const it = {
     signatureEnabled: "Firma Abilitata",
     noSignature: "Nessuna Firma",
     testWebhook: "Testa Webhook",
-    editWebhook: "Modifica Webhook",
     deleteWebhook: "Elimina Webhook",
     confirmDeleteTitle: "Conferma Eliminazione",
     confirmDeleteMessage: "Sei sicuro di voler eliminare il webhook '{name}'? Questa azione non può essere annullata.",
@@ -670,6 +654,19 @@ const it = {
     unableToDeleteWebhook: "Impossibile eliminare il webhook '{name}'",
     unableToLoadLogs: "Impossibile caricare i log dei webhook",
     noWebhooksFound: "Nessun webhook trovato",
+    basicInformation: "Informazioni di base",
+    resourceSelection: "Selezione risorsa",
+    selectResourceScope: "Seleziona l'ambito delle risorse",
+    allResources: "Tutte le risorse",
+    specificResource: "Risorsa specifica",
+    resourcesByType: "Risorse per tipo",
+    advancedConfiguration: "Configurazione avanzata",
+    secretGeneratedByServer: "La chiave segreta verrà generata automaticamente dal server",
+    selectResource: "Seleziona risorsa",
+    selectResourceType: "Seleziona tipo di risorsa",
+    pleaseSelectResource: "Seleziona una risorsa",
+    pleaseSelectResourceType: "Seleziona un tipo di risorsa",
+    includeSubResources: "Includi risorse figlie",
     // Webhook logs
     filterByWebhook: "Filtra per Webhook",
     allWebhooks: "Tutti i Webhook",
