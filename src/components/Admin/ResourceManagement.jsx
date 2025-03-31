@@ -159,7 +159,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
       showError: true
     });
 
-    if (result) {
+    if (result.resource) {
       if (result.updated) {
         // Update existing resources
         setResources(resources.map(resource =>

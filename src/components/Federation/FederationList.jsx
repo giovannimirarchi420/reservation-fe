@@ -131,6 +131,7 @@ const FederationList = () => {
       setFederations(
         federations.map(f => (f.id === federation.id ? federation : f))
       );
+      console.log(federation)
       showNotification(
         t('federations.federationUpdatedSuccess', { name: federation.name }),
         'success'

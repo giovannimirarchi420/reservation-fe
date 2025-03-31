@@ -432,7 +432,9 @@ const it = {
     tryAgain: "Riprova",
     more: "Altre..",
     update: "Aggiorna",
-    isRequired: "è obbligatorio"
+    isRequired: "è obbligatorio",
+    save: "Salva",
+    saving: "Salvataggio.."
   },
   languageSelector: {
     language: "Lingua",
