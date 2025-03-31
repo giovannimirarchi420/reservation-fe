@@ -5,10 +5,12 @@ import StorageIcon from '@mui/icons-material/Storage';
 import PeopleIcon from '@mui/icons-material/People';
 import CategoryIcon from '@mui/icons-material/Category';
 import ReceiptIcon from '@mui/icons-material/Receipt';
+import WebhookIcon from '@mui/icons-material/Webhook';
 import ResourceManagement from './ResourceManagement';
 import UserManagement from './UserManagement';
 import ResourceTypeManagement from './ResourceTypeManagement';
 import AuditLogsManagement from './AuditLogsManagement';
+import WebhookManagement from './WebhookManagement';
 
 const AdminPanel = () => {
   const { t } = useTranslation();
@@ -51,6 +53,10 @@ const AdminPanel = () => {
             label={t('adminPanel.auditLogs')} 
             icon={<ReceiptIcon />} 
           />
+          <Tab 
+            label={t('adminPanel.webhooks')} 
+            icon={<WebhookIcon />} 
+          />
         </Tabs>
 
         <Box sx={{ mt: 3 }}>
@@ -67,6 +73,7 @@ const AdminPanel = () => {
           )}
           {currentTab === 2 && <UserManagement />}
           {currentTab === 3 && <AuditLogsManagement />}
+          {currentTab === 4 && <WebhookManagement />}
         </Box>
       </Paper>
     </Box>

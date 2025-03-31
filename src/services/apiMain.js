@@ -8,6 +8,7 @@ import * as resourceTypeService from './resourceTypeService';
 import * as bookingService from './bookingService';
 import * as notificationService from './notificationService';
 import * as federationService from './federationService';
+import * as webhookService from './webhookService';
 
 // Export all services as a default object
 export default {
@@ -17,7 +18,8 @@ export default {
   resourceTypes: resourceTypeService,
   events: bookingService,
   notifications: notificationService,
-  federations: federationService
+  federations: federationService,
+  webhooks: webhookService
 };
 
 // Also export individual services for direct imports
@@ -27,5 +29,6 @@ export {
   resourceTypeService,
   bookingService,
   notificationService,
-  federationService
+  federationService,
+  webhookService
 };
