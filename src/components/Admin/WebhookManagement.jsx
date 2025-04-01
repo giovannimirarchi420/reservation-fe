@@ -132,6 +132,7 @@ const WebhookManagement = () => {
                   onEdit={handleEditWebhook} 
                   onDeleted={handleWebhookDeleted}
                   onShowNotification={showNotification} 
+                  onSave={handleWebhookSaved}
                 />
               )}
 

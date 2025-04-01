@@ -647,7 +647,7 @@ const en = {
       editWebhook: "Edit Webhook",
       deleteWebhook: "Delete Webhook",
       confirmDeleteTitle: "Confirm Deletion",
-      confirmDeleteMessage: "Are you sure you want to delete webhook '{{name}}'? This action cannot be undone.",
+      confirmDeleteMessage: "Are you sure you want to delete webhook '{{name}}'? This action will delete also all associated logs and cannot be undone.",
       deleting: "Deleting...",
       testWebhookSuccess: "Webhook '{{name}}' test sent successfully",
       testWebhookError: "Failed to test webhook '{{name}}'",

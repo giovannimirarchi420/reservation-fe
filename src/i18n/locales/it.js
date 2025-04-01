@@ -643,7 +643,7 @@ const it = {
     testWebhook: "Testa Webhook",
     deleteWebhook: "Elimina Webhook",
     confirmDeleteTitle: "Conferma Eliminazione",
-    confirmDeleteMessage: "Sei sicuro di voler eliminare il webhook '{{name}}'? Questa azione non può essere annullata.",
+    confirmDeleteMessage: "Sei sicuro di voler eliminare il webhook '{{name}}'? Questa azione eliminerà anche tutti i log associati e non può essere annullata.",
     deleting: "Eliminazione in corso...",
     testWebhookSuccess: "Test webhook '{{name}}' inviato con successo",
     testWebhookError: "Impossibile testare il webhook '{{name}}'",

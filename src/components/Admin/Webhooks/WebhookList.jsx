@@ -25,16 +25,17 @@ import {
   Link as LinkIcon,
   VpnKey as VpnKeyIcon,
 } from '@mui/icons-material';
-import { testWebhook, deleteWebhook } from '../../../services/webhookService';
+import { testWebhook, deleteWebhook, updateWebhook } from '../../../services/webhookService';
 import { getEventTypeName } from '../../../models/webhook';
 import useApiError from '../../../hooks/useApiError';
 
-const WebhookList = ({ webhooks, onEdit, onDeleted, onShowNotification }) => {
+const WebhookList = ({ webhooks, onEdit, onSave, onDeleted, onShowNotification }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const [confirmDeleteWebhook, setConfirmDeleteWebhook] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [testingWebhook, setTestingWebhook] = useState(null);
+  const [togglingWebhook, setTogglingWebhook] = useState(null);
 
   const handleDeleteWebhook = async () => {
     if (!confirmDeleteWebhook) return;
@@ -42,8 +43,10 @@ const WebhookList = ({ webhooks, onEdit, onDeleted, onShowNotification }) => {
     setIsDeleting(true);
     try {
       await withErrorHandling(async () => {
-        await deleteWebhook(confirmDeleteWebhook.id);
-        onDeleted(confirmDeleteWebhook.name);
+        const result = await deleteWebhook(confirmDeleteWebhook.id);
+        if (result.success) {
+          onDeleted(confirmDeleteWebhook.name);
+        }
         setConfirmDeleteWebhook(null);
       }, {
         errorMessage: t('webhooks.unableToDeleteWebhook', { name: confirmDeleteWebhook.name }),
@@ -71,6 +74,38 @@ const WebhookList = ({ webhooks, onEdit, onDeleted, onShowNotification }) => {
     }
   };
 
+  const handleToggleEnabled = async (webhook) => {
+    setTogglingWebhook(webhook);
+    try {
+      await withErrorHandling(async () => {
+        const updatedWebhook = {
+          ...webhook,
+          enabled: !webhook.enabled
+        };
+        
+        
+        const result = await updateWebhook(webhook.id, updatedWebhook);
+        
+        if(result?.id) {
+          onShowNotification(
+            webhook.enabled 
+              ? t('webhooks.webhookDisabled', { name: webhook.name })
+              : t('webhooks.webhookEnabled', { name: webhook.name }),
+            'success'
+          );
+        }
+
+        
+        onSave(webhook);
+      }, {
+        errorMessage: t('webhooks.unableToUpdateWebhook', { name: webhook.name }),
+        showError: true
+      });
+    } finally {
+      setTogglingWebhook(null);
+    }
+  };
+
   return (
     <>
       {webhooks.length === 0 ? (
@@ -90,11 +125,16 @@ const WebhookList = ({ webhooks, onEdit, onDeleted, onShowNotification }) => {
                       {webhook.name}
                     </Typography>
                     <Tooltip title={webhook.enabled ? t('webhooks.enabled') : t('webhooks.disabled')}>
-                      <Switch
-                        checked={webhook.enabled}
-                        size="small"
-                        color="primary"
-                      />
+                      {togglingWebhook?.id === webhook.id ? (
+                        <CircularProgress size={24} />
+                      ) : (
+                        <Switch
+                          checked={webhook.enabled}
+                          size="small"
+                          color="primary"
+                          onChange={() => handleToggleEnabled(webhook)}
+                        />
+                      )}
                     </Tooltip>
                   </Box>
                   

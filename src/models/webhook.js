@@ -11,6 +11,7 @@ export const WebhookEventTypes = {
     EVENT_DELETED: 'EVENT_DELETED',
     RESOURCE_CREATED: 'RESOURCE_CREATED',
     RESOURCE_UPDATED: 'RESOURCE_UPDATED',
+    RESOURCE_STATUS_CHANGED: 'RESOURCE_STATUS_CHANGED',
     RESOURCE_DELETED: 'RESOURCE_DELETED',
     ALL: 'ALL'
   };
@@ -46,6 +47,8 @@ export const WebhookEventTypes = {
         return 'Resource Created';
       case WebhookEventTypes.RESOURCE_UPDATED:
         return 'Resource Updated';
+      case WebhookEventTypes.RESOURCE_STATUS_CHANGED:
+        return 'Resource status change';
       case WebhookEventTypes.RESOURCE_DELETED:
         return 'Resource Deleted';
       case WebhookEventTypes.ALL:
