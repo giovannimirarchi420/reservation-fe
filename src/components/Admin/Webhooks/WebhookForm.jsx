@@ -23,10 +23,15 @@ import {
   Radio,
   RadioGroup,
   FormLabel,
-  Checkbox
+  Checkbox,
+  Paper,
+  IconButton,
+  Tooltip
 } from '@mui/material';
 import {
   Info as InfoIcon,
+  ContentCopy as ContentCopyIcon,
+  CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
 import { useFederation } from '../../../context/FederationContext';
 import { WebhookEventTypes, defaultWebhookConfig } from '../../../models/webhook';
@@ -34,6 +39,91 @@ import { createWebhook, updateWebhook } from '../../../services/webhookService';
 import { fetchResources } from '../../../services/resourceService';
 import { fetchResourceTypes } from '../../../services/resourceTypeService';
 import useApiError from '../../../hooks/useApiError';
+
+// Secret display dialog component
+const ClientSecretDialog = ({ open, secret, onClose }) => {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopySecret = async () => {
+    try {
+      await navigator.clipboard.writeText(secret);
+      setCopied(true);
+      
+      // Reset copied status after 2 seconds
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000);
+    } catch (err) {
+      console.error('Failed to copy secret:', err);
+    }
+  };
+
+  return (
+    <Dialog 
+      open={open} 
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle sx={{ bgcolor: 'primary.main', color: 'white' }}>
+        {t('webhooks.clientSecretTitle')}
+      </DialogTitle>
+      <DialogContent>
+        <Alert severity="warning" sx={{ mt: 2, mb: 2 }}>
+          <Typography variant="body2" fontWeight="bold">
+            {t('webhooks.clientSecretWarning')}
+          </Typography>
+        </Alert>
+        
+        <Typography variant="body2" sx={{ mb: 2 }}>
+          {t('webhooks.clientSecretDescription')}
+        </Typography>
+        
+        <Paper
+          variant="outlined"
+          sx={{ 
+            p: 2, 
+            mb: 2, 
+            backgroundColor: 'background.default',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography 
+            variant="mono" 
+            component="div" 
+            sx={{ 
+              fontFamily: 'monospace', 
+              wordBreak: 'break-all',
+              flexGrow: 1,
+              mr: 1
+            }}
+          >
+            {secret}
+          </Typography>
+          <Tooltip title={copied ? t('webhooks.copied') : t('webhooks.copy')}>
+            <IconButton onClick={handleCopySecret} color={copied ? "success" : "default"}>
+              {copied ? <CheckCircleIcon /> : <ContentCopyIcon />}
+            </IconButton>
+          </Tooltip>
+        </Paper>
+        
+        <Alert severity="info">
+          <Typography variant="body2">
+            {t('webhooks.clientSecretUsage')}
+          </Typography>
+        </Alert>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} variant="contained" color="primary">
+          {t('common.close')}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
   const { t } = useTranslation();
@@ -48,6 +138,9 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  // State for client secret dialog
+  const [clientSecret, setClientSecret] = useState(null);
+  const [isSecretDialogOpen, setIsSecretDialogOpen] = useState(false);
 
   // Load resources and resource types
   useEffect(() => {
@@ -252,6 +345,13 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
         } else {
           // Create new webhook
           const created = await createWebhook(webhookData);
+          
+          // Check if the response contains a clientSecret
+          if (created && created.clientSecret) {
+            setClientSecret(created.clientSecret);
+            setIsSecretDialogOpen(true);
+          }
+          
           onSaved(created);
         }
       }, {
@@ -265,237 +365,251 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     }
   };
 
+  const handleCloseSecretDialog = () => {
+    setIsSecretDialogOpen(false);
+    setClientSecret(null);
+  };
+
   return (
-    <Dialog
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-    >
-      <DialogTitle>
-        {formData.id ? t('webhooks.editWebhook') : t('webhooks.newWebhook')}
-      </DialogTitle>
-      
-      <DialogContent>
-        <Box sx={{ pt: 2 }}>
-          <Stack spacing={3}>
-            {/* Basic Information */}
-            <Stack spacing={2}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t('webhooks.basicInformation')}
-              </Typography>
-              
-              <TextField
-                label={t('webhooks.name')}
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                fullWidth
-                required
-                error={!!errors.name}
-                helperText={errors.name}
-              />
-              
-              <TextField
-                label={t('webhooks.url')}
-                name="url"
-                value={formData.url}
-                onChange={handleChange}
-                fullWidth
-                required
-                error={!!errors.url}
-                helperText={errors.url || t('webhooks.urlHelp')}
-                placeholder="https://example.com/webhook"
-              />
-              
-              <FormControl fullWidth required error={!!errors.eventType}>
-                <InputLabel>{t('webhooks.eventType')}</InputLabel>
-                <Select
-                  name="eventType"
-                  value={formData.eventType}
-                  label={t('webhooks.eventType')}
+    <>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          {formData.id ? t('webhooks.editWebhook') : t('webhooks.newWebhook')}
+        </DialogTitle>
+        
+        <DialogContent>
+          <Box sx={{ pt: 2 }}>
+            <Stack spacing={3}>
+              {/* Basic Information */}
+              <Stack spacing={2}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {t('webhooks.basicInformation')}
+                </Typography>
+                
+                <TextField
+                  label={t('webhooks.name')}
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
-                >
-                  <MenuItem value={WebhookEventTypes.ALL}>{t('webhooks.allEvents')}</MenuItem>
-                  <MenuItem value={WebhookEventTypes.EVENT_CREATED}>{t('webhooks.eventCreated')}</MenuItem>
-                  <MenuItem value={WebhookEventTypes.EVENT_UPDATED}>{t('webhooks.eventUpdated')}</MenuItem>
-                  <MenuItem value={WebhookEventTypes.EVENT_DELETED}>{t('webhooks.eventDeleted')}</MenuItem>
-                  <MenuItem value={WebhookEventTypes.RESOURCE_CREATED}>{t('webhooks.resourceCreated')}</MenuItem>
-                  <MenuItem value={WebhookEventTypes.RESOURCE_UPDATED}>{t('webhooks.resourceUpdated')}</MenuItem>
-                  <MenuItem value={WebhookEventTypes.RESOURCE_DELETED}>{t('webhooks.resourceDeleted')}</MenuItem>
-                </Select>
-                {errors.eventType && <FormHelperText>{errors.eventType}</FormHelperText>}
-              </FormControl>
-              
-              <FormControl fullWidth required error={!!errors.federationId}>
-                <InputLabel>{t('webhooks.federation')}</InputLabel>
-                <Select
-                  name="federationId"
-                  value={formData.federationId}
-                  label={t('webhooks.federation')}
+                  fullWidth
+                  required
+                  error={!!errors.name}
+                  helperText={errors.name}
+                />
+                
+                <TextField
+                  label={t('webhooks.url')}
+                  name="url"
+                  value={formData.url}
                   onChange={handleChange}
-                >
-                  <MenuItem value="">{t('webhooks.selectFederation')}</MenuItem>
-                  {federations.map(federation => (
-                    <MenuItem key={federation.id} value={federation.id}>
-                      {federation.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
-              </FormControl>
-            </Stack>
-            
-            <Divider />
-            
-            {/* Resource Selection */}
-            <Stack spacing={2}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t('webhooks.resourceSelection')}
-              </Typography>
+                  fullWidth
+                  required
+                  error={!!errors.url}
+                  helperText={errors.url || t('webhooks.urlHelp')}
+                  placeholder="https://example.com/webhook"
+                />
+                
+                <FormControl fullWidth required error={!!errors.eventType}>
+                  <InputLabel>{t('webhooks.eventType')}</InputLabel>
+                  <Select
+                    name="eventType"
+                    value={formData.eventType}
+                    label={t('webhooks.eventType')}
+                    onChange={handleChange}
+                  >
+                    <MenuItem value={WebhookEventTypes.ALL}>{t('webhooks.allEvents')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.EVENT_CREATED}>{t('webhooks.eventCreated')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.EVENT_UPDATED}>{t('webhooks.eventUpdated')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.EVENT_DELETED}>{t('webhooks.eventDeleted')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.RESOURCE_CREATED}>{t('webhooks.resourceCreated')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.RESOURCE_UPDATED}>{t('webhooks.resourceUpdated')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.RESOURCE_DELETED}>{t('webhooks.resourceDeleted')}</MenuItem>
+                  </Select>
+                  {errors.eventType && <FormHelperText>{errors.eventType}</FormHelperText>}
+                </FormControl>
+                
+                <FormControl fullWidth required error={!!errors.federationId}>
+                  <InputLabel>{t('webhooks.federation')}</InputLabel>
+                  <Select
+                    name="federationId"
+                    value={formData.federationId}
+                    label={t('webhooks.federation')}
+                    onChange={handleChange}
+                  >
+                    <MenuItem value="">{t('webhooks.selectFederation')}</MenuItem>
+                    {federations.map(federation => (
+                      <MenuItem key={federation.id} value={federation.id}>
+                        {federation.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+                </FormControl>
+              </Stack>
               
-              <FormControl component="fieldset">
-                <FormLabel component="legend">{t('webhooks.selectResourceScope')}</FormLabel>
-                <RadioGroup
-                  name="resourceSelectionType"
-                  value={formData.resourceSelectionType}
-                  onChange={handleResourceSelectionTypeChange}
-                >
-                  <FormControlLabel 
-                    value="all" 
-                    control={<Radio />} 
-                    label={t('webhooks.allResources')} 
-                  />
-                  <FormControlLabel 
-                    value="resource" 
-                    control={<Radio />} 
-                    label={t('webhooks.specificResource')} 
-                  />
-                  <FormControlLabel 
-                    value="resourceType" 
-                    control={<Radio />} 
-                    label={t('webhooks.resourcesByType')} 
-                  />
-                </RadioGroup>
-              </FormControl>
+              <Divider />
               
               {/* Resource Selection */}
-              {formData.resourceSelectionType === 'resource' && (
-                <FormControl fullWidth required error={!!errors.resourceId}>
-                  <InputLabel>{t('webhooks.selectResource')}</InputLabel>
-                  <Select
-                    value={formData.resourceId || ''}
-                    label={t('webhooks.selectResource')}
-                    onChange={handleResourceSelect}
+              <Stack spacing={2}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {t('webhooks.resourceSelection')}
+                </Typography>
+                
+                <FormControl component="fieldset">
+                  <FormLabel component="legend">{t('webhooks.selectResourceScope')}</FormLabel>
+                  <RadioGroup
+                    name="resourceSelectionType"
+                    value={formData.resourceSelectionType}
+                    onChange={handleResourceSelectionTypeChange}
                   >
-                    <MenuItem value="">{t('webhooks.pleaseSelectResource')}</MenuItem>
-                    {resources.map(resource => (
-                      <MenuItem key={resource.id} value={resource.id}>
-                        {resource.name} - {resource.specs}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
-                  {formData.resourceId && (
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          checked={formData.includeSubResources}
-                          onChange={handleToggleIncludeSubResources}
-                        />
-                      }
-                      label={t('webhooks.includeSubResources')}
+                    <FormControlLabel 
+                      value="all" 
+                      control={<Radio />} 
+                      label={t('webhooks.allResources')} 
                     />
-                  )}
+                    <FormControlLabel 
+                      value="resource" 
+                      control={<Radio />} 
+                      label={t('webhooks.specificResource')} 
+                    />
+                    <FormControlLabel 
+                      value="resourceType" 
+                      control={<Radio />} 
+                      label={t('webhooks.resourcesByType')} 
+                    />
+                  </RadioGroup>
                 </FormControl>
-              )}
+                
+                {/* Resource Selection */}
+                {formData.resourceSelectionType === 'resource' && (
+                  <FormControl fullWidth required error={!!errors.resourceId}>
+                    <InputLabel>{t('webhooks.selectResource')}</InputLabel>
+                    <Select
+                      value={formData.resourceId || ''}
+                      label={t('webhooks.selectResource')}
+                      onChange={handleResourceSelect}
+                    >
+                      <MenuItem value="">{t('webhooks.pleaseSelectResource')}</MenuItem>
+                      {resources.map(resource => (
+                        <MenuItem key={resource.id} value={resource.id}>
+                          {resource.name} - {resource.specs}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
+                    {formData.resourceId && (
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={formData.includeSubResources}
+                            onChange={handleToggleIncludeSubResources}
+                          />
+                        }
+                        label={t('webhooks.includeSubResources')}
+                      />
+                    )}
+                  </FormControl>
+                )}
+                
+                {/* Resource Type Selection */}
+                {formData.resourceSelectionType === 'resourceType' && (
+                  <FormControl fullWidth required error={!!errors.resourceTypeId}>
+                    <InputLabel>{t('webhooks.selectResourceType')}</InputLabel>
+                    <Select
+                      value={formData.resourceTypeId || ''}
+                      label={t('webhooks.selectResourceType')}
+                      onChange={handleResourceTypeSelect}
+                    >
+                      <MenuItem value="">{t('webhooks.pleaseSelectResourceType')}</MenuItem>
+                      {resourceTypes.map(type => (
+                        <MenuItem key={type.id} value={type.id}>
+                          {type.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.resourceTypeId && <FormHelperText>{errors.resourceTypeId}</FormHelperText>}
+                  </FormControl>
+                )}
+              </Stack>
               
-              {/* Resource Type Selection */}
-              {formData.resourceSelectionType === 'resourceType' && (
-                <FormControl fullWidth required error={!!errors.resourceTypeId}>
-                  <InputLabel>{t('webhooks.selectResourceType')}</InputLabel>
-                  <Select
-                    value={formData.resourceTypeId || ''}
-                    label={t('webhooks.selectResourceType')}
-                    onChange={handleResourceTypeSelect}
-                  >
-                    <MenuItem value="">{t('webhooks.pleaseSelectResourceType')}</MenuItem>
-                    {resourceTypes.map(type => (
-                      <MenuItem key={type.id} value={type.id}>
-                        {type.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                  {errors.resourceTypeId && <FormHelperText>{errors.resourceTypeId}</FormHelperText>}
-                </FormControl>
-              )}
+              <Divider />
+              
+              {/* Advanced Configuration */}
+              <Stack spacing={2}>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  {t('webhooks.advancedConfiguration')}
+                </Typography>
+                
+                <TextField
+                  label={t('webhooks.maxRetries')}
+                  name="maxRetries"
+                  value={formData.maxRetries}
+                  onChange={handleChange}
+                  type="number"
+                  fullWidth
+                  InputProps={{ inputProps: { min: 0, max: 10 } }}
+                  helperText={t('webhooks.maxRetriesHelp')}
+                />
+                
+                <TextField
+                  label={t('webhooks.retryDelaySeconds')}
+                  name="retryDelaySeconds"
+                  value={formData.retryDelaySeconds}
+                  onChange={handleChange}
+                  type="number"
+                  fullWidth
+                  InputProps={{ inputProps: { min: 10, max: 3600 } }}
+                  helperText={t('webhooks.retryDelayHelp')}
+                />
+                
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={formData.enabled}
+                      onChange={handleToggleEnabled}
+                      color="primary"
+                    />
+                  }
+                  label={t('webhooks.enabled')}
+                />
+              </Stack>
+              
+              <Alert severity="info" icon={<InfoIcon />}>
+                {t('webhooks.secretGeneratedByServer')}
+              </Alert>
             </Stack>
-            
-            <Divider />
-            
-            {/* Advanced Configuration */}
-            <Stack spacing={2}>
-              <Typography variant="subtitle1" fontWeight="bold">
-                {t('webhooks.advancedConfiguration')}
-              </Typography>
-              
-              <TextField
-                label={t('webhooks.maxRetries')}
-                name="maxRetries"
-                value={formData.maxRetries}
-                onChange={handleChange}
-                type="number"
-                fullWidth
-                InputProps={{ inputProps: { min: 0, max: 10 } }}
-                helperText={t('webhooks.maxRetriesHelp')}
-              />
-              
-              <TextField
-                label={t('webhooks.retryDelaySeconds')}
-                name="retryDelaySeconds"
-                value={formData.retryDelaySeconds}
-                onChange={handleChange}
-                type="number"
-                fullWidth
-                InputProps={{ inputProps: { min: 10, max: 3600 } }}
-                helperText={t('webhooks.retryDelayHelp')}
-              />
-              
-              <FormControlLabel
-                control={
-                  <Switch
-                    checked={formData.enabled}
-                    onChange={handleToggleEnabled}
-                    color="primary"
-                  />
-                }
-                label={t('webhooks.enabled')}
-              />
-            </Stack>
-            
-            <Alert severity="info" icon={<InfoIcon />}>
-              {t('webhooks.secretGeneratedByServer')}
-            </Alert>
-          </Stack>
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} disabled={isSubmitting}>
-          {t('common.cancel')}
-        </Button>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={handleSubmit}
-          disabled={isSubmitting}
-          startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
-        >
-          {isSubmitting
-            ? formData.id ? t('webhooks.updating') : t('webhooks.creating')
-            : formData.id ? t('common.update') : t('common.create')}
-        </Button>
-      </DialogActions>
-    </Dialog>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} disabled={isSubmitting}>
+            {t('common.cancel')}
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+          >
+            {isSubmitting
+              ? formData.id ? t('webhooks.updating') : t('webhooks.creating')
+              : formData.id ? t('common.update') : t('common.create')}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Client Secret Dialog */}
+      <ClientSecretDialog 
+        open={isSecretDialogOpen} 
+        secret={(clientSecret)} 
+        onClose={handleCloseSecretDialog} 
+      />
+    </>
   );
 };
 

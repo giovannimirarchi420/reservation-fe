@@ -647,15 +647,15 @@ const en = {
       editWebhook: "Edit Webhook",
       deleteWebhook: "Delete Webhook",
       confirmDeleteTitle: "Confirm Deletion",
-      confirmDeleteMessage: "Are you sure you want to delete webhook '{name}'? This action cannot be undone.",
+      confirmDeleteMessage: "Are you sure you want to delete webhook '{{name}}'? This action cannot be undone.",
       deleting: "Deleting...",
-      testWebhookSuccess: "Webhook '{name}' test sent successfully",
-      testWebhookError: "Failed to test webhook '{name}'",
-      webhookUpdatedSuccess: "Webhook '{name}' updated successfully",
-      webhookCreatedSuccess: "Webhook '{name}' created successfully",
-      webhookDeletedSuccess: "Webhook '{name}' deleted successfully",
+      testWebhookSuccess: "Webhook '{{name}}' test sent successfully",
+      testWebhookError: "Failed to test webhook '{{name}}'",
+      webhookUpdatedSuccess: "Webhook '{{name}}' updated successfully",
+      webhookCreatedSuccess: "Webhook '{{name}}' created successfully",
+      webhookDeletedSuccess: "Webhook '{{name}}' deleted successfully",
       unableToLoadWebhooks: "Unable to load webhooks",
-      unableToDeleteWebhook: "Unable to delete webhook '{name}'",
+      unableToDeleteWebhook: "Unable to delete webhook '{{name}}'",
       unableToLoadLogs: "Unable to load webhook logs",
       noWebhooksFound: "No webhooks found",
       // Webhook logs
@@ -689,7 +689,13 @@ const en = {
       selectResourceType: "Select resource type",
       pleaseSelectResource: "Please select a resource",
       pleaseSelectResourceType: "Please select a resource type",
-      includeSubResources: "Include sub-resources"
+      includeSubResources: "Include sub-resources",
+      clientSecretTitle: "Client Secret",
+      clientSecretWarning: "This secret will only be shown once and cannot be accessed again after closing this window",
+      clientSecretDescription: "Store this secret in a secure place. You will need it to verify the authenticity of webhook requests.",
+      clientSecretUsage: "Use this secret to verify the HMAC-SHA256 signature in the 'X-Webhook-Signature' header of each webhook request.",
+      copied: "Copied!",
+      copy: "Copy"
     }
   };
   

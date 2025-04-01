@@ -46,21 +46,38 @@ export const deleteWebhook = (id) => apiRequest(`/webhooks/${id}`, 'DELETE');
 export const testWebhook = (id) => apiRequest(`/webhooks/test?webhookId=${id}`, 'POST');
 
 /**
- * Get webhook logs
- * @param {Object} filters - Optional filters (webhookId, success)
- * @returns {Promise<Array>} List of webhook logs
+ * Get webhook logs with pagination and filtering
+ * @param {Object} filters - Optional filters
+ * @param {number} filters.webhookId - Filter logs by webhook ID
+ * @param {boolean} filters.success - Filter logs by success status
+ * @param {number} filters.page - Page number (0-based)
+ * @param {number} filters.size - Page size
+ * @returns {Promise<Object>} Paginated webhook logs
  */
 export const fetchWebhookLogs = (filters = {}) => {
   const queryParams = [];
   
-  if (filters.webhookId) {
-    queryParams.push(`webhookId=${filters.webhookId}`);
+  // Add pagination parameters
+  if (filters.page !== undefined) {
+    queryParams.push(`page=${filters.page}`);
   }
   
+  if (filters.size !== undefined) {
+    queryParams.push(`size=${filters.size}`);
+  }
+  
+  // Add success filter if provided
   if (filters.success !== undefined) {
     queryParams.push(`success=${filters.success}`);
   }
   
   const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
+  
+  // If webhookId is provided, use the specific webhook logs endpoint
+  if (filters.webhookId) {
+    return apiRequest(`/webhooks/${filters.webhookId}/logs${queryString}`);
+  }
+  
+  // Otherwise, use the general logs endpoint
   return apiRequest(`/webhooks/logs${queryString}`);
 };

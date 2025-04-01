@@ -59,7 +59,9 @@ const WebhookList = ({ webhooks, onEdit, onDeleted, onShowNotification }) => {
     try {
       await withErrorHandling(async () => {
         const result = await testWebhook(webhook.id);
-        onShowNotification(t('webhooks.testWebhookSuccess', { name: webhook.name }), 'success');
+        if(result.success){
+          onShowNotification(t('webhooks.testWebhookSuccess', { name: webhook.name }), 'success');
+        }
       }, {
         errorMessage: t('webhooks.testWebhookError', { name: webhook.name }),
         showError: true

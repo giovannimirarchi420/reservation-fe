@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -51,54 +51,58 @@ const WebhookLogs = ({ webhooks }) => {
   const [successFilter, setSuccessFilter] = useState('');
   const [totalLogs, setTotalLogs] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
+  const [refreshToggle, setRefreshToggle] = useState(false); // New state to trigger refresh
 
-  // Load webhook logs with pagination
-  useEffect(() => {
-    const loadLogs = async () => {
-      setIsLoading(true);
-      try {
-        await withErrorHandling(async () => {
-          const filters = {
-            page: page,
-            size: rowsPerPage
-          };
+  // Create a memoized function to load logs
+  const loadLogs = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await withErrorHandling(async () => {
+        const filters = {
+          page: page,
+          size: rowsPerPage
+        };
+        
+        if (webhookFilter) {
+          filters.webhookId = webhookFilter;
+        }
+        
+        if (successFilter !== '') {
+          filters.success = successFilter === 'true';
+        }
+        
+        const response = await fetchWebhookLogs(filters);
+        
+        // Handle the response structure
+        if (response && response.success && response.data) {
+          // Extract logs from the nested structure
+          const logsData = response.data.content || response.data.logs?.content || [];
+          setLogs(logsData);
           
-          if (webhookFilter) {
-            filters.webhookId = webhookFilter;
-          }
-          
-          if (successFilter !== '') {
-            filters.success = successFilter === 'true';
-          }
-          
-          const response = await fetchWebhookLogs(filters);
-          
-          // Handle the new response structure
-          if (response && response.success && response.data) {
-            // Extract logs from the nested structure
-            const logsData = response.data.logs.content || [];
-            setLogs(logsData);
-            
-            // Extract pagination information
-            setTotalLogs(response.data.totalElements || 0);
-            setTotalPages(response.data.totalPages || 0);
-          } else {
-            console.error('Unexpected API response structure:', response);
-            setLogs([]);
-            setTotalLogs(0);
-            setTotalPages(0);
-          }
-        }, {
-          errorMessage: t('webhooks.unableToLoadLogs'),
-          showError: true
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadLogs();
+          // Extract pagination information
+          setTotalLogs(response.data.totalElements || 0);
+          setTotalPages(response.data.totalPages || 0);
+        } else {
+          console.error('Unexpected API response structure:', response);
+          setLogs([]);
+          setTotalLogs(0);
+          setTotalPages(0);
+        }
+      }, {
+        errorMessage: t('webhooks.unableToLoadLogs'),
+        showError: true
+      });
+    } catch (error) {
+      console.error('Error loading webhook logs:', error);
+    } finally {
+      setIsLoading(false);
+    }
   }, [withErrorHandling, t, webhookFilter, successFilter, page, rowsPerPage]);
+
+  // Load webhook logs when dependencies change or refresh is triggered
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs, refreshToggle]); // Added refreshToggle as dependency
 
   // Handle page change
   const handleChangePage = (event, newPage) => {
@@ -114,25 +118,24 @@ const WebhookLogs = ({ webhooks }) => {
   // Handle webhook filter change
   const handleWebhookFilterChange = (event) => {
     setWebhookFilter(event.target.value);
-    setPage(0);
+    setPage(0); // Reset to first page when filter changes
   };
 
   // Handle success filter change
   const handleSuccessFilterChange = (event) => {
     setSuccessFilter(event.target.value);
-    setPage(0);
+    setPage(0); // Reset to first page when filter changes
   };
 
-  // Handle refreshing logs
+  // Handle refreshing logs - fixed by calling loadLogs directly
   const handleRefresh = () => {
-    // Simply re-trigger the effect
-    setIsLoading(true);
+    setRefreshToggle(prev => !prev); // Toggle the refresh state to trigger effect
   };
 
   // Get webhook name by ID
   const getWebhookName = (webhookId) => {
-    const webhook = webhooks.find(w => w.id.toString() === webhookId.toString());
-    return webhook ? webhook.name : webhookId;
+    const webhook = webhooks.find(w => w.id.toString() === webhookId?.toString());
+    return webhook ? webhook.name : webhookId || 'Unknown';
   };
 
   // Show log details
@@ -180,8 +183,11 @@ const WebhookLogs = ({ webhooks }) => {
         </FormControl>
 
         <Tooltip title={t('webhooks.refresh')}>
-          <IconButton onClick={handleRefresh}>
-            <RefreshIcon />
+          <IconButton 
+            onClick={handleRefresh}
+            disabled={isLoading}
+          >
+            {isLoading ? <CircularProgress size={24} /> : <RefreshIcon />}
           </IconButton>
         </Tooltip>
       </Stack>

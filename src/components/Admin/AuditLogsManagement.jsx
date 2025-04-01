@@ -49,7 +49,7 @@ import 'moment/locale/en-gb';
 import { formatDate } from '../../utils/dateUtils';
 import useApiError from '../../hooks/useApiError';
 
-// Import the audit log service (you'll need to create this)
+// Import the audit log service
 import { fetchAuditLogs, fetchAuditLogById } from '../../services/auditLogService';
 
 // Utility function to get severity color
@@ -87,7 +87,7 @@ const LogDetailsDialog = ({ open, log, onClose }) => {
   if (!log) return null;
 
   return (
-          <Dialog
+    <Dialog
       open={open}
       onClose={onClose}
       maxWidth="md"
@@ -233,6 +233,9 @@ const AuditLogsManagement = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [totalLogs, setTotalLogs] = useState(0);
+  const [adminLogsCount, setAdminLogsCount] = useState(0);
+  const [userLogsCount, setUserLogsCount] = useState(0);
+  const [errorLogsCount, setErrorLogsCount] = useState(0);
   const [isLogDialogOpen, setIsLogDialogOpen] = useState(false);
   const [searchParams, setSearchParams] = useState({
     username: '',
@@ -263,7 +266,6 @@ const AuditLogsManagement = () => {
         // Build filters from search params
         const filters = {};
         
-
         if (searchParams.searchQuery) filters.searchQuery = searchParams.searchQuery;
         if (searchParams.username) filters.username = searchParams.username;
         if (searchParams.entityType) filters.entityType = searchParams.entityType;
@@ -284,17 +286,26 @@ const AuditLogsManagement = () => {
         // Add pagination
         filters.page = page;
         filters.size = rowsPerPage;
-        console.log(filters)
+
         const result = await fetchAuditLogs(filters);
         
-        // Handle the same specific response structure
-        if (result && result.success && result.data && Array.isArray(result.data.content)) {
-          setLogs(result.data.content);
+        // Handle the new response structure
+        if (result && result.success && result.data) {
+          // Get logs from the nested data.logs array
+          setLogs(result.data.logs || []);
+          
+          // Update totals from response
           setTotalLogs(result.data.totalElements || 0);
+          setAdminLogsCount(result.data.adminLogsCount || 0);
+          setUserLogsCount(result.data.userLogsCount || 0);
+          setErrorLogsCount(result.data.errorLogsCount || 0);
         } else {
           console.error('Unexpected API response structure:', result);
           setLogs([]);
           setTotalLogs(0);
+          setAdminLogsCount(0);
+          setUserLogsCount(0);
+          setErrorLogsCount(0);
         }
       }, {
         errorMessage: t('auditLogs.errorLoadingLogs'),
@@ -340,7 +351,6 @@ const AuditLogsManagement = () => {
 
   // Handle search parameter changes
   const handleSearchParamChange = (param, value) => {
-    console.log("yessss", param, value)
     setSearchParams(prev => ({
       ...prev,
       [param]: value
@@ -470,9 +480,7 @@ const AuditLogsManagement = () => {
               <Typography variant="h6">{t('auditLogs.adminLogs')}</Typography>
               <PersonIcon color="secondary" />
             </Box>
-            <Typography variant="h4">
-              {logs.filter(log => log.logType === 'ADMIN').length}
-            </Typography>
+            <Typography variant="h4">{adminLogsCount}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ flex: 1 }}>
@@ -481,9 +489,7 @@ const AuditLogsManagement = () => {
               <Typography variant="h6">{t('auditLogs.userLogs')}</Typography>
               <PersonIcon color="info" />
             </Box>
-            <Typography variant="h4">
-              {logs.filter(log => log.logType === 'USER').length}
-            </Typography>
+            <Typography variant="h4">{userLogsCount}</Typography>
           </CardContent>
         </Card>
         <Card sx={{ flex: 1 }}>
@@ -492,9 +498,7 @@ const AuditLogsManagement = () => {
               <Typography variant="h6">{t('auditLogs.errorLogs')}</Typography>
               <ErrorIcon color="error" />
             </Box>
-            <Typography variant="h4">
-              {logs.filter(log => log.severity === 'ERROR').length}
-            </Typography>
+            <Typography variant="h4">{errorLogsCount}</Typography>
           </CardContent>
         </Card>
       </Stack>
@@ -509,8 +513,9 @@ const AuditLogsManagement = () => {
                 placeholder={t('auditLogs.search')}
                 value={searchParams.searchQuery}
                 onChange={(e) => handleSearchParamChange('searchQuery', e.target.value)}
-                startAdornment={<SearchIcon />}
-                endAdornment={<CloseIcon />}
+                InputProps={{
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'action.active' }} />
+                }}
               />
             </Box>
             
