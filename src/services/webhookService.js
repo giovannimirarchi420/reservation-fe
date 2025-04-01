@@ -43,7 +43,7 @@ export const deleteWebhook = (id) => apiRequest(`/webhooks/${id}`, 'DELETE');
  * @param {number} id - Webhook ID to test
  * @returns {Promise<Object>} Test result
  */
-export const testWebhook = (id) => apiRequest(`/webhooks/test?webhookId=${id}`, 'POST');
+export const testWebhook = (id) => apiRequest(`/webhooks/${id}/test`, 'POST');
 
 /**
  * Get webhook logs with pagination and filtering
