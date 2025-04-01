@@ -167,19 +167,6 @@ const WebhookList = ({ webhooks, onEdit, onSave, onDeleted, onShowNotification }
                     </Typography>
                   </Box>
                   
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
-                      {webhook.secret ? (
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          <VpnKeyIcon fontSize="small" sx={{ mr: 0.5, color: 'text.secondary' }} />
-                          {t('webhooks.signatureEnabled')}
-                        </Box>
-                      ) : (
-                        t('webhooks.noSignature')
-                      )}
-                    </Typography>
-                  </Box>
-                  
                   <Divider sx={{ my: 1 }} />
                   
                   <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>

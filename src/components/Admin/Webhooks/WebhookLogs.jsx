@@ -330,6 +330,17 @@ const WebhookLogs = ({ webhooks }) => {
                   </Typography>
                 </Box>
 
+                {logDetails.resource && (
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      {t('webhooks.resource')}
+                    </Typography>
+                    <Typography>
+                      {logDetails.resource.name} (ID: {logDetails.resource.id})
+                    </Typography>
+                  </Box>
+                )}
+
                 <Box>
                   <Typography variant="subtitle2" color="text.secondary" gutterBottom>
                     {t('webhooks.payload')}
@@ -373,17 +384,7 @@ const WebhookLogs = ({ webhooks }) => {
                     </Typography>
                   </Box>
                 )}
-
-                {logDetails.resource && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      {t('webhooks.resource')}
-                    </Typography>
-                    <Typography>
-                      {logDetails.resource.name} (ID: {logDetails.resource.id})
-                    </Typography>
-                  </Box>
-                )}
+                
               </Stack>
             </Box>
           )}
