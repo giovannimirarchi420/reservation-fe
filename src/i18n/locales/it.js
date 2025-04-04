@@ -546,8 +546,8 @@ const it = {
     unableToRemoveUser: "Impossibile rimuovere l'utente '{{name}}' dalla federazione",
     unableToAddAdmin: "Impossibile aggiungere l'utente '{{name}}' come amministratore della federazione",
     unableToRemoveAdmin: "Impossibile rimuovere l'amministratore '{{name}}'",
-    confirmRemoveUser: "Sei sicuro di voler rimuovere l'utente '{{name}}' dalla federazione '{federation}'?",
-    confirmRemoveAdmin: "Sei sicuro di voler rimuovere '{{name}}' come amministratore della federazione '{federation}'?",
+    confirmRemoveUser: "Sei sicuro di voler rimuovere l'utente '{{name}}' dalla federazione '{{federation}}'?",
+    confirmRemoveAdmin: "Sei sicuro di voler rimuovere '{{name}}' come amministratore della federazione '{{federation}}'?",
     removeFromFederation: "Rimuovi dalla federazione",
     removeAdminRole: "Rimuovi ruolo di amministratore",
     unableToLoadUsers: "Impossibile caricare gli utenti"

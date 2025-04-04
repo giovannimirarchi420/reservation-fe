@@ -550,8 +550,8 @@ const en = {
       unableToRemoveUser: "Unable to remove user '{{name}}' from federation",
       unableToAddAdmin: "Unable to add user '{{name}}' as federation administrator",
       unableToRemoveAdmin: "Unable to remove administrator '{{name}}'",
-      confirmRemoveUser: "Are you sure you want to remove user '{{name}}' from federation '{federation}'?",
-      confirmRemoveAdmin: "Are you sure you want to remove '{{name}}' as administrator of federation '{federation}'?",
+      confirmRemoveUser: "Are you sure you want to remove user '{{name}}' from federation '{{federation}}'?",
+      confirmRemoveAdmin: "Are you sure you want to remove '{{name}}' as administrator of federation '{{federation}}'?",
       removeFromFederation: "Remove from federation",
       removeAdminRole: "Remove administrator role",
       unableToLoadUsers: "Unable to load users"

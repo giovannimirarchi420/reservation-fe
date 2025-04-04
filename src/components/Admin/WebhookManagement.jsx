@@ -23,8 +23,9 @@ import WebhookLogs from './Webhooks/WebhookLogs';
 const WebhookManagement = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const { currentFederation } = useFederation();
+  const { currentFederation, STARTER_FEDERATION } = useFederation();
   const [webhooks, setWebhooks] = useState([]);
+  const [filteredWebhooks, setFilteredWebhooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentTab, setCurrentTab] = useState(0);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -50,7 +51,26 @@ const WebhookManagement = () => {
     };
 
     loadWebhooks();
-  }, [withErrorHandling, t, currentFederation, needsRefresh]);
+  }, [withErrorHandling, t, needsRefresh]);
+
+  // Filter webhooks based on currentFederation
+  useEffect(() => {
+    if (!webhooks || webhooks.length === 0) {
+      setFilteredWebhooks([]);
+      return;
+    }
+
+    // If no federation is selected or 'ALL' is selected, show all webhooks
+    if (!currentFederation || currentFederation === STARTER_FEDERATION) {
+      setFilteredWebhooks(webhooks);
+    } else {
+      // Otherwise, filter webhooks by the selected federation ID
+      const filtered = webhooks.filter(webhook => 
+        webhook.federationId === currentFederation.id
+      );
+      setFilteredWebhooks(filtered);
+    }
+  }, [webhooks, currentFederation, STARTER_FEDERATION]);
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {
@@ -128,7 +148,7 @@ const WebhookManagement = () => {
             <>
               {currentTab === 0 && (
                 <WebhookList 
-                  webhooks={webhooks} 
+                  webhooks={filteredWebhooks} 
                   onEdit={handleEditWebhook} 
                   onDeleted={handleWebhookDeleted}
                   onShowNotification={showNotification} 
@@ -136,7 +156,7 @@ const WebhookManagement = () => {
                 />
               )}
 
-              {currentTab === 1 && <WebhookLogs webhooks={webhooks} />}
+              {currentTab === 1 && <WebhookLogs webhooks={filteredWebhooks} />}
             </>
           )}
         </Box>
