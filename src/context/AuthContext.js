@@ -1,7 +1,7 @@
 import React, { createContext, useCallback, useEffect, useState } from 'react';
 import keycloak from '../config/keycloak';
 import * as authService from '../services/authService';
-import { FederationRoles } from '../services/federationService';
+import { SiteRoles } from '../services/siteService';
 
 // Create context
 export const AuthContext = createContext();
@@ -96,26 +96,26 @@ export const AuthProvider = ({ children }) => {
     if (!currentUser) return false;
     // Check for GLOBAL_ADMIN role
     if (Array.isArray(currentUser.roles)) {
-      return currentUser.roles.includes(FederationRoles.GLOBAL_ADMIN.toString());
+      return currentUser.roles.includes(SiteRoles.GLOBAL_ADMIN.toString());
     }
     return false;
   }, [currentUser]);
 
-  // Check if user is a federation admin
-  const isFederationAdmin = useCallback((federationName) => {
+  // Check if user is a site admin
+  const isSiteAdmin = useCallback((siteName) => {
     if (!currentUser) return false;
 
-    // Global admins are automatically federation admins for all federations
+    // Global admins are automatically site admins for all sites
     if (isGlobalAdmin()) return true;
 
     // Check for FEDERATION_ADMIN role
     if (Array.isArray(currentUser.roles)) {
-      const isFedAdmin = currentUser.roles.includes(FederationRoles.FEDERATION_ADMIN.toString());
+      const isFedAdmin = currentUser.roles.includes(SiteRoles.FEDERATION_ADMIN.toString());
       
-      // If federationName is provided, check if user has access to that federation
-      if (federationName && isFedAdmin) {
+      // If siteName is provided, check if user has access to that site
+      if (siteName && isFedAdmin) {
         return Array.isArray(currentUser.adminFederations) && 
-               currentUser.federations.includes(federationName);
+               currentUser.sites.includes(siteName);
       }
       
       return isFedAdmin;
@@ -131,26 +131,26 @@ export const AuthProvider = ({ children }) => {
 
   // Get highest user role for UI purposes (used for color coding)
   const getUserHighestRole = useCallback(() => {
-    if (isGlobalAdmin()) return FederationRoles.GLOBAL_ADMIN;
-    if (isFederationAdmin()) return FederationRoles.FEDERATION_ADMIN;
-    return FederationRoles.USER;
-  }, [isGlobalAdmin, isFederationAdmin]);
+    if (isGlobalAdmin()) return SiteRoles.GLOBAL_ADMIN;
+    if (isSiteAdmin()) return SiteRoles.FEDERATION_ADMIN;
+    return SiteRoles.USER;
+  }, [isGlobalAdmin, isSiteAdmin]);
 
   // Check if user is authorized for a given action
-  const isAuthorized = useCallback((requiredRole = FederationRoles.USER) => {
+  const isAuthorized = useCallback((requiredRole = SiteRoles.USER) => {
     if (!currentUser) return false;
   
     switch (requiredRole) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return isGlobalAdmin();
-      case FederationRoles.FEDERATION_ADMIN:
-        return isGlobalAdmin() || isFederationAdmin();
-      case FederationRoles.USER:
+      case SiteRoles.FEDERATION_ADMIN:
+        return isGlobalAdmin() || isSiteAdmin();
+      case SiteRoles.USER:
         return true; // All authenticated users are basic users
       default:
         return false;
     }
-  }, [currentUser, isGlobalAdmin, isFederationAdmin]);
+  }, [currentUser, isGlobalAdmin, isSiteAdmin]);
 
   // Update token (to call before API requests)
   const updateToken = useCallback(async () => {
@@ -177,7 +177,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isGlobalAdmin,
-    isFederationAdmin,
+    isSiteAdmin: isSiteAdmin,
     isUser,
     getUserHighestRole,
     isAuthorized,

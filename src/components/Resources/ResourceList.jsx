@@ -17,9 +17,10 @@ import {
   Storage as StorageIcon,
   LocationOn as LocationIcon,
   Category as CategoryIcon,
-  AccountTree as AccountTreeIcon
+  AccountTree as AccountTreeIcon,
 } from '@mui/icons-material';
 import { ResourceStatus } from '../../services/resourceService';
+import DomainIcon from '@mui/icons-material/Domain';
 
 const ResourceList = ({ resources, resourceTypes, onResourceSelect }) => {
   const { t } = useTranslation();
@@ -123,6 +124,13 @@ const ResourceList = ({ resources, resourceTypes, onResourceSelect }) => {
                   <LocationIcon sx={{ mr: 1, fontSize: 18, color: 'text.secondary' }} />
                   <Typography variant="body2" color="text.secondary">
                     {resource.location}
+                  </Typography>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                  <DomainIcon sx={{ mr: 1, fontSize: 18, color: 'text.secondary' }} />
+                  <Typography variant="body2" color="text.secondary">
+                    {resource.siteName}
                   </Typography>
                 </Box>
                 

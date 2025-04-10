@@ -23,15 +23,15 @@ import UserCard from '../Users/UserCard';
 import UserForm from '../Users/UserForm';
 import { createUser, deleteUser, fetchUsers, updateUser } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
-import { FederationRoles } from '../../services/federationService';
+import { SiteRoles } from '../../services/siteService';
 import { AuthContext } from '../../context/AuthContext';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 
 const UserManagement = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const { isGlobalAdmin } = useContext(AuthContext);
-  const { currentFederation } = useFederation();
+  const { currentSite } = useSite();
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
@@ -59,7 +59,7 @@ const UserManagement = () => {
       setIsLoading(true);
       try {
         await withErrorHandling(async () => {
-          const usersData = await fetchUsers(currentFederation ? { federationId: currentFederation.id } : {});
+          const usersData = await fetchUsers(currentSite ? { siteId: currentSite.id } : {});
           setUsers(usersData);
         }, {
           errorMessage: t('errors.unableToLoadUserList'),
@@ -71,7 +71,7 @@ const UserManagement = () => {
     };
 
     loadUsers();
-  }, [withErrorHandling, t, currentFederation]);
+  }, [withErrorHandling, t, currentSite]);
 
   // Filter users based on search and role
   const filteredUsers = users.filter(user => {
@@ -167,13 +167,13 @@ const UserManagement = () => {
   // Get role display elements based on role name
   const getRoleDisplay = (role) => {
     switch (role.toUpperCase()) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return {
           label: t('userManagement.globalAdministrator'),
           icon: <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />,
           color: 'gold'
         };
-      case FederationRoles.FEDERATION_ADMIN:
+      case SiteRoles.FEDERATION_ADMIN:
         return {
           label: t('userManagement.federationAdministrator'),
           icon: <SupervisorAccountIcon fontSize="small" sx={{ mr: 1, color: '#f44336' }} />,
@@ -237,15 +237,15 @@ const UserManagement = () => {
             <MenuItem value="">{t('userManagement.allRoles')}</MenuItem>
             
             {/* Regular user option */}
-            <MenuItem value={FederationRoles.USER}>
+            <MenuItem value={SiteRoles.USER}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <PersonIcon color="primary" />
                 <Typography>{t('userManagement.user')}</Typography>
               </Stack>
             </MenuItem>
             
-            {/* Federation admin option */}
-            <MenuItem value={FederationRoles.FEDERATION_ADMIN}>
+            {/* Site admin option */}
+            <MenuItem value={SiteRoles.FEDERATION_ADMIN}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <SupervisorAccountIcon sx={{ color: '#f44336' }} />
                 <Typography>{t('userManagement.federationAdministrator')}</Typography>
@@ -254,7 +254,7 @@ const UserManagement = () => {
             
             {/* Global admin option - only visible to global admins */}
             {canManageGlobalAdmins && (
-              <MenuItem value={FederationRoles.GLOBAL_ADMIN}>
+              <MenuItem value={SiteRoles.GLOBAL_ADMIN}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <SecurityIcon sx={{ color: 'gold' }} />
                   <Typography>{t('userManagement.globalAdministrator')}</Typography>

@@ -20,8 +20,8 @@ export const ResourceStatus = {
 export const fetchResources = (filters = {}) => {
   const queryParams = [];
 
-  if (filters.federationId) {
-    queryParams.push(`federationId=${filters.federationId}`);
+  if (filters.siteId) {
+    queryParams.push(`siteId=${filters.siteId}`);
   }
   
   if (filters.status !== undefined) {

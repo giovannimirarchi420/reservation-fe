@@ -726,7 +726,7 @@ const AuditLogsManagement = () => {
                     <TableCell>{log.id}</TableCell>
                     <TableCell>{formatDate(log.timestamp, 'DD/MM/YYYY HH:mm')}</TableCell>
                     <TableCell>{log.username}</TableCell>
-                    <TableCell>{log.federationName || '-'}</TableCell>
+                    <TableCell>{log.siteName || '-'}</TableCell>
                     <TableCell>
                       <Chip 
                         label={log.logType} 

@@ -10,10 +10,10 @@ import {
   TextField,
   CircularProgress
 } from '@mui/material';
-import { createFederation, updateFederation } from '../../services/federationService';
+import { createSite, updateSite } from '../../services/siteService';
 import useApiError from '../../hooks/useApiError';
 
-const FederationForm = ({ open, onClose, federation, onSave }) => {
+const SiteForm = ({ open, onClose, federation, onSave }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const [formData, setFormData] = useState({
@@ -85,10 +85,10 @@ const FederationForm = ({ open, onClose, federation, onSave }) => {
         
         if (formData.id) {
           // Update existing federation
-          savedFederation = await updateFederation(formData.id, formData);
+          savedFederation = await updateSite(formData.id, formData);
         } else {
           // Create new federation
-          savedFederation = await createFederation(formData);
+          savedFederation = await createSite(formData);
         }
         
         if (savedFederation) {
@@ -162,4 +162,4 @@ const FederationForm = ({ open, onClose, federation, onSave }) => {
   );
 };
 
-export default FederationForm;
+export default SiteForm;

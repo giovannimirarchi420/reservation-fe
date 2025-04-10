@@ -20,7 +20,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SecurityIcon from '@mui/icons-material/Security';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import PersonIcon from '@mui/icons-material/Person';
-import { FederationRoles } from '../../services/federationService';
+import { SiteRoles } from '../../services/siteService';
 
 const UserCard = ({ user, onEdit, onDelete }) => {
     const { t } = useTranslation();
@@ -48,35 +48,35 @@ const UserCard = ({ user, onEdit, onDelete }) => {
     const getUserRole = () => {
         // Check for roles array first
         if (Array.isArray(user.roles)) {
-            if (user.roles.includes(FederationRoles.GLOBAL_ADMIN)) {
-                return FederationRoles.GLOBAL_ADMIN;
+            if (user.roles.includes(SiteRoles.GLOBAL_ADMIN)) {
+                return SiteRoles.GLOBAL_ADMIN;
             }
-            if (user.roles.includes(FederationRoles.FEDERATION_ADMIN)) {
-                return FederationRoles.FEDERATION_ADMIN;
+            if (user.roles.includes(SiteRoles.FEDERATION_ADMIN)) {
+                return SiteRoles.FEDERATION_ADMIN;
             }
-            return FederationRoles.USER;
+            return SiteRoles.USER;
         }
         
         // Fallback to legacy role field
         if (typeof user.role === 'string') {
             const role = user.role.toUpperCase();
             if (role === 'GLOBAL_ADMIN' || role === 'ADMIN') {
-                return FederationRoles.GLOBAL_ADMIN;
+                return SiteRoles.GLOBAL_ADMIN;
             }
             if (role === 'FEDERATION_ADMIN') {
-                return FederationRoles.FEDERATION_ADMIN;
+                return SiteRoles.FEDERATION_ADMIN;
             }
         }
         
-        return FederationRoles.USER;
+        return SiteRoles.USER;
     };
 
     // Get role color based on role
     const getRoleColor = (role) => {
         switch (role) {
-            case FederationRoles.GLOBAL_ADMIN:
+            case SiteRoles.GLOBAL_ADMIN:
                 return 'gold'; // Gold for global admins
-            case FederationRoles.FEDERATION_ADMIN:
+            case SiteRoles.FEDERATION_ADMIN:
                 return '#f44336'; // Red for federation admins
             default:
                 return 'primary.main'; // Default blue for regular users
@@ -86,9 +86,9 @@ const UserCard = ({ user, onEdit, onDelete }) => {
     // Get role name for display
     const getRoleName = (role) => {
         switch (role) {
-            case FederationRoles.GLOBAL_ADMIN:
+            case SiteRoles.GLOBAL_ADMIN:
                 return t('userManagement.globalAdministrator');
-            case FederationRoles.FEDERATION_ADMIN:
+            case SiteRoles.FEDERATION_ADMIN:
                 return t('userManagement.federationAdministrator');
             default:
                 return t('userManagement.user');
@@ -98,9 +98,9 @@ const UserCard = ({ user, onEdit, onDelete }) => {
     // Get role icon
     const getRoleIcon = (role) => {
         switch (role) {
-            case FederationRoles.GLOBAL_ADMIN:
+            case SiteRoles.GLOBAL_ADMIN:
                 return <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />;
-            case FederationRoles.FEDERATION_ADMIN:
+            case SiteRoles.FEDERATION_ADMIN:
                 return <SupervisorAccountIcon fontSize="small" sx={{ mr: 1, color: '#f44336' }} />;
             default:
                 return <PersonIcon fontSize="small" sx={{ mr: 1 }} />;
@@ -126,7 +126,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                         sx={{
                             bgcolor: roleColor,
                             mr: 2,
-                            border: userRole === FederationRoles.GLOBAL_ADMIN ? '2px solid white' : 'none'
+                            border: userRole === SiteRoles.GLOBAL_ADMIN ? '2px solid white' : 'none'
                         }}
                     >
                         {user.avatar || displayName.substring(0, 2).toUpperCase()}
@@ -148,8 +148,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                             icon={roleIcon}
                             label={roleName}
                             sx={{ 
-                                bgcolor: userRole === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
-                                        userRole === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
+                                bgcolor: userRole === SiteRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' :
+                                        userRole === SiteRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
                                         'rgba(25, 118, 210, 0.1)',
                                 color: roleColor,
                                 fontWeight: 'bold',

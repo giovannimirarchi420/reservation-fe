@@ -28,11 +28,11 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
     currentUser, 
     logout, 
     isGlobalAdmin, 
-    isFederationAdmin 
+    isSiteAdmin 
   } = useContext(AuthContext);
   
   // Check if user has admin rights (either global or federation)
-  const isAdmin = isGlobalAdmin() || isFederationAdmin();
+  const isAdmin = isGlobalAdmin() || isSiteAdmin();
 
   return (
     <Drawer
@@ -137,8 +137,8 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
           {isGlobalAdmin() && (
             <ListItem
               button
-              selected={currentSection === 'federations'}
-              onClick={() => onSectionChange('federations')}
+              selected={currentSection === 'sites'}
+              onClick={() => onSectionChange('sites')}
               sx={{ cursor: 'pointer' }}
             >
               <ListItemIcon>

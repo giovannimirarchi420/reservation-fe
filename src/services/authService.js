@@ -82,7 +82,7 @@ export const getUserInfo = () => {
             firstName: keycloak.tokenParsed.given_name,
             lastName: keycloak.tokenParsed.family_name,
             roles: keycloak.tokenParsed.realm_access.roles,
-            federations: keycloak.tokenParsed.group,
+            sites: keycloak.tokenParsed.group,
             avatar: createAvatarFromName(keycloak.tokenParsed.name || keycloak.tokenParsed.preferred_username)
         };
     }

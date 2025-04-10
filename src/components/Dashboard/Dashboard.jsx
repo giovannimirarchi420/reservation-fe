@@ -12,7 +12,7 @@ import {
   useTheme 
 } from '@mui/material';
 import { fetchEvents } from '../../services/bookingService';
-import { FederationContext } from '../../context/FederationContext';
+import { SiteContext } from '../../context/SiteContext';
 import { fetchResources } from '../../services/resourceService';
 import { fetchResourceTypes } from '../../services/resourceTypeService';
 import { ResourceStatus } from '../../services/resourceService';
@@ -28,7 +28,7 @@ const Dashboard = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { withErrorHandling } = useApiError();
-  const { currentFederation } = useContext(FederationContext)
+  const { currentSite } = useContext(SiteContext)
   const [events, setEvents] = useState([]);
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
@@ -48,8 +48,8 @@ const Dashboard = () => {
         // Utilizziamo withErrorHandling per ogni chiamata API individuale
         // in modo da gestire meglio gli errori parziali
         let filter = {}
-        if(currentFederation?.id){
-          filter = {federationId: currentFederation.id};
+        if(currentSite?.id){
+          filter = {siteId: currentSite.id};
         }
         
 
@@ -96,7 +96,7 @@ const Dashboard = () => {
     };
 
     loadData();
-  }, [withErrorHandling, t, currentFederation]);
+  }, [withErrorHandling, t, currentSite]);
 
   // Calcola le statistiche principali
   const calculateStats = (eventsData, resourcesData) => {

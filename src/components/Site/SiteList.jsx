@@ -24,16 +24,16 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GroupIcon from '@mui/icons-material/Group';
 import DomainIcon from '@mui/icons-material/Domain';
 import InfoIcon from '@mui/icons-material/Info';
-import { fetchFederations, deleteFederation } from '../../services/federationService';
-import FederationForm from './FederationForm';
-import FederationDetailsDrawer from './FederationDetailsDrawer';
+import { fetchSites, deleteSite } from '../../services/siteService';
+import SiteForm from './SiteForm';
+import SiteDetailsDrawer from './SiteDetailsDrawer';
 import useApiError from '../../hooks/useApiError';
 
-const FederationList = () => {
+const SiteList = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const [federations, setFederations] = useState([]);
-  const [filteredFederations, setFilteredFederations] = useState([]);
+  const [sites, setSites] = useState([]);
+  const [filteredSites, setFilteredSites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -41,23 +41,23 @@ const FederationList = () => {
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [notification, setNotification] = useState(null);
 
-  // Filter federations when search term changes
+  // Filter sites when search term changes
   useEffect(() => {
-    const filtered = federations.filter(federation => 
-      federation.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (federation.description && federation.description.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filtered = sites.filter(site =>
+      site.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (site.description && site.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-    setFilteredFederations(filtered);
-  }, [federations, searchTerm]);
+    setFilteredSites(filtered);
+  }, [sites, searchTerm]);
 
-  // Load federations from API with useCallback to avoid ESLint dependency warnings
-  const loadFederations = useCallback(async () => {
+  // Load sites from API with useCallback to avoid ESLint dependency warnings
+  const loadSites = useCallback(async () => {
     setIsLoading(true);
     try {
       await withErrorHandling(async () => {
-        const federationsData = await fetchFederations();
-        setFederations(federationsData);
-        setFilteredFederations(federationsData);
+        const sitesData = await fetchSites();
+        setSites(sitesData);
+        setFilteredSites(sitesData);
       }, {
         errorMessage: t('federations.unableToLoadFederations'),
         showError: true
@@ -67,10 +67,10 @@ const FederationList = () => {
     }
   }, [withErrorHandling, t]);
 
-  // Load federations
+  // Load sites
   useEffect(() => {
-    loadFederations();
-  }, [loadFederations]);
+    loadSites();
+  }, [loadSites]);
   
   // Show a notification
   const showNotification = (message, severity = 'success') => {
@@ -81,12 +81,6 @@ const FederationList = () => {
   // Handle add federation
   const handleAddFederation = () => {
     setSelectedFederation(null);
-    setIsFormOpen(true);
-  };
-
-  // Handle edit federation
-  const handleEditFederation = (federation) => {
-    setSelectedFederation(federation);
     setIsFormOpen(true);
   };
 
@@ -106,8 +100,8 @@ const FederationList = () => {
 
     try {
       await withErrorHandling(async () => {
-        await deleteFederation(federation.id);
-        setFederations(federations.filter(f => f.id !== federation.id));
+        await deleteSite(federation.id);
+        setSites(sites.filter(f => f.id !== federation.id));
         showNotification(
           t('federations.federationDeletedSuccess', { name: federation.name }),
           'success'
@@ -125,8 +119,8 @@ const FederationList = () => {
   const handleSaveFederation = (federation) => {
     if (federation.id) {
       // Update existing federation
-      setFederations(
-        federations.map(f => (f.id === federation.id ? federation : f))
+      setSites(
+        sites.map(f => (f.id === federation.id ? federation : f))
       );
       console.log(federation)
       showNotification(
@@ -135,7 +129,7 @@ const FederationList = () => {
       );
     } else {
       // Add new federation
-      setFederations([...federations, federation]);
+      setSites([...sites, federation]);
       showNotification(
         t('federations.federationCreatedSuccess', { name: federation.name }),
         'success'
@@ -173,17 +167,6 @@ const FederationList = () => {
                 {federation.name}
               </Typography>
               <Box>
-                <Tooltip title={t('common.edit')}>
-                  <IconButton
-                    size="small"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditFederation(federation);
-                    }}
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
                 <Tooltip title={t('common.delete')}>
                   <IconButton
                     size="small"
@@ -301,7 +284,7 @@ const FederationList = () => {
         </Box>
       ) : (
         <>
-          {filteredFederations.length === 0 ? (
+          {filteredSites.length === 0 ? (
             <Box sx={{ 
               display: 'flex', 
               flexDirection: 'column',
@@ -329,7 +312,7 @@ const FederationList = () => {
               gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
               gap: 3
             }}>
-              {filteredFederations.map((federation) => (
+              {filteredSites.map((federation) => (
                 <FederationCard key={federation.id} federation={federation} />
               ))}
             </Box>
@@ -338,7 +321,7 @@ const FederationList = () => {
       )}
 
       {/* Federation Form Dialog */}
-      <FederationForm
+      <SiteForm
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         federation={selectedFederation}
@@ -346,7 +329,7 @@ const FederationList = () => {
       />
 
       {/* Federation Details Drawer */}
-      <FederationDetailsDrawer
+      <SiteDetailsDrawer
         open={isDetailDrawerOpen}
         onClose={() => setIsDetailDrawerOpen(false)}
         federation={selectedFederation}
@@ -358,7 +341,7 @@ const FederationList = () => {
           setIsDetailDrawerOpen(false);
           handleDeleteFederation(selectedFederation);
         }}
-        onFederationChanged={() => loadFederations()}
+        onFederationChanged={() => loadSites()}
       />
 
       {/* Notification for successful operations */}
@@ -382,4 +365,4 @@ const FederationList = () => {
   );
 };
 
-export default FederationList;
+export default SiteList;

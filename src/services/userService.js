@@ -10,8 +10,8 @@ import apiRequest from './apiCore';
 export const fetchUsers = (filters = {}) => {
     const queryParams = [];
   
-    if (filters.federationId) {
-      queryParams.push(`federationId=${filters.federationId}`);
+    if (filters.siteId) {
+      queryParams.push(`siteId=${filters.siteId}`);
     }
 
     const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
@@ -31,13 +31,13 @@ export const fetchUser = (id) => apiRequest(`/users/${id}`);
  */
 export const fetchCurrentUser = () => apiRequest('/users/me');
 
-/**
+/** TODO: REMOVE IT
  * Get the current user's SSH public key
  * @returns {Promise<Object>} SSH key data
  */
 export const getUserSshKey = () => apiRequest('/users/me/ssh-key');
 
-/**
+/** TODO: REMOVE IT
  * Update the current user's SSH public key
  * @param {string} sshPublicKey - SSH public key string
  * @returns {Promise<Object>} Updated user data
@@ -66,7 +66,7 @@ export const createUser = (userData) => {
         password: userData.password,
         roles: userData.roles || ['USER'],
         avatar: userData.avatar || '',
-        federationId: userData.federationId || '',
+        siteId: userData.siteId || '',
         sshPublicKey: userData.sshPublicKey || ''
     };
 

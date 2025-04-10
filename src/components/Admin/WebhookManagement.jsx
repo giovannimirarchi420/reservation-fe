@@ -13,7 +13,7 @@ import {
   Stack
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 import { fetchWebhooks } from '../../services/webhookService';
 import useApiError from '../../hooks/useApiError';
 import WebhookList from './Webhooks/WebhookList';
@@ -23,7 +23,7 @@ import WebhookLogs from './Webhooks/WebhookLogs';
 const WebhookManagement = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const { currentFederation, STARTER_FEDERATION } = useFederation();
+  const { currentSite, STARTER_SITE } = useSite();
   const [webhooks, setWebhooks] = useState([]);
   const [filteredWebhooks, setFilteredWebhooks] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -53,7 +53,7 @@ const WebhookManagement = () => {
     loadWebhooks();
   }, [withErrorHandling, t, needsRefresh]);
 
-  // Filter webhooks based on currentFederation
+  // Filter webhooks based on currentSite
   useEffect(() => {
     if (!webhooks || webhooks.length === 0) {
       setFilteredWebhooks([]);
@@ -61,16 +61,16 @@ const WebhookManagement = () => {
     }
 
     // If no federation is selected or 'ALL' is selected, show all webhooks
-    if (!currentFederation || currentFederation === STARTER_FEDERATION) {
+    if (!currentSite || currentSite === STARTER_SITE) {
       setFilteredWebhooks(webhooks);
     } else {
       // Otherwise, filter webhooks by the selected federation ID
       const filtered = webhooks.filter(webhook => 
-        webhook.federationId === currentFederation.id
+        webhook.siteId === currentSite.id
       );
       setFilteredWebhooks(filtered);
     }
-  }, [webhooks, currentFederation, STARTER_FEDERATION]);
+  }, [webhooks, currentSite, STARTER_SITE]);
 
   // Handle tab change
   const handleTabChange = (event, newValue) => {

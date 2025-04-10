@@ -25,7 +25,7 @@ export const WebhookEventTypes = {
     eventType: WebhookEventTypes.ALL,
     secret: '',
     enabled: true,
-    federationId: '',
+    siteId: '',
     maxRetries: 3,
     retryDelaySeconds: 60
   };

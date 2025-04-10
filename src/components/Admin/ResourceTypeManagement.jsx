@@ -31,7 +31,7 @@ import {
 import ResourceTypeForm from './ResourceTypeForm';
 import { getContrastTextColor } from '../../utils/colorUtils';
 import useApiError from '../../hooks/useApiError';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 
 
 const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
@@ -45,7 +45,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
     const [menuAnchorEl, setMenuAnchorEl] = useState(null);
     const [activeResourceTypeId, setActiveResourceTypeId] = useState(null);
     const [notification, setNotification] = useState(null);
-    const { currentFederation } = useFederation();
+    const { currentSite } = useSite();
 
     // Show a notification
     const showNotification = (message, severity = 'success') => {
@@ -63,7 +63,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
             setIsLoading(true);
             try {
                 await withErrorHandling(async () => {
-                    const data = await fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
+                    const data = await fetchResourceTypes(currentSite?.id ? {siteId: currentSite.id} : {})
                     setResourceTypes(data);
                 }, {
                     errorMessage: t('errors.unableToLoadResourceTypes'),
@@ -75,7 +75,7 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
         };
 
         loadResourceTypes();
-    }, [withErrorHandling, t, currentFederation]);
+    }, [withErrorHandling, t, currentSite]);
 
     // Effect to handle opening the form when directed from another component
     useEffect(() => {
@@ -276,6 +276,9 @@ const ResourceTypeManagement = ({ openFormOnMount, resetOpenFormFlag }) => {
                                         </Typography>
                                         <Typography variant="caption" color="text.secondary">
                                             {t('resourceType.color')} {resourceType.color}
+                                        </Typography>
+                                        <Typography variant="caption" color="text.secondary">
+                                            {t('resourceType.site')} {resourceType.siteName}
                                         </Typography>
                                     </Box>
                                 </CardContent>

@@ -29,7 +29,7 @@ import { ResourceStatus } from '../../services/resourceService';
 
 const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) => {
   const { t } = useTranslation();
-  const { currentUser, isFederationAdmin } = useContext(AuthContext);
+  const { currentUser, isSiteAdmin } = useContext(AuthContext);
   const { withErrorHandling, notifyFormError } = useApiError();
   const [formData, setFormData] = useState({
     title: '',
@@ -53,7 +53,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   // Load users only if current user is admin
   useEffect(() => {
     const loadUsers = async () => {
-      if (isFederationAdmin()) {
+      if (isSiteAdmin()) {
         await withErrorHandling(async () => {
           const usersData = await fetchUsers();
           setUsers(usersData);
@@ -65,19 +65,19 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     };
     
     loadUsers();
-  }, [isFederationAdmin, withErrorHandling, t]);
+  }, [isSiteAdmin, withErrorHandling, t]);
 
   // Populate form when an event is selected
   useEffect(() => {
     if (booking) {
       // Determine if user has rights to modify this booking
       const isOwnBooking = booking.userId === currentUser?.id;
-      const canEdit = isOwnBooking || isFederationAdmin();
+      const canEdit = isOwnBooking || isSiteAdmin();
       setIsReadOnly(!canEdit);
       
       // If user is admin and the booking's user ID is not the current user,
       // set useCurrentUser to false
-      const bookingForOtherUser = isFederationAdmin() && booking.userId && booking.userId !== currentUser?.id;
+      const bookingForOtherUser = isSiteAdmin() && booking.userId && booking.userId !== currentUser?.id;
       setUseCurrentUser(!bookingForOtherUser);
       
       setFormData({
@@ -92,7 +92,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     } else {
       resetForm();
     }
-  }, [booking, currentUser, isFederationAdmin]);
+  }, [booking, currentUser, isSiteAdmin]);
 
   // Update affected resources when resourceId changes
   useEffect(() => {
@@ -623,7 +623,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             {renderAffectedResources()}
 
             {/* Section for user selection - only available for admins */}
-            {isFederationAdmin() && (
+            {isSiteAdmin() && (
               <Box sx={{ mt: 3, mb: 2 }}>
                 <Divider sx={{ mb: 2 }}>
                   <Typography variant="caption" color="text.secondary">

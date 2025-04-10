@@ -163,7 +163,7 @@ const WebhookList = ({ webhooks, onEdit, onSave, onDeleted, onShowNotification }
                   
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                     <Typography variant="caption" color="text.secondary">
-                      {t('webhooks.federationName')}: {webhook.federationName || webhook.federationId}
+                      {t('webhooks.federationName')}: {webhook.siteName || webhook.siteId}
                     </Typography>
                   </Box>
                   

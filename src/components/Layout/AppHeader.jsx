@@ -25,13 +25,13 @@ import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../Notifications/NotificationMenu';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
 import ThemeSwitcher from '../ThemeSwitcher/ThemeSwitcher';
-import FederationSelector from '../Federation/FederationSelector';
-import { FederationRoles } from '../../services/federationService';
+import SiteSelector from '../Site/SiteSelector';
+import { SiteRoles } from '../../services/siteService';
 
 const AppHeader = ({ onMenuClick }) => {
   const { t } = useTranslation();
   const { notifications } = useNotification();
-  const { currentUser, logout, isGlobalAdmin, isFederationAdmin, getUserHighestRole } = useContext(AuthContext);
+  const { currentUser, logout, isGlobalAdmin, isSiteAdmin, getUserHighestRole } = useContext(AuthContext);
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
 
@@ -58,8 +58,8 @@ const AppHeader = ({ onMenuClick }) => {
     handleProfileMenuClose();
   };
 
-  const handleNavigateToFederations = () => {
-    navigate('/federations');
+  const handleNavigateToSites = () => {
+    navigate('/sites');
     handleProfileMenuClose();
   };
 
@@ -67,10 +67,10 @@ const AppHeader = ({ onMenuClick }) => {
   const getRoleColor = () => {
     const highestRole = getUserHighestRole();
     switch(highestRole) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return 'gold'; // Gold for global admins
-      case FederationRoles.FEDERATION_ADMIN:
-        return '#f44336'; // Red for federation admins
+      case SiteRoles.FEDERATION_ADMIN:
+        return '#f44336'; // Red for site admins
       default:
         return 'primary.main'; // Default blue for regular users
     }
@@ -93,14 +93,14 @@ const AppHeader = ({ onMenuClick }) => {
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* Federation Selector */}
-            <FederationSelector />
+            {/* Site Selector */}
+            <SiteSelector />
             
             <LanguageSelector />
             <ThemeSwitcher />
             <NotificationMenu />
 
-            <Tooltip title={currentUser && isGlobalAdmin() ? "Global Admin" : (isFederationAdmin() ? "Federation Admin" : "User")}>
+            <Tooltip title={currentUser && isGlobalAdmin() ? "Global Admin" : (isSiteAdmin() ? "Site Admin" : "User")}>
               <IconButton
                 color="inherit"
                 onClick={handleProfileMenuOpen}
@@ -135,8 +135,8 @@ const AppHeader = ({ onMenuClick }) => {
           {t('appHeader.profile')}
         </MenuItem>
         
-        {/* Show Admin menu item if user is either global or federation admin */}
-        {(isGlobalAdmin() || isFederationAdmin()) && (
+        {/* Show Admin menu item if user is either global or site admin */}
+        {(isGlobalAdmin() || isSiteAdmin()) && (
           <MenuItem onClick={handleNavigateToAdmin}>
             {isGlobalAdmin() ? (
               <>
@@ -152,9 +152,9 @@ const AppHeader = ({ onMenuClick }) => {
           </MenuItem>
         )}
         
-        {/* Show Federations menu item only for global admins */}
+        {/* Show Sites menu item only for global admins */}
         {isGlobalAdmin() && (
-          <MenuItem onClick={handleNavigateToFederations}>
+          <MenuItem onClick={handleNavigateToSites}>
             <DomainIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />
             {t('appHeader.federationManagement')}
           </MenuItem>

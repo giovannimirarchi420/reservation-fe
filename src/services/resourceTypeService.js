@@ -10,8 +10,8 @@ import apiRequest from './apiCore';
 export const fetchResourceTypes = (filters = {}) => {
     const queryParams = [];
     
-    if (filters.federationId) {
-        queryParams.push(`federationId=${filters.federationId}`);
+    if (filters.siteId) {
+        queryParams.push(`siteId=${filters.siteId}`);
     }
     
     const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';

@@ -33,13 +33,13 @@ import {
   AdminPanelSettings as AdminPanelSettingsIcon,
 } from '@mui/icons-material';
 import {
-  fetchFederationUsers,
-  fetchFederationAdmins,
-  addUserToFederation,
-  removeUserFromFederation,
-  addFederationAdmin,
-  removeFederationAdmin
-} from '../../services/federationService';
+  fetchSiteUsers,
+  fetchSiteAdmins,
+  addUserToSite,
+  removeUserFromSite,
+  addSiteAdmin,
+  removeSiteAdmin
+} from '../../services/siteService';
 import { fetchUsers } from '../../services/userService';
 import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
@@ -156,7 +156,7 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
   );
 };
 
-const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFederationChanged }) => {
+const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFederationChanged }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
   const { currentUser } = useContext(AuthContext);
@@ -184,7 +184,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
     setIsLoadingMembers(true);
     try {
       await withErrorHandling(async () => {
-        const membersData = await fetchFederationUsers(federation.id);
+        const membersData = await fetchSiteUsers(federation.id);
         setMembers(membersData);
       }, {
         errorMessage: t('federations.unableToLoadMembers'),
@@ -198,7 +198,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
     setIsLoadingAdmins(true);
     try {
       await withErrorHandling(async () => {
-        const adminsData = await fetchFederationAdmins(federation.id);
+        const adminsData = await fetchSiteAdmins(federation.id);
         setAdmins(adminsData);
       }, {
         errorMessage: t('federations.unableToLoadAdmins'),
@@ -220,9 +220,9 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
 
     try {
       await withErrorHandling(async () => {
-        await addUserToFederation(federation.id, user.id);
+        await addUserToSite(federation.id, user.id);
         // Reload members
-        const membersData = await fetchFederationUsers(federation.id);
+        const membersData = await fetchSiteUsers(federation.id);
         setMembers(membersData);
         // Close dialog
         setIsAddUserDialogOpen(false);
@@ -250,7 +250,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
 
     try {
       await withErrorHandling(async () => {
-        await removeUserFromFederation(federation.id, user.id);
+        await removeUserFromSite(federation.id, user.id);
         // Update members list
         setMembers(members.filter(m => m.id !== user.id));
         // Notify parent component
@@ -270,9 +270,9 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
 
     try {
       await withErrorHandling(async () => {
-        await addFederationAdmin(federation.id, user.id);
+        await addSiteAdmin(federation.id, user.id);
         // Reload admins
-        const adminsData = await fetchFederationAdmins(federation.id);
+        const adminsData = await fetchSiteAdmins(federation.id);
         setAdmins(adminsData);
         // Close dialog
         setIsAddAdminDialogOpen(false);
@@ -300,7 +300,7 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
 
     try {
       await withErrorHandling(async () => {
-        await removeFederationAdmin(federation.id, user.id);
+        await removeSiteAdmin(federation.id, user.id);
         // Update admins list
         setAdmins(admins.filter(a => a.id !== user.id));
         // Notify parent component
@@ -535,4 +535,4 @@ const FederationDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, 
       );
     };
     
-    export default FederationDetailsDrawer;
+    export default SiteDetailsDrawer;

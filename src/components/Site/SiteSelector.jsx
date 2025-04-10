@@ -13,17 +13,17 @@ import DomainIcon from '@mui/icons-material/Domain';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import CheckIcon from '@mui/icons-material/Check';
 import { useTranslation } from 'react-i18next';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 
-const FederationSelector = () => {
+const SiteSelector = () => {
   const { t } = useTranslation();
   const { 
-    federations, 
-    currentFederation, 
-    setCurrentFederation,
+    sites,
+    currentSite, 
+    setcurrentSite,
     isGlobalAdmin,
     STARTER_FEDERATION
-  } = useFederation();
+  } = useSite();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -37,12 +37,12 @@ const FederationSelector = () => {
 
   const handleSelect = (federation) => {
     console.log(federation)
-    setCurrentFederation(federation);
+    setcurrentSite(federation);
     handleClose();
   };
 
   // Check if we should show this component at all
-  if (federations.length <= 1 && !isGlobalAdmin()) {
+  if (sites.length <= 1 && !isGlobalAdmin()) {
     return null; // Don't show selector if user has only one federation and is not a global admin
   }
 
@@ -70,7 +70,7 @@ const FederationSelector = () => {
               textOverflow: 'ellipsis'
             }}
           >
-            {currentFederation?.name || 'All Federations'}
+            {currentSite?.name || t('federationSelector.allSites')}
           </Typography>
         </Button>
       </Tooltip>
@@ -91,26 +91,26 @@ const FederationSelector = () => {
           sx: { minWidth: 220 }
         }}
       >
-        {isGlobalAdmin() && (
-          <MenuItem 
-            onClick={() => handleSelect(STARTER_FEDERATION)}
-            selected={!currentFederation}
-          >
-            <ListItemIcon sx={{ minWidth: 36 }}>
-              {currentFederation == STARTER_FEDERATION && <CheckIcon fontSize="small" />}
-            </ListItemIcon>
-            <ListItemText primary={t('federationSelector.allFederations')} />
-          </MenuItem>
-        )}
+        
+        <MenuItem 
+          onClick={() => handleSelect(STARTER_FEDERATION)}
+          selected={!currentSite}
+        >
+          <ListItemIcon sx={{ minWidth: 36 }}>
+            {currentSite == STARTER_FEDERATION && <CheckIcon fontSize="small" />}
+          </ListItemIcon>
+          <ListItemText primary={t('federationSelector.allSites')} />
+        </MenuItem>
+      
 
-        {federations.map((federation) => (
+        {sites.map((federation) => (
           <MenuItem 
             key={federation.id} 
             onClick={() => handleSelect(federation)}
-            selected={currentFederation?.id === federation.id}
+            selected={currentSite?.id === federation.id}
           >
             <ListItemIcon sx={{ minWidth: 36 }}>
-              {currentFederation?.id === federation.id && <CheckIcon fontSize="small" />}
+              {currentSite?.id === federation.id && <CheckIcon fontSize="small" />}
             </ListItemIcon>
             <ListItemText 
               primary={federation.name} 
@@ -131,4 +131,4 @@ const FederationSelector = () => {
   );
 };
 
-export default FederationSelector;
+export default SiteSelector;

@@ -86,6 +86,10 @@ const ResourceCard = ({ resource, resourceType, onEdit, onDelete }) => {
                     <b>{t('resourceCard.location')}</b> {resource.location}
                 </Typography>
 
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                    <b>{t('resourceCard.site')}</b> {resource.siteName}
+                </Typography>
+
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2, alignItems: 'center' }}>
                     <Chip
                         label={statusInfo.label}

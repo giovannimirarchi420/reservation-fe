@@ -14,11 +14,11 @@ import {
   Select,
   TextField
 } from '@mui/material';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 
 const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, onSave, onDelete }) => {
   const { t } = useTranslation();
-  const { federations, currentFederation, isGlobalAdmin, isFederationAdmin } = useFederation();
+  const { sites, currentSite, isGlobalAdmin, isSiteAdmin } = useSite();
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -26,7 +26,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
     location: '',
     status: 0, // 0 = active (default)
     parentId: '', // null or empty string means no parent
-    federationId: ''
+    siteId: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -52,12 +52,12 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
         location: resource.location || '',
         status: statusValue,
         parentId: resource.parentId || '',
-        federationId: resource.federationId || ''
+        siteId: resource.siteId || ''
       });
     } else {
       resetForm();
     }
-  }, [resource, currentFederation]);
+  }, [resource, currentSite]);
 
   const resetForm = () => {
     setFormData({
@@ -67,8 +67,8 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
       location: '',
       status: 0,
       parentId: '',
-      // If user is in a federation context or is a federation admin, pre-select their federation
-      federationId: currentFederation ? currentFederation.id : ''
+      // If user is in a site context or is a site admin, pre-select their site
+      siteId: currentSite ? currentSite.id : ''
     });
     setErrors({});
   };
@@ -108,8 +108,8 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
       newErrors.location = t('resourceForm.locationRequired');
     }
 
-    if (!formData.federationId) {
-      newErrors.federationId = t('resourceForm.federationRequired');
+    if (!formData.siteId) {
+      newErrors.siteId = t('resourceForm.federationRequired');
     }
 
     // Check for circular reference in parent-child relationship
@@ -141,30 +141,30 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
         typeId: formData.typeId ? parseInt(formData.typeId) : null,
         status: typeof formData.status === 'string' ? parseInt(formData.status) : formData.status,
         parentId: formData.parentId ? parseInt(formData.parentId) : null,
-        federationId: formData.federationId
+        siteId: formData.siteId
       };
       onSave(preparedData);
     }
   };
 
-  // Filter parent resources to only show those from the same federation
+  // Filter parent resources to only show those from the same site
   const getFilteredParentResources = () => {
-    if (!formData.federationId) return [];
+    if (!formData.siteId) return [];
     
     return allResources.filter(r => 
       r.id !== formData.id && // Cannot be its own parent
-      r.federationId === formData.federationId // Must be in the same federation
+      r.siteId === formData.siteId // Must be in the same site
     );
   };
 
-  // Filter resource types to only show those from the same federation
+  // Filter resource types to only show those from the same site
   const getFilteredResourceTypes = () => {
-    const federationIdToUse = formData.federationId || (currentFederation ? currentFederation.id : '');
-    console.log(federationIdToUse)
-    if (!federationIdToUse) return [];
+    const siteIdToUse = formData.siteId || (currentSite ? currentSite.id : '');
+    console.log(siteIdToUse)
+    if (!siteIdToUse) return [];
     
     return resourceTypes.filter(type => 
-      type.federationId === formData.federationId
+      type.siteId === formData.siteId
     );
   };
 
@@ -191,28 +191,28 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
             />
 
             {/* Federation selector */}
-            <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
+            <FormControl fullWidth margin="normal" required error={!!errors.siteId}>
               <InputLabel id="federation-label">{t('resourceForm.federation')}</InputLabel>
               <Select
                   labelId="federation-label"
-                  name="federationId"
-                  value={formData.federationId || ''}
+                  name="siteId"
+                  value={formData.siteId || ''}
                   label={t('resourceForm.federation')}
                   onChange={handleChange}
                   disabled={!isGlobalAdmin()} // Only global admins can change the federation
               >
                 <MenuItem value="">{t('resourceForm.selectFederation')}</MenuItem>
-                {federations.map(federation => (
+                {sites.map(site => (
                     <MenuItem 
-                      key={federation.id} 
-                      value={federation.id}
-                      disabled={!isGlobalAdmin() && !isFederationAdmin(federation.id)}
+                      key={site.id} 
+                      value={site.id}
+                      disabled={!isGlobalAdmin() && !isSiteAdmin(site.id)}
                     >
-                      {federation.name}
+                      {site.name}
                     </MenuItem>
                 ))}
               </Select>
-              {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+              {errors.siteId && <FormHelperText>{errors.siteId}</FormHelperText>}
             </FormControl>
 
             <FormControl fullWidth margin="normal" required error={!!errors.typeId}>

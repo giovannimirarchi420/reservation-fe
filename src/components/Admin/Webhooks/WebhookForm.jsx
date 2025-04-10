@@ -33,7 +33,7 @@ import {
   ContentCopy as ContentCopyIcon,
   CheckCircle as CheckCircleIcon
 } from '@mui/icons-material';
-import { useFederation } from '../../../context/FederationContext';
+import { useSite } from '../../../context/SiteContext';
 import { WebhookEventTypes, defaultWebhookConfig } from '../../../models/webhook';
 import { createWebhook, updateWebhook } from '../../../services/webhookService';
 import { fetchResources } from '../../../services/resourceService';
@@ -128,7 +128,7 @@ const ClientSecretDialog = ({ open, secret, onClose }) => {
 const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const { federations, currentFederation } = useFederation();
+  const { sites, currentSite } = useSite();
   const [formData, setFormData] = useState({
     ...defaultWebhookConfig,
     resourceSelectionType: 'all', // 'all', 'resource', or 'resourceType'
@@ -149,8 +149,8 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
       try {
         await withErrorHandling(async () => {
           const [resourcesData, resourceTypesData] = await Promise.all([
-            fetchResources(currentFederation?.id ? {federationId: currentFederation.id} : {}),
-            fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
+            fetchResources(currentSite?.id ? {siteId: currentSite.id} : {}),
+            fetchResourceTypes(currentSite?.id ? {siteId: currentSite.id} : {})
           ]);
           setResources(resourcesData);
           setResourceTypes(resourceTypesData);
@@ -166,17 +166,17 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     if (open) {
       loadData();
     }
-  }, [open, withErrorHandling, t, currentFederation]);
+  }, [open, withErrorHandling, t, currentSite]);
 
   // Use federation context for default federation
   useEffect(() => {
-    if (currentFederation && currentFederation !== 'ALL') {
+    if (currentSite && currentSite !== 'ALL') {
       setFormData(prev => ({
         ...prev,
-        federationId: currentFederation.id
+        siteId: currentSite.id
       }));
     }
-  }, [currentFederation]);
+  }, [currentSite]);
 
   // Initialize form with webhook data if editing
   useEffect(() => {
@@ -197,10 +197,10 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
       setFormData({
         ...defaultWebhookConfig,
         resourceSelectionType: 'all',
-        federationId: currentFederation && currentFederation !== 'ALL' ? currentFederation.id : ''
+        siteId: currentSite && currentSite !== 'ALL' ? currentSite.id : ''
       });
     }
-  }, [webhook, currentFederation]);
+  }, [webhook, currentSite]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -294,8 +294,8 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
       newErrors.eventType = t('webhooks.eventTypeRequired');
     }
 
-    if (!formData.federationId) {
-      newErrors.federationId = t('webhooks.federationRequired');
+    if (!formData.siteId) {
+      newErrors.siteId = t('webhooks.federationRequired');
     }
 
     // Validate resource selection based on selection type
@@ -433,22 +433,22 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                   {errors.eventType && <FormHelperText>{errors.eventType}</FormHelperText>}
                 </FormControl>
                 
-                <FormControl fullWidth required error={!!errors.federationId}>
+                <FormControl fullWidth required error={!!errors.siteId}>
                   <InputLabel>{t('webhooks.federation')}</InputLabel>
                   <Select
-                    name="federationId"
-                    value={formData.federationId}
+                    name="siteId"
+                    value={formData.siteId}
                     label={t('webhooks.federation')}
                     onChange={handleChange}
                   >
                     <MenuItem value="">{t('webhooks.selectFederation')}</MenuItem>
-                    {federations.map(federation => (
+                    {sites.map(federation => (
                       <MenuItem key={federation.id} value={federation.id}>
                         {federation.name}
                       </MenuItem>
                     ))}
                   </Select>
-                  {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+                  {errors.siteId && <FormHelperText>{errors.siteId}</FormHelperText>}
                 </FormControl>
               </Stack>
               

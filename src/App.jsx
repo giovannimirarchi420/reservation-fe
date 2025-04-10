@@ -7,13 +7,13 @@ import ProfileManagement from './components/Profile/ProfileManagement';
 import Dashboard from './components/Dashboard/Dashboard';
 import MyBookingsPage from './components/Booking/MyBookingsPage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
-import FederationManagement from './components/Admin/FederationManagement';
+import SiteManagement from './components/Admin/SiteManagement';
 import { AuthContext } from './context/AuthContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import ErrorNotification from './components/Common/ErrorNotification';
 import ResourceExplorer from './components/Resources/ResourceExplorer';
-import { FederationRoles } from './services/federationService';
+import { SiteRoles } from './services/siteService';
 
 // Initialize the global error handler
 const ErrorInitializer = ({ children }) => {
@@ -83,8 +83,8 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
             case 'resources':
                 navigate('/resources');
                 break;
-            case 'federations':
-                navigate('/federations');
+            case 'sites':
+                navigate('/sites');
                 break;
             default:
                 navigate('/');
@@ -112,7 +112,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<Dashboard />}
                                     currentSection="dashboard"
-                                    requiredRole={FederationRoles.FEDERATION_ADMIN}
+                                    requiredRole={SiteRoles.FEDERATION_ADMIN}
                                 />
                             }
                         />
@@ -122,7 +122,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<ResourceExplorer />}
                                     currentSection="resources"
-                                    requiredRole={FederationRoles.USER}
+                                    requiredRole={SiteRoles.USER}
                                 />
                             }
                         />
@@ -132,7 +132,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<BookingCalendar />}
                                     currentSection="calendar"
-                                    requiredRole={FederationRoles.USER}
+                                    requiredRole={SiteRoles.USER}
                                 />
                             }
                         />
@@ -142,7 +142,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<MyBookingsPage />}
                                     currentSection="mybookings"
-                                    requiredRole={FederationRoles.USER}
+                                    requiredRole={SiteRoles.USER}
                                 />
                             }
                         />
@@ -152,7 +152,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<AdminPanel />}
                                     currentSection="admin"
-                                    requiredRole={FederationRoles.FEDERATION_ADMIN}
+                                    requiredRole={SiteRoles.FEDERATION_ADMIN}
                                 />
                             }
                         />
@@ -162,7 +162,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<ProfileManagement />}
                                     currentSection="profile"
-                                    requiredRole={FederationRoles.USER}
+                                    requiredRole={SiteRoles.USER}
                                 />
                             }
                         />
@@ -172,18 +172,18 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<NotificationsPage />}
                                     currentSection="notifications"
-                                    requiredRole={FederationRoles.USER}
+                                    requiredRole={SiteRoles.USER}
                                 />
                             }
                         />
-                        {/* Route for federation management */}
+                        {/* Route for site management */}
                         <Route
-                            path="/federations"
+                            path="/sites"
                             element={
                                 <LayoutWrapper
-                                    element={<FederationManagement />}
-                                    currentSection="federations"
-                                    requiredRole={FederationRoles.GLOBAL_ADMIN}
+                                    element={<SiteManagement />}
+                                    currentSection="sites"
+                                    requiredRole={SiteRoles.GLOBAL_ADMIN}
                                 />
                             }
                         />

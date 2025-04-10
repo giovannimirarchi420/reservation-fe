@@ -15,19 +15,19 @@ import {
     MenuItem
 } from '@mui/material';
 import { getRandomColor } from '../../utils/colorUtils';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 
 /**
  * Form for creating/editing a resource type
  */
 const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => {
     const { t } = useTranslation();
-    const { federations, currentFederation, isGlobalAdmin, isFederationAdmin } = useFederation();
+    const { sites, currentSite, isGlobalAdmin, isSiteAdmin } = useSite();
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         color: getRandomColor(),
-        federationId: ''
+        siteId: ''
     });
     const [errors, setErrors] = useState({});
 
@@ -39,20 +39,20 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                 name: resourceType.name || '',
                 description: resourceType.description || '',
                 color: resourceType.color || getRandomColor(),
-                federationId: resourceType.federationId || ''
+                siteId: resourceType.siteId || ''
             });
         } else {
             resetForm();
         }
-    }, [resourceType, currentFederation]);
+    }, [resourceType, currentSite]);
 
     const resetForm = () => {
         setFormData({
             name: '',
             description: '',
             color: getRandomColor(),
-            // If user is in a federation context or is a federation admin, pre-select their federation
-            federationId: currentFederation ? currentFederation.id : ''
+            // If user is in a site context or is a site admin, pre-select their site
+            siteId: currentSite ? currentSite.id : ''
         });
         setErrors({});
     };
@@ -84,8 +84,8 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
             newErrors.color = t('resourceType.invalidColorCode');
         }
 
-        if (!formData.federationId) {
-            newErrors.federationId = t('resourceType.federationRequired');
+        if (!formData.siteId) {
+            newErrors.siteId = t('resourceType.federationRequired');
         }
 
         setErrors(newErrors);
@@ -128,29 +128,29 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                         helperText={errors.name}
                     />
 
-                    {/* Federation selector */}
-                    <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
+                    {/* Site selector */}
+                    <FormControl fullWidth margin="normal" required error={!!errors.siteId}>
                         <InputLabel id="federation-label">{t('resourceType.federation')}</InputLabel>
                         <Select
                             labelId="federation-label"
-                            name="federationId"
-                            value={formData.federationId || ''}
+                            name="siteId"
+                            value={formData.siteId || ''}
                             label={t('resourceType.federation')}
                             onChange={handleChange}
-                            disabled={!isGlobalAdmin()} // Only global admins can change the federation
+                            disabled={!isGlobalAdmin()} // Only global admins can change the site
                         >
                             <MenuItem value="">{t('resourceType.selectFederation')}</MenuItem>
-                            {federations.map(federation => (
+                            {sites.map(site => (
                                 <MenuItem 
-                                    key={federation.id} 
-                                    value={federation.id}
-                                    disabled={!isGlobalAdmin() && !isFederationAdmin(federation.id)}
+                                    key={site.id}
+                                    value={site.id}
+                                    disabled={!isGlobalAdmin() && !isSiteAdmin(site.id)}
                                 >
-                                    {federation.name}
+                                    {site.name}
                                 </MenuItem>
                             ))}
                         </Select>
-                        {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
+                        {errors.siteId && <FormHelperText>{errors.siteId}</FormHelperText>}
                     </FormControl>
 
                     <TextField

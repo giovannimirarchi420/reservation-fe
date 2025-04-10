@@ -1,9 +1,9 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Box, Typography, Paper } from '@mui/material';
-import FederationList from '../Federation/FederationList';
+import SiteList from '../Site/SiteList';
 
-const FederationManagement = () => {
+const SiteManagement = () => {
   const { t } = useTranslation();
 
   return (
@@ -11,10 +11,10 @@ const FederationManagement = () => {
       <Typography variant="h5" sx={{ mb: 3 }}>{t('federations.management')}</Typography>
       
       <Paper elevation={1} sx={{ p: 0, overflow: 'hidden' }}>
-        <FederationList />
+        <SiteList />
       </Paper>
     </Box>
   );
 };
 
-export default FederationManagement;
+export default SiteManagement;

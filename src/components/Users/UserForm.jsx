@@ -28,14 +28,14 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SecurityIcon from '@mui/icons-material/Security';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import PersonIcon from '@mui/icons-material/Person';
-import { FederationRoles } from '../../services/federationService';
+import { SiteRoles } from '../../services/siteService';
 import { AuthContext } from '../../context/AuthContext';
-import { useFederation } from '../../context/FederationContext';
+import { useSite } from '../../context/SiteContext';
 
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const { t } = useTranslation();
   const { isGlobalAdmin } = useContext(AuthContext);
-  const { federations, currentFederation } = useFederation();
+  const { sites, currentSite } = useSite();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -43,8 +43,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     lastName: '',
     password: '',
     avatar: '',
-    role: FederationRoles.USER.toLowerCase(),
-    federationId: ''
+    role: SiteRoles.USER.toLowerCase(),
+    siteId: ''
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -58,23 +58,23 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   useEffect(() => {
     if (user) {
       // Determine the highest role for single selection
-      let highestRole = FederationRoles.USER;
+      let highestRole = SiteRoles.USER;
       
       // Case 1: user.roles exists as an array
       if (Array.isArray(user.roles)) {
-        if (user.roles.includes(FederationRoles.GLOBAL_ADMIN)) {
-          highestRole = FederationRoles.GLOBAL_ADMIN;
-        } else if (user.roles.includes(FederationRoles.FEDERATION_ADMIN)) {
-          highestRole = FederationRoles.FEDERATION_ADMIN;
+        if (user.roles.includes(SiteRoles.GLOBAL_ADMIN)) {
+          highestRole = SiteRoles.GLOBAL_ADMIN;
+        } else if (user.roles.includes(SiteRoles.FEDERATION_ADMIN)) {
+          highestRole = SiteRoles.FEDERATION_ADMIN;
         }
       } 
       // Case 2: user.role exists as a string
       else if (typeof user.role === 'string') {
         // Legacy role mapping
         if (user.role.toLowerCase() === 'global_admin') {
-          highestRole = FederationRoles.GLOBAL_ADMIN;
+          highestRole = SiteRoles.GLOBAL_ADMIN;
         } else if (user.role.toLowerCase() === 'federation_admin') {
-          highestRole = FederationRoles.FEDERATION_ADMIN;
+          highestRole = SiteRoles.FEDERATION_ADMIN;
         }
       }
       
@@ -87,12 +87,12 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         password: '',  // For security reasons, don't prefill password
         avatar: user.avatar || '',
         role: highestRole, // Single role selection
-        federationId: user.federationId || (currentFederation ? currentFederation.id : '')
+        siteId: user.siteId || (currentSite ? currentSite.id : '')
       });
     } else {
       resetForm();
     }
-  }, [user, currentFederation]);
+  }, [user, currentSite]);
 
   const resetForm = () => {
     setFormData({
@@ -102,8 +102,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       lastName: '',
       password: '',
       avatar: '',
-      role: FederationRoles.USER, // Default to regular user
-      federationId: currentFederation ? currentFederation.id : ''
+      role: SiteRoles.USER, // Default to regular user
+      siteId: currentSite ? currentSite.id : ''
     });
     setErrors({});
   };
@@ -156,9 +156,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       newErrors.password = t('userManagement.passwordRequiredForNewUsers');
     }
 
-    // Require federation selection when currentFederation is null or "all"
-    if (!formData.federationId && (!currentFederation || currentFederation === "all")) {
-      newErrors.federationId = t('errors.federation') + ' ' + t('common.isRequired');
+    // Require site selection when currentSite is null or "all"
+    if (!formData.siteId && (!currentSite || currentSite === "all")) {
+      newErrors.siteId = t('errors.federation') + ' ' + t('common.isRequired');
     }
 
     setErrors(newErrors);
@@ -182,9 +182,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         userData = dataWithoutPassword;
       }
 
-      // If no federation is explicitly selected but current federation exists, use that
-      if (!userData.federationId && currentFederation && currentFederation !== "all") {
-        userData.federationId = currentFederation.id;
+      // If no site is explicitly selected but current site exists, use that
+      if (!userData.siteId && currentSite && currentSite !== "all") {
+        userData.siteId = currentSite.id;
       }
 
       // Convert single role to array for backend
@@ -261,10 +261,10 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   // Get role color based on role
   const getRoleColor = (role) => {
     switch (role) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return 'gold'; // Gold for global admins
-      case FederationRoles.FEDERATION_ADMIN:
-        return '#f44336'; // Red for federation admins
+      case SiteRoles.FEDERATION_ADMIN:
+        return '#f44336'; // Red for site admins
       default:
         return 'primary.main'; // Default blue for regular users
     }
@@ -273,9 +273,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   // Get role name for display
   const getRoleName = (role) => {
     switch (role) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return t('userManagement.globalAdministrator');
-      case FederationRoles.FEDERATION_ADMIN:
+      case SiteRoles.FEDERATION_ADMIN:
         return t('userManagement.federationAdministrator');
       default:
         return t('userManagement.user');
@@ -285,20 +285,20 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   // Get role icon
   const getRoleIcon = (role) => {
     switch (role) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return <SecurityIcon fontSize="small" sx={{ color: 'gold' }} />;
-      case FederationRoles.FEDERATION_ADMIN:
+      case SiteRoles.FEDERATION_ADMIN:
         return <SupervisorAccountIcon fontSize="small" sx={{ color: '#f44336' }} />;
       default:
         return <PersonIcon fontSize="small" />;
     }
   };
 
-  // Determine if we need to show federation selection
-  const showFederationSelection = isGlobalAdmin() || (!currentFederation || currentFederation === "all" || currentFederation === null);
+  // Determine if we need to show site selection
+  const showSiteSelection = isGlobalAdmin() || (!currentSite || currentSite === "all" || currentSite === null);
   
-  // Should we show available federations to select from?
-  const showAvailableFederations = showFederationSelection && federations.length > 0;
+  // Should we show available sites to select from?
+  const showAvailableSites = showSiteSelection && sites.length > 0;
 
   return (
     <Dialog
@@ -410,7 +410,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             <Select
               labelId="user-role-label"
               name="role"
-              value={formData.role || FederationRoles.USER}
+              value={formData.role || SiteRoles.USER}
               label={t('userManagement.role')}
               onChange={handleChange}
               renderValue={(selected) => (
@@ -418,8 +418,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                   label={getRoleName(selected)}
                   icon={getRoleIcon(selected)}
                   sx={{ 
-                    bgcolor: selected === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
-                           selected === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
+                    bgcolor: selected === SiteRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' :
+                           selected === SiteRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
                            'rgba(25, 118, 210, 0.1)',
                     color: getRoleColor(selected),
                     fontWeight: 'bold',
@@ -428,14 +428,14 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                 />
               )}
             >
-                              <MenuItem value={FederationRoles.USER}>
+                              <MenuItem value={SiteRoles.USER}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <PersonIcon color="primary" />
                   <Typography>{t('userManagement.user')}</Typography>
                 </Stack>
               </MenuItem>
               
-              <MenuItem value={FederationRoles.FEDERATION_ADMIN}>
+              <MenuItem value={SiteRoles.FEDERATION_ADMIN}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <SupervisorAccountIcon sx={{ color: '#f44336' }} />
                   <Typography>{t('userManagement.federationAdministrator')}</Typography>
@@ -444,7 +444,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               
               {/* Only show Global Admin option for users who are Global Admins themselves */}
               {canAssignGlobalAdmin && (
-                <MenuItem value={FederationRoles.GLOBAL_ADMIN}>
+                <MenuItem value={SiteRoles.GLOBAL_ADMIN}>
                   <Stack direction="row" alignItems="center" spacing={1}>
                     <SecurityIcon sx={{ color: 'gold' }} />
                     <Typography>{t('userManagement.globalAdministrator')}</Typography>
@@ -453,28 +453,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               )}
             </Select>
           </FormControl>
-
-          {/* Federation selection field */}
-          {showAvailableFederations && (
-            <FormControl fullWidth margin="normal" required error={!!errors.federationId}>
-              <InputLabel id="federation-label">{t('errors.federation')}</InputLabel>
-              <Select
-                labelId="federation-label"
-                name="federationId"
-                value={formData.federationId || ''}
-                label={t('errors.federation')}
-                onChange={handleChange}
-              >
-                <MenuItem value="">{t('errors.selectFederation')}</MenuItem>
-                {federations.map(federation => (
-                  <MenuItem key={federation.id} value={federation.id}>
-                    {federation.name}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.federationId && <FormHelperText>{errors.federationId}</FormHelperText>}
-            </FormControl>
-          )}
 
           <TextField
             label={t('userManagement.avatarInitials')}

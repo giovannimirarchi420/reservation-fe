@@ -24,7 +24,7 @@ import {
 import { fetchResources } from '../../services/resourceService';
 import { fetchResourceTypes } from '../../services/resourceTypeService';
 import ResourceList from './ResourceList';
-import { FederationContext } from '../../context/FederationContext';
+import { SiteContext } from '../../context/SiteContext';
 import ResourceHierarchyView from './ResourceHierarchyView';
 import ResourceDetailDrawer from './ResourceDetailDrawer';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
@@ -34,7 +34,7 @@ import { ResourceStatus } from '../../services/resourceService';
 const ResourceExplorer = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const { currentFederation } = useContext(FederationContext);
+  const { currentSite } = useContext(SiteContext);
   const [resources, setResources] = useState([]);
   const [resourceTypes, setResourceTypes] = useState([]);
   const [filteredResources, setFilteredResources] = useState([]);
@@ -54,8 +54,8 @@ const ResourceExplorer = () => {
       try {
         await withErrorHandling(async () => {
           const [resourcesData, resourceTypesData] = await Promise.all([
-            fetchResources(currentFederation?.id ? {federationId: currentFederation.id} : {}),
-            fetchResourceTypes(currentFederation?.id ? {federationId: currentFederation.id} : {})
+            fetchResources(currentSite?.id ? {siteId: currentSite.id} : {}),
+            fetchResourceTypes(currentSite?.id ? {siteId: currentSite.id} : {})
           ]);
           setResources(resourcesData);
           setResourceTypes(resourceTypesData);
@@ -70,7 +70,7 @@ const ResourceExplorer = () => {
     };
 
     loadData();
-  }, [withErrorHandling, t, currentFederation]);
+  }, [withErrorHandling, t, currentSite]);
 
   // Apply filters when search, filter type, filter status, or status tab changes
   useEffect(() => {

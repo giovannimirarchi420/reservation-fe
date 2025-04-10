@@ -38,7 +38,7 @@ import {
 import { AuthContext } from '../../context/AuthContext';
 import { updateProfile, fetchCurrentUser, getUserSshKey, updateUserSshKey, deleteUserSshKey } from '../../services/userService';
 import useApiError from '../../hooks/useApiError';
-import { FederationRoles } from '../../services/federationService';
+import { SiteRoles } from '../../services/siteService';
 
 const ProfileManagement = () => {
   const { t } = useTranslation();
@@ -81,18 +81,18 @@ const ProfileManagement = () => {
   }, [currentUser]);
 
   // Get user highest role
-  const userHighestRole = currentUser ? getUserHighestRole() : FederationRoles.USER;
+  const userHighestRole = currentUser ? getUserHighestRole() : SiteRoles.USER;
 
   // Get role info based on role
   const getRoleInfo = (role) => {
     switch (role) {
-      case FederationRoles.GLOBAL_ADMIN:
+      case SiteRoles.GLOBAL_ADMIN:
         return { 
           color: 'gold', 
           label: t('userManagement.globalAdministrator'),
           icon: <Security fontSize="small" />
         };
-      case FederationRoles.FEDERATION_ADMIN:
+      case SiteRoles.FEDERATION_ADMIN:
         return { 
           color: '#f44336', 
           label: t('userManagement.federationAdministrator'),
@@ -110,6 +110,8 @@ const ProfileManagement = () => {
   // Get role information
   const roleInfo = getRoleInfo(userHighestRole);
 
+/*
+  Removed because this info should be fetched with users/me endpoint
   // Load SSH key data if not present in user profile
   useEffect(() => {
     const loadSshKey = async () => {
@@ -135,7 +137,7 @@ const ProfileManagement = () => {
     };
 
     loadSshKey();
-  }, [currentUser, isEditing, withErrorHandling, t]);
+  }, [currentUser, isEditing, withErrorHandling, t]); */
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -308,7 +310,7 @@ const ProfileManagement = () => {
                   fontSize: '3rem',
                   mb: 2,
                   bgcolor: roleInfo.color,
-                  border: userHighestRole === FederationRoles.GLOBAL_ADMIN ? '2px solid white' : 'none'
+                  border: userHighestRole === SiteRoles.GLOBAL_ADMIN ? '2px solid white' : 'none'
                 }}
               >
                 {currentUser.avatar || 'U'}
@@ -333,8 +335,8 @@ const ProfileManagement = () => {
                         icon={roleInfo.icon}
                         label={roleInfo.label}
                         sx={{ 
-                          bgcolor: userHighestRole === FederationRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' : 
-                                  userHighestRole === FederationRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' : 
+                          bgcolor: userHighestRole === SiteRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' :
+                                  userHighestRole === SiteRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
                                   'rgba(25, 118, 210, 0.1)',
                           color: roleInfo.color,
                           fontWeight: 'bold',
