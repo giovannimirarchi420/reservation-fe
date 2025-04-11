@@ -101,26 +101,34 @@ export const AuthProvider = ({ children }) => {
     return false;
   }, [currentUser]);
 
-  // Check if user is a site admin
+  // Check if user is a site admin for a specific site (or any site if siteName is not provided)
   const isSiteAdmin = useCallback((siteName) => {
-    if (!currentUser) return false;
+    if (!currentUser || !Array.isArray(currentUser.roles)) return false;
 
     // Global admins are automatically site admins for all sites
     if (isGlobalAdmin()) return true;
 
-    // Check for FEDERATION_ADMIN role
-    if (Array.isArray(currentUser.roles)) {
-      const isFedAdmin = currentUser.roles.includes(SiteRoles.FEDERATION_ADMIN.toString());
-      
-      // If siteName is provided, check if user has access to that site
-      if (siteName && isFedAdmin) {
-        return Array.isArray(currentUser.adminFederations) && 
-               currentUser.sites.includes(siteName);
-      }
-      
-      return isFedAdmin;
+    // If no specific site name is provided, check if user is admin for any site
+    if (!siteName) {
+      return currentUser.roles.some(role => role.endsWith('_site_admin'));
     }
-    return false;
+    
+    // Check for specific site admin role in format: <site_name>_site_admin
+    const siteAdminRole = `${siteName}_site_admin`;
+    return currentUser.roles.includes(siteAdminRole);
+  }, [currentUser, isGlobalAdmin]);
+
+  // Get all sites for which the user is an admin
+  const getAdminSites = useCallback(() => {
+    if (!currentUser || !Array.isArray(currentUser.roles)) return [];
+    
+    // If user is global admin, they don't have specific site admin roles (they're admin for all)
+    if (isGlobalAdmin()) return [];
+    
+    // Extract site names from <site_name>_site_admin roles
+    return currentUser.roles
+      .filter(role => role.endsWith('_site_admin'))
+      .map(role => role.replace('_site_admin', ''));
   }, [currentUser, isGlobalAdmin]);
 
   // Check if user is a regular user
@@ -132,7 +140,7 @@ export const AuthProvider = ({ children }) => {
   // Get highest user role for UI purposes (used for color coding)
   const getUserHighestRole = useCallback(() => {
     if (isGlobalAdmin()) return SiteRoles.GLOBAL_ADMIN;
-    if (isSiteAdmin()) return SiteRoles.FEDERATION_ADMIN;
+    if (isSiteAdmin()) return SiteRoles.SITE_ADMIN;
     return SiteRoles.USER;
   }, [isGlobalAdmin, isSiteAdmin]);
 
@@ -143,7 +151,7 @@ export const AuthProvider = ({ children }) => {
     switch (requiredRole) {
       case SiteRoles.GLOBAL_ADMIN:
         return isGlobalAdmin();
-      case SiteRoles.FEDERATION_ADMIN:
+      case SiteRoles.SITE_ADMIN:
         return isGlobalAdmin() || isSiteAdmin();
       case SiteRoles.USER:
         return true; // All authenticated users are basic users
@@ -177,7 +185,8 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isGlobalAdmin,
-    isSiteAdmin: isSiteAdmin,
+    isSiteAdmin,
+    getAdminSites,
     isUser,
     getUserHighestRole,
     isAuthorized,

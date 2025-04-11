@@ -9,6 +9,7 @@ import MyBookingsPage from './components/Booking/MyBookingsPage';
 import NotificationsPage from './components/Notifications/NotificationsPage';
 import SiteManagement from './components/Admin/SiteManagement';
 import { AuthContext } from './context/AuthContext';
+import { SiteContext } from './context/SiteContext';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { ErrorProvider, useError } from './context/ErrorContext';
 import ErrorNotification from './components/Common/ErrorNotification';
@@ -36,6 +37,7 @@ const ErrorInitializer = ({ children }) => {
 // Wrapper component for routes with layout
 const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
     const { currentUser, loading, isAuthorized } = useContext(AuthContext);
+    const { canManageSites } = useContext(SiteContext);
     const navigate = useNavigate();
 
     if (loading) {
@@ -51,7 +53,13 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
         return <Navigate to="/login" replace />;
     }
 
-    if (requiredRole && !isAuthorized(requiredRole)) {
+    // Special handling for sites section - use canManageSites
+    if (currentSection === 'sites' && !canManageSites()) {
+        return <Navigate to="/calendar" replace />;
+    }
+    
+    // Regular role-based permission check for other sections
+    else if (requiredRole && !isAuthorized(requiredRole)) {
         // If user attempts to access dashboard but is not admin, redirect to calendar
         if (currentSection === 'dashboard') {
             return <Navigate to="/calendar" replace />;
@@ -112,7 +120,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<Dashboard />}
                                     currentSection="dashboard"
-                                    requiredRole={SiteRoles.FEDERATION_ADMIN}
+                                    requiredRole={SiteRoles.SITE_ADMIN} /* Updated from FEDERATION_ADMIN */
                                 />
                             }
                         />
@@ -152,7 +160,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<AdminPanel />}
                                     currentSection="admin"
-                                    requiredRole={SiteRoles.FEDERATION_ADMIN}
+                                    requiredRole={SiteRoles.SITE_ADMIN} /* Updated from FEDERATION_ADMIN */
                                 />
                             }
                         />
@@ -176,14 +184,14 @@ const App = () => {
                                 />
                             }
                         />
-                        {/* Route for site management */}
+                        {/* Route for site management - now uses custom canManageSites check */}
                         <Route
                             path="/sites"
                             element={
                                 <LayoutWrapper
                                     element={<SiteManagement />}
                                     currentSection="sites"
-                                    requiredRole={SiteRoles.GLOBAL_ADMIN}
+                                    requiredRole={null} /* Custom check in LayoutWrapper */
                                 />
                             }
                         />

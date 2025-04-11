@@ -556,7 +556,8 @@ const en = {
       confirmRemoveAdmin: "Are you sure you want to remove '{{name}}' as administrator of site '{{federation}}'?",
       removeFromFederation: "Remove from site",
       removeAdminRole: "Remove administrator role",
-      unableToLoadUsers: "Unable to load users"
+      unableToLoadUsers: "Unable to load users",
+      siteAdminLimitedPermissions: "Site administrators can only view the sites they administer."
     },
     federationSelector: {
       selectFederation: "Select Site",

@@ -21,6 +21,7 @@ import SecurityIcon from '@mui/icons-material/Security';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import { useNotification } from '../../hooks/useNotification';
 import { AuthContext } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 import { useNavigate } from 'react-router-dom';
 import NotificationMenu from '../Notifications/NotificationMenu';
 import LanguageSelector from '../LanguageSelector/LanguageSelector';
@@ -32,6 +33,7 @@ const AppHeader = ({ onMenuClick }) => {
   const { t } = useTranslation();
   const { notifications } = useNotification();
   const { currentUser, logout, isGlobalAdmin, isSiteAdmin, getUserHighestRole } = useContext(AuthContext);
+  const { canManageSites } = useSite();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const navigate = useNavigate();
 
@@ -69,7 +71,7 @@ const AppHeader = ({ onMenuClick }) => {
     switch(highestRole) {
       case SiteRoles.GLOBAL_ADMIN:
         return 'gold'; // Gold for global admins
-      case SiteRoles.FEDERATION_ADMIN:
+      case SiteRoles.SITE_ADMIN:
         return '#f44336'; // Red for site admins
       default:
         return 'primary.main'; // Default blue for regular users
@@ -152,10 +154,10 @@ const AppHeader = ({ onMenuClick }) => {
           </MenuItem>
         )}
         
-        {/* Show Sites menu item only for global admins */}
-        {isGlobalAdmin() && (
+        {/* Show Sites menu item for both global admins and site admins now */}
+        {canManageSites() && (
           <MenuItem onClick={handleNavigateToSites}>
-            <DomainIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />
+            <DomainIcon fontSize="small" sx={{ mr: 1, color: isGlobalAdmin() ? 'gold' : '#f44336' }} />
             {t('appHeader.federationManagement')}
           </MenuItem>
         )}

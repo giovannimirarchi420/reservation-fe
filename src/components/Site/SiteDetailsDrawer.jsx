@@ -22,7 +22,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Alert
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -42,6 +43,7 @@ import {
 } from '../../services/siteService';
 import { fetchUsers } from '../../services/userService';
 import { AuthContext } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 import useApiError from '../../hooks/useApiError';
 
 // User selection dialog component
@@ -159,7 +161,8 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
 const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFederationChanged }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
-  const { currentUser } = useContext(AuthContext);
+  const { currentUser, isGlobalAdmin } = useContext(AuthContext);
+  const { canManageSite } = useSite();
   const [activeTab, setActiveTab] = useState(0);
   const [members, setMembers] = useState([]);
   const [admins, setAdmins] = useState([]);
@@ -168,13 +171,18 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isAddAdminDialogOpen, setIsAddAdminDialogOpen] = useState(false);
+  const [hasPermissionToEdit, setHasPermissionToEdit] = useState(false);
 
   // Load federation data when federation changes
   useEffect(() => {
     if (federation && open) {
       loadFederationData();
+      
+      // Check if user has permission to edit this site
+      const canEdit = isGlobalAdmin() || canManageSite(federation.id);
+      setHasPermissionToEdit(canEdit);
     }
-  }, [federation, open]);
+  }, [federation, open, isGlobalAdmin, canManageSite]);
 
   // Load federation members and admins
   const loadFederationData = async () => {
@@ -354,16 +362,20 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
           {federation.name}
         </Typography>
         <Box>
-          <Tooltip title={t('common.edit')}>
-            <IconButton onClick={onEdit} size="small" sx={{ mr: 1 }}>
-              <EditIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title={t('common.delete')}>
-            <IconButton onClick={() => onDelete(federation)} size="small" color="error" sx={{ mr: 1 }}>
-              <DeleteIcon />
-            </IconButton>
-          </Tooltip>
+          {hasPermissionToEdit && (
+            <>
+              <Tooltip title={t('common.edit')}>
+                <IconButton onClick={onEdit} size="small" sx={{ mr: 1 }}>
+                  <EditIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title={t('common.delete')}>
+                <IconButton onClick={() => onDelete(federation)} size="small" color="error" sx={{ mr: 1 }}>
+                  <DeleteIcon />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
           <IconButton onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
@@ -401,7 +413,18 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
             }}
             sx={{ flexGrow: 1, mr: 1 }}
           />
-          {activeTab === 1 && 
+          
+          {hasPermissionToEdit && activeTab === 0 && (
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => setIsAddUserDialogOpen(true)}
+            >
+              {t('federations.addUser')}
+            </Button>
+          )}
+          
+          {hasPermissionToEdit && activeTab === 1 && 
             (<Button
               startIcon={<AdminPanelSettingsIcon />}
               variant="outlined"
@@ -412,6 +435,12 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
             </Button>
           )}
         </Box>
+
+        {!hasPermissionToEdit && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {t('federations.viewOnlyMode')}
+          </Alert>
+        )}
 
         {activeTab === 0 ? (
           // Members tab
@@ -449,13 +478,14 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
                         />
                         <ListItemSecondaryAction>
                         {currentUser.id === user.id ? '' : 
-                          <Tooltip title={t('federations.removeFromFederation')}>
-                          <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
-                            <PersonRemoveIcon />
-                          </IconButton>
-                        </Tooltip>
+                          hasPermissionToEdit && (
+                            <Tooltip title={t('federations.removeFromFederation')}>
+                              <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
+                                <PersonRemoveIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )
                         }
-                          
                         </ListItemSecondaryAction>
                       </ListItem>
                       <Divider variant="inset" component="li" />
@@ -499,13 +529,14 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
                         />
                         <ListItemSecondaryAction>
                         {currentUser.id === user.id ? '' : 
+                          hasPermissionToEdit && (
                             <Tooltip title={t('federations.removeAdminRole')}>
-                            <IconButton edge="end" onClick={() => handleRemoveAdmin(user)}>
-                              <PersonRemoveIcon />
-                            </IconButton>
-                          </Tooltip>
+                              <IconButton edge="end" onClick={() => handleRemoveAdmin(user)}>
+                                <PersonRemoveIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )
                         }
-                        
                         </ListItemSecondaryAction>
                       </ListItem>
                       <Divider variant="inset" component="li" />

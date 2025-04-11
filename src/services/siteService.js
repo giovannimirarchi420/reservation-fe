@@ -6,7 +6,7 @@ import apiRequest from './apiCore';
 // Define site types for clarity
 export const SiteRoles = {
   GLOBAL_ADMIN: 'global_admin',
-  FEDERATION_ADMIN: 'federation_admin',
+  SITE_ADMIN: 'site_admin',
   USER: 'user'
 };
 
@@ -24,14 +24,14 @@ export const fetchSites = () => apiRequest('/sites');
 export const fetchFederation = (id) => apiRequest(`/sites/${id}`);
 
 /**
- * Create a new site (GLOBAL_ADMIN only)
+ * Create a new site (GLOBAL_ADMIN or SITE_ADMIN)
  * @param {Object} siteData - New site data
  * @returns {Promise<Object>} Created site
  */
 export const createSite = (siteData) => apiRequest('/sites', 'POST', siteData);
 
 /**
- * Update an existing site (GLOBAL_ADMIN only)
+ * Update an existing site (GLOBAL_ADMIN or SITE_ADMIN for their sites)
  * @param {string} id - Site ID
  * @param {Object} siteData - Updated site data
  * @returns {Promise<Object>} Updated site

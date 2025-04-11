@@ -11,7 +11,21 @@ if (window.ENV){
    API_BASE_URL = window.ENV.API_URL
 }
 
-
+// Map of default error messages by status code
+const defaultErrorMessages = {
+  400: "Invalid request. Please check your input data.",
+  401: "Session expired. Please login again.",
+  403: "You don't have permission to perform this action.",
+  404: "Resource not found.",
+  405: "Method not allowed.",
+  408: "Request timeout. Please try again later.",
+  409: "Conflict with the current state of the resource.",
+  429: "Too many requests. Please try again later.",
+  500: "Internal server error. Please contact the administrator.",
+  502: "Bad gateway. Please try again later.",
+  503: "Service unavailable. Please try again later.",
+  504: "Gateway timeout. Please try again later."
+};
 
 /**
  * Generic function for making API requests
@@ -22,7 +36,7 @@ if (window.ENV){
  * @returns {Promise<any>} - API response
  */
 export const apiRequest = async (endpoint, method = 'GET', data = null, options = {}) => {
-  // La funzione per gestire gli errori verrà iniettata dall'esterno quando questo modulo verrà utilizzato
+  // The error handling function will be injected from outside when this module is used
   const errorHandler = window.__errorHandler || ((error) => { throw error; });
   
   try {
@@ -70,15 +84,15 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
           console.error('Error refreshing token', refreshError);
           authService.logout(); // Logout if refresh fails
           
-          // Crea un errore strutturato per la sessione scaduta
-          const sessionError = new Error('Sessione scaduta, effettua nuovamente il login');
+          // Create a structured error for the expired session
+          const sessionError = new Error('Session expired, please login again');
           sessionError.status = 401;
           sessionError.details = refreshError.message;
           return errorHandler(sessionError);
         }
       }
 
-      // Clona la risposta per evitare "Body has already been consumed"
+      // Clone response to avoid "Body has already been consumed"
       const responseClone = response.clone();
       
       let errorData;
@@ -87,23 +101,35 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
         errorData = await response.json();
       } catch (e) {
         try {
-          // Se non è un JSON, prova a leggere come testo dalla risposta clonata
+          // If not JSON, try to read as text from the cloned response
           const textContent = await responseClone.text();
-          errorData = { message: textContent || `Errore ${response.status}: ${response.statusText}` };
+          
+          // If there's text content, use it
+          if (textContent && textContent.trim()) {
+            errorData = { message: textContent };
+          } else {
+            // If no content or empty, use a default message based on status code
+            const defaultMessage = defaultErrorMessages[response.status] || 
+                                 `Error ${response.status}: Operation failed`;
+            errorData = { message: defaultMessage };
+          }
         } catch (textError) {
-          // Se anche la lettura del testo fallisce, usa il messaggio di stato HTTP
-          errorData = { message: `Errore ${response.status}: ${response.statusText}` };
+          // If even text reading fails, use the default message
+          const defaultMessage = defaultErrorMessages[response.status] || 
+                               `Error ${response.status}: ${response.statusText}`;
+          errorData = { message: defaultMessage };
         }
       }
 
-      // Crea un errore strutturato con i dettagli della risposta HTTP
-      const apiError = new Error(errorData.message || `Errore ${response.status}: ${response.statusText}`);
+      // Create a structured error with HTTP response details
+      const apiError = new Error(errorData.message || defaultErrorMessages[response.status] || 
+                               `Error ${response.status}: ${response.statusText}`);
       apiError.status = response.status;
       apiError.statusText = response.statusText;
       apiError.details = errorData;
       apiError.endpoint = endpoint;
       
-      // Gestisci l'errore attraverso il gestore centralizzato
+      // Handle the error through the centralized handler
       return errorHandler(apiError);
     }
 
@@ -117,12 +143,12 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
   } catch (error) {
     console.error(`Error in API request to ${endpoint}:`, error);
     
-    // Crea un errore strutturato per problemi di connessione
-    const networkError = new Error(error.message || 'Errore di connessione al server');
+    // Create a structured error for connection problems
+    const networkError = new Error(error.message || 'Error connecting to server');
     networkError.originalError = error;
     networkError.endpoint = endpoint;
     
-    // Gestisci l'errore attraverso il gestore centralizzato
+    // Handle the error through the centralized handler
     return errorHandler(networkError);
   }
 };

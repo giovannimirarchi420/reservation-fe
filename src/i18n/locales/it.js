@@ -552,7 +552,8 @@ const it = {
     confirmRemoveAdmin: "Sei sicuro di voler rimuovere '{{name}}' come amministratore del sito '{{federation}}'?",
     removeFromFederation: "Rimuovi dal sito",
     removeAdminRole: "Rimuovi ruolo di amministratore",
-    unableToLoadUsers: "Impossibile caricare gli utenti"
+    unableToLoadUsers: "Impossibile caricare gli utenti",
+    siteAdminLimitedPermissions: "Gli amministratori di siti possono visualizzare solo i siti di cui sono amministratori."
   },
   federationSelector: {
     selectFederation: "Seleziona Sito",

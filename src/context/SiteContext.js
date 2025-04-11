@@ -6,7 +6,7 @@ import useApiError from '../hooks/useApiError';
 export const SiteContext = createContext();
 
 export const SiteProvider = ({ children }) => {
-  const { currentUser, isAuthorized, isGlobalAdmin, isSiteAdmin } = useContext(AuthContext);
+  const { currentUser, isAuthorized, isGlobalAdmin, isSiteAdmin, getAdminSites } = useContext(AuthContext);
   const { withErrorHandling } = useApiError();
   const [sites, setSites] = useState([]);
   const [currentSite, setCurrentSite] = useState(null);
@@ -39,8 +39,6 @@ export const SiteProvider = ({ children }) => {
     loadSites();
   }, [currentUser, withErrorHandling]);
 
-
-
   // Check if user has access to a specific site
   const hasSiteAccess = (siteName) => {
     if (!currentUser || !siteName) return false;
@@ -58,6 +56,38 @@ export const SiteProvider = ({ children }) => {
     return false;
   };
 
+  // Check if the user can manage site (create/edit/delete)
+  const canManageSites = () => {
+    // Global admins can manage all sites
+    if (isGlobalAdmin()) return true;
+    
+    // Site admins can now create and manage their own sites
+    if (isSiteAdmin()) return true;
+    
+    return false;
+  };
+
+  // Check if the user can manage specific site
+  const canManageSite = (siteId) => {
+    // Global admins can manage all sites
+    if (isGlobalAdmin()) return true;
+    
+    // Find the site by ID
+    const site = sites.find(s => s.id === siteId);
+    if (!site) return false;
+    
+    // Site admins can manage their own sites
+    return isSiteAdmin(site.name);
+  };
+
+  // Get sites that the user can administer
+  const getManageableSites = () => {
+    if (isGlobalAdmin()) return sites; // Global admins can manage all sites
+    
+    const adminSiteNames = getAdminSites();
+    return sites.filter(site => adminSiteNames.includes(site.name));
+  };
+
   return (
     <SiteContext.Provider
       value={{
@@ -68,7 +98,10 @@ export const SiteProvider = ({ children }) => {
         STARTER_SITE: STARTER_SITE,
         isGlobalAdmin,
         isSiteAdmin,
-        hasSiteAccess: hasSiteAccess
+        hasSiteAccess,
+        canManageSites,
+        canManageSite,
+        getManageableSites
       }}
     >
       {children}

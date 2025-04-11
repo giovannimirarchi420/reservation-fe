@@ -21,6 +21,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 import ExploreIcon from '@mui/icons-material/Explore';
 import DomainIcon from '@mui/icons-material/Domain';
 import { AuthContext } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 
 const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
   const { t } = useTranslation();
@@ -30,8 +31,9 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
     isGlobalAdmin, 
     isSiteAdmin 
   } = useContext(AuthContext);
+  const { canManageSites } = useSite();
   
-  // Check if user has admin rights (either global or federation)
+  // Check if user has admin rights (either global or site)
   const isAdmin = isGlobalAdmin() || isSiteAdmin();
 
   return (
@@ -134,7 +136,8 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
               <ListItemText primary={t('sidebar.administration')} />
             </ListItem>
           )}
-          {isGlobalAdmin() && (
+          
+          {canManageSites() && (
             <ListItem
               button
               selected={currentSection === 'sites'}

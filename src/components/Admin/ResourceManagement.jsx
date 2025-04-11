@@ -146,11 +146,11 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
       if (preparedData.id) {
         // Update an existing resource
         const updatedResource = await updateResource(preparedData.id, preparedData);
-        return { updated: true, resource: updatedResource };
+        return { success: updatedResource.success, updated: true, resource: updatedResource };
       } else {
         // Create a new resource
         const newResource = await createResource(preparedData);
-        return { updated: false, resource: newResource };
+        return { success: newResource.success, updated: false, resource: newResource };
       }
     }, {
       errorMessage: preparedData.id 
@@ -159,7 +159,7 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
       showError: true
     });
 
-    if (result.resource) {
+    if (result.success) {
       if (result.updated) {
         // Update existing resources
         setResources(resources.map(resource =>

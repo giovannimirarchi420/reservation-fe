@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useContext } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Box,
@@ -28,10 +28,14 @@ import { fetchSites, deleteSite } from '../../services/siteService';
 import SiteForm from './SiteForm';
 import SiteDetailsDrawer from './SiteDetailsDrawer';
 import useApiError from '../../hooks/useApiError';
+import { AuthContext } from '../../context/AuthContext';
+import { useSite } from '../../context/SiteContext';
 
 const SiteList = () => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
+  const { isGlobalAdmin, isSiteAdmin } = useContext(AuthContext);
+  const { canManageSite } = useSite();
   const [sites, setSites] = useState([]);
   const [filteredSites, setFilteredSites] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -56,8 +60,20 @@ const SiteList = () => {
     try {
       await withErrorHandling(async () => {
         const sitesData = await fetchSites();
-        setSites(sitesData);
-        setFilteredSites(sitesData);
+        
+        // For site admins, filter only sites they can manage
+        if (!isGlobalAdmin()) {
+          // Filter sites based on admin permissions
+          const managableSites = sitesData.filter(site => 
+            canManageSite(site.id) || isSiteAdmin(site.name)
+          );
+          setSites(managableSites);
+          setFilteredSites(managableSites);
+        } else {
+          // Global admins see all sites
+          setSites(sitesData);
+          setFilteredSites(sitesData);
+        }
       }, {
         errorMessage: t('federations.unableToLoadFederations'),
         showError: true
@@ -65,7 +81,7 @@ const SiteList = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [withErrorHandling, t]);
+  }, [withErrorHandling, t, isGlobalAdmin, canManageSite, isSiteAdmin]);
 
   // Load sites
   useEffect(() => {
@@ -92,6 +108,15 @@ const SiteList = () => {
 
   // Handle delete federation
   const handleDeleteFederation = async (federation) => {
+    // Check if user can delete this site
+    if (!isGlobalAdmin() && !canManageSite(federation.id)) {
+      showNotification(
+        t('federations.noPermissionToDelete', { name: federation.name }),
+        'error'
+      );
+      return;
+    }
+
     const confirmed = window.confirm(
       t('federations.confirmDeleteFederation', { name: federation.name })
     );
@@ -122,7 +147,6 @@ const SiteList = () => {
       setSites(
         sites.map(f => (f.id === federation.id ? federation : f))
       );
-      console.log(federation)
       showNotification(
         t('federations.federationUpdatedSuccess', { name: federation.name }),
         'success'
@@ -140,6 +164,8 @@ const SiteList = () => {
 
   // Federation card component
   const FederationCard = ({ federation }) => {
+    const canManageThisSite = isGlobalAdmin() || canManageSite(federation.id) || isSiteAdmin(federation.name);
+    
     return (
       <Fade in={true} timeout={300}>
         <Card 
@@ -158,28 +184,28 @@ const SiteList = () => {
           }} 
           onClick={() => handleViewFederationDetails(federation)}
         >
-
-          
           <CardContent sx={{ flexGrow: 1, p: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
               <DomainIcon sx={{ fontSize: 28, mr: 1, color: 'primary.main' }} />
               <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 'medium' }}>
                 {federation.name}
               </Typography>
-              <Box>
-                <Tooltip title={t('common.delete')}>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteFederation(federation);
-                    }}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
-              </Box>
+              {canManageThisSite && (
+                <Box>
+                  <Tooltip title={t('common.delete')}>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteFederation(federation);
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              )}
             </Box>
 
             {federation.description && (

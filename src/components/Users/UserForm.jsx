@@ -18,7 +18,14 @@ import {
   TextField,
   Tooltip,
   Typography,
-  Chip
+  Chip,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Divider,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -35,7 +42,7 @@ import { useSite } from '../../context/SiteContext';
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const { t } = useTranslation();
   const { isGlobalAdmin } = useContext(AuthContext);
-  const { sites, currentSite } = useSite();
+  const { sites } = useSite();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -43,8 +50,11 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     lastName: '',
     password: '',
     avatar: '',
-    role: SiteRoles.USER.toLowerCase(),
-    siteId: ''
+    siteId: '',
+    // Simple role for display (global_admin, site_admin, user)
+    baseRole: SiteRoles.USER,
+    // Array of site-specific admin roles in format siteName_site_admin
+    siteAdminRoles: []
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
@@ -57,26 +67,24 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   // Populate the form when a user is selected
   useEffect(() => {
     if (user) {
-      // Determine the highest role for single selection
-      let highestRole = SiteRoles.USER;
+      // Extract site admin roles from all roles
+      const siteAdminRoles = [];
+      let baseRole = SiteRoles.USER;
       
       // Case 1: user.roles exists as an array
       if (Array.isArray(user.roles)) {
         if (user.roles.includes(SiteRoles.GLOBAL_ADMIN)) {
-          highestRole = SiteRoles.GLOBAL_ADMIN;
-        } else if (user.roles.includes(SiteRoles.FEDERATION_ADMIN)) {
-          highestRole = SiteRoles.FEDERATION_ADMIN;
+          baseRole = SiteRoles.GLOBAL_ADMIN;
+        } else {
+          // Look for site-specific admin roles in format siteName_site_admin
+          const sitesAdminRoleList = user.roles.filter(role => role.endsWith('_site_admin'));
+          
+          if (sitesAdminRoleList.length > 0) {
+            baseRole = SiteRoles.SITE_ADMIN;
+            siteAdminRoles.push(...sitesAdminRoleList);
+          }
         }
       } 
-      // Case 2: user.role exists as a string
-      else if (typeof user.role === 'string') {
-        // Legacy role mapping
-        if (user.role.toLowerCase() === 'global_admin') {
-          highestRole = SiteRoles.GLOBAL_ADMIN;
-        } else if (user.role.toLowerCase() === 'federation_admin') {
-          highestRole = SiteRoles.FEDERATION_ADMIN;
-        }
-      }
       
       setFormData({
         id: user.id,
@@ -86,13 +94,14 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         lastName: user.lastName || '',
         password: '',  // For security reasons, don't prefill password
         avatar: user.avatar || '',
-        role: highestRole, // Single role selection
-        siteId: user.siteId || (currentSite ? currentSite.id : '')
+        baseRole: baseRole, // Single role selection
+        siteAdminRoles: siteAdminRoles, // Site admin roles list
+        siteId: user.siteId || ''
       });
     } else {
       resetForm();
     }
-  }, [user, currentSite]);
+  }, [user]);
 
   const resetForm = () => {
     setFormData({
@@ -102,8 +111,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       lastName: '',
       password: '',
       avatar: '',
-      role: SiteRoles.USER, // Default to regular user
-      siteId: currentSite ? currentSite.id : ''
+      baseRole: SiteRoles.USER, // Default to regular user
+      siteAdminRoles: [],
+      siteId: ''
     });
     setErrors({});
   };
@@ -111,15 +121,26 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Log the role change to debug
-    if (name === 'role') {
-      console.log('Role changed to:', value);
+    // Handle special case for baseRole - reset siteAdminRoles when changed to global_admin or user
+    if (name === 'baseRole') {
+      if (value === SiteRoles.GLOBAL_ADMIN || value === SiteRoles.USER) {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value,
+          siteAdminRoles: [] // Clear site admin roles when not a site admin
+        }));
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: value
+        }));
+      }
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
     }
-    
-    setFormData({
-      ...formData,
-      [name]: value
-    });
 
     // Remove errors when the user modifies the field
     if (errors[name]) {
@@ -128,6 +149,30 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         [name]: undefined
       });
     }
+  };
+
+  // Handle toggling a site admin role
+  const handleToggleSiteAdmin = (siteName) => {
+    const roleToToggle = `${siteName}_site_admin`;
+    
+    setFormData(prev => {
+      // Check if this role already exists
+      const hasRole = prev.siteAdminRoles.includes(roleToToggle);
+      
+      if (hasRole) {
+        // Remove the role
+        return {
+          ...prev,
+          siteAdminRoles: prev.siteAdminRoles.filter(role => role !== roleToToggle)
+        };
+      } else {
+        // Add the role
+        return {
+          ...prev,
+          siteAdminRoles: [...prev.siteAdminRoles, roleToToggle]
+        };
+      }
+    });
   };
 
   const validateForm = () => {
@@ -156,9 +201,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       newErrors.password = t('userManagement.passwordRequiredForNewUsers');
     }
 
-    // Require site selection when currentSite is null or "all"
-    if (!formData.siteId && (!currentSite || currentSite === "all")) {
-      newErrors.siteId = t('errors.federation') + ' ' + t('common.isRequired');
+    // Validate site admin roles if baseRole is site_admin
+    if (formData.baseRole === SiteRoles.SITE_ADMIN && formData.siteAdminRoles.length === 0) {
+      newErrors.siteAdminRoles = t('userManagement.selectAtLeastOneSite');
     }
 
     setErrors(newErrors);
@@ -182,16 +227,28 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         userData = dataWithoutPassword;
       }
 
-      // If no site is explicitly selected but current site exists, use that
-      if (!userData.siteId && currentSite && currentSite !== "all") {
-        userData.siteId = currentSite.id;
-      }
-
-      // Convert single role to array for backend
-      userData.roles = [userData.role]; 
+      // Prepare roles array based on baseRole and siteAdminRoles
+      let roles = [];
       
-      console.log('Saving user with role:', userData.role);
-      console.log('Converting to roles array:', userData.roles);
+      switch(userData.baseRole) {
+        case SiteRoles.GLOBAL_ADMIN:
+          roles = [SiteRoles.GLOBAL_ADMIN, SiteRoles.USER];
+          break;
+        case SiteRoles.SITE_ADMIN:
+          roles = [...userData.siteAdminRoles, SiteRoles.USER];
+          break;
+        case SiteRoles.USER:
+        default:
+          roles = [SiteRoles.USER];
+          break;
+      }
+      
+      // Set the roles array
+      userData.roles = roles;
+      
+      // Remove the baseRole and siteAdminRoles fields which are used only for the UI
+      delete userData.baseRole;
+      delete userData.siteAdminRoles;
 
       onSave(userData);
     } else {
@@ -263,7 +320,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     switch (role) {
       case SiteRoles.GLOBAL_ADMIN:
         return 'gold'; // Gold for global admins
-      case SiteRoles.FEDERATION_ADMIN:
+      case SiteRoles.SITE_ADMIN:
         return '#f44336'; // Red for site admins
       default:
         return 'primary.main'; // Default blue for regular users
@@ -275,7 +332,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     switch (role) {
       case SiteRoles.GLOBAL_ADMIN:
         return t('userManagement.globalAdministrator');
-      case SiteRoles.FEDERATION_ADMIN:
+      case SiteRoles.SITE_ADMIN:
         return t('userManagement.federationAdministrator');
       default:
         return t('userManagement.user');
@@ -287,18 +344,12 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     switch (role) {
       case SiteRoles.GLOBAL_ADMIN:
         return <SecurityIcon fontSize="small" sx={{ color: 'gold' }} />;
-      case SiteRoles.FEDERATION_ADMIN:
+      case SiteRoles.SITE_ADMIN:
         return <SupervisorAccountIcon fontSize="small" sx={{ color: '#f44336' }} />;
       default:
         return <PersonIcon fontSize="small" />;
     }
   };
-
-  // Determine if we need to show site selection
-  const showSiteSelection = isGlobalAdmin() || (!currentSite || currentSite === "all" || currentSite === null);
-  
-  // Should we show available sites to select from?
-  const showAvailableSites = showSiteSelection && sites.length > 0;
 
   return (
     <Dialog
@@ -409,8 +460,8 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             <InputLabel id="user-role-label">{t('userManagement.role')}</InputLabel>
             <Select
               labelId="user-role-label"
-              name="role"
-              value={formData.role || SiteRoles.USER}
+              name="baseRole"
+              value={formData.baseRole || SiteRoles.USER}
               label={t('userManagement.role')}
               onChange={handleChange}
               renderValue={(selected) => (
@@ -419,7 +470,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                   icon={getRoleIcon(selected)}
                   sx={{ 
                     bgcolor: selected === SiteRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' :
-                           selected === SiteRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
+                           selected === SiteRoles.SITE_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
                            'rgba(25, 118, 210, 0.1)',
                     color: getRoleColor(selected),
                     fontWeight: 'bold',
@@ -428,14 +479,14 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                 />
               )}
             >
-                              <MenuItem value={SiteRoles.USER}>
+              <MenuItem value={SiteRoles.USER}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <PersonIcon color="primary" />
                   <Typography>{t('userManagement.user')}</Typography>
                 </Stack>
               </MenuItem>
               
-              <MenuItem value={SiteRoles.FEDERATION_ADMIN}>
+              <MenuItem value={SiteRoles.SITE_ADMIN}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <SupervisorAccountIcon sx={{ color: '#f44336' }} />
                   <Typography>{t('userManagement.federationAdministrator')}</Typography>
@@ -453,6 +504,61 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               )}
             </Select>
           </FormControl>
+
+          {/* Only show site selection when role is SITE_ADMIN */}
+          {formData.baseRole === SiteRoles.SITE_ADMIN && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                {t('userManagement.selectSitesForAdmin')}
+              </Typography>
+              
+              {errors.siteAdminRoles && (
+                <Typography color="error" variant="caption">
+                  {errors.siteAdminRoles}
+                </Typography>
+              )}
+              
+              <FormGroup>
+                {sites.map(site => {
+                  const roleId = `${site.name}_site_admin`;
+                  const isSelected = formData.siteAdminRoles.includes(roleId);
+                  
+                  return (
+                    <FormControlLabel
+                      key={site.id}
+                      control={
+                        <Checkbox 
+                          checked={isSelected} 
+                          onChange={() => handleToggleSiteAdmin(site.name)}
+                        />
+                      }
+                      label={site.name}
+                    />
+                  );
+                })}
+              </FormGroup>
+              
+              {formData.siteAdminRoles.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="subtitle2" gutterBottom>
+                    {t('userManagement.selectedSiteRoles')}:
+                  </Typography>
+                  <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                    {formData.siteAdminRoles.map(role => (
+                      <Chip
+                        key={role}
+                        label={role.replace('_site_admin', '')}
+                        color="secondary"
+                        size="small"
+                        variant="outlined"
+                        onDelete={() => handleToggleSiteAdmin(role.replace('_site_admin', ''))}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              )}
+            </Box>
+          )}
 
           <TextField
             label={t('userManagement.avatarInitials')}

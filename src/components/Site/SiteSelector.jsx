@@ -20,7 +20,7 @@ const SiteSelector = () => {
   const { 
     sites,
     currentSite, 
-    setcurrentSite,
+    setCurrentSite,
     isGlobalAdmin,
     STARTER_FEDERATION
   } = useSite();
@@ -37,7 +37,7 @@ const SiteSelector = () => {
 
   const handleSelect = (federation) => {
     console.log(federation)
-    setcurrentSite(federation);
+    setCurrentSite(federation);
     handleClose();
   };
 
