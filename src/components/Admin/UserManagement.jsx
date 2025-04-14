@@ -10,8 +10,7 @@ import {
   TextField,
   Typography,
   Snackbar,
-  Alert,
-  Chip
+  Alert
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
@@ -164,30 +163,6 @@ const UserManagement = () => {
     }
   };
 
-  // Get role display elements based on role name
-  const getRoleDisplay = (role) => {
-    switch (role.toUpperCase()) {
-      case SiteRoles.GLOBAL_ADMIN:
-        return {
-          label: t('userManagement.globalAdministrator'),
-          icon: <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />,
-          color: 'gold'
-        };
-      case SiteRoles.FEDERATION_ADMIN:
-        return {
-          label: t('userManagement.federationAdministrator'),
-          icon: <SupervisorAccountIcon fontSize="small" sx={{ mr: 1, color: '#f44336' }} />,
-          color: '#f44336'
-        };
-      default:
-        return {
-          label: t('userManagement.user'),
-          icon: <PersonIcon fontSize="small" sx={{ mr: 1 }} />,
-          color: 'primary.main'
-        };
-    }
-  };
-
   return (
       <Box>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
@@ -245,10 +220,10 @@ const UserManagement = () => {
             </MenuItem>
             
             {/* Site admin option */}
-            <MenuItem value={SiteRoles.FEDERATION_ADMIN}>
+            <MenuItem value={SiteRoles.SITE_ADMIN}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 <SupervisorAccountIcon sx={{ color: '#f44336' }} />
-                <Typography>{t('userManagement.federationAdministrator')}</Typography>
+                <Typography>{t('userManagement.siteAdministrator')}</Typography>
               </Stack>
             </MenuItem>
             

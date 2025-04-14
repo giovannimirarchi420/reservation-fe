@@ -51,8 +51,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
             if (user.roles.includes(SiteRoles.GLOBAL_ADMIN)) {
                 return SiteRoles.GLOBAL_ADMIN;
             }
-            if (user.roles.includes(SiteRoles.FEDERATION_ADMIN)) {
-                return SiteRoles.FEDERATION_ADMIN;
+            if (user.roles.includes(SiteRoles.SITE_ADMIN)) {
+                return SiteRoles.SITE_ADMIN;
             }
             return SiteRoles.USER;
         }
@@ -63,8 +63,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
             if (role === 'GLOBAL_ADMIN' || role === 'ADMIN') {
                 return SiteRoles.GLOBAL_ADMIN;
             }
-            if (role === 'FEDERATION_ADMIN') {
-                return SiteRoles.FEDERATION_ADMIN;
+            if (role === 'SITE_ADMIN') {
+                return SiteRoles.SITE_ADMIN;
             }
         }
         
@@ -76,7 +76,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
         switch (role) {
             case SiteRoles.GLOBAL_ADMIN:
                 return 'gold'; // Gold for global admins
-            case SiteRoles.FEDERATION_ADMIN:
+            case SiteRoles.SITE_ADMIN:
                 return '#f44336'; // Red for federation admins
             default:
                 return 'primary.main'; // Default blue for regular users
@@ -88,8 +88,8 @@ const UserCard = ({ user, onEdit, onDelete }) => {
         switch (role) {
             case SiteRoles.GLOBAL_ADMIN:
                 return t('userManagement.globalAdministrator');
-            case SiteRoles.FEDERATION_ADMIN:
-                return t('userManagement.federationAdministrator');
+            case SiteRoles.SITE_ADMIN:
+                return t('userManagement.siteAdministrator');
             default:
                 return t('userManagement.user');
         }
@@ -100,7 +100,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
         switch (role) {
             case SiteRoles.GLOBAL_ADMIN:
                 return <SecurityIcon fontSize="small" sx={{ mr: 1, color: 'gold' }} />;
-            case SiteRoles.FEDERATION_ADMIN:
+            case SiteRoles.SITE_ADMIN:
                 return <SupervisorAccountIcon fontSize="small" sx={{ mr: 1, color: '#f44336' }} />;
             default:
                 return <PersonIcon fontSize="small" sx={{ mr: 1 }} />;
@@ -149,7 +149,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
                             label={roleName}
                             sx={{ 
                                 bgcolor: userRole === SiteRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' :
-                                        userRole === SiteRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
+                                        userRole === SiteRoles.SITE_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
                                         'rgba(25, 118, 210, 0.1)',
                                 color: roleColor,
                                 fontWeight: 'bold',

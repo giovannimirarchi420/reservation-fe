@@ -10,7 +10,6 @@ import {
   CircularProgress,
   Snackbar,
   Alert,
-  Stack
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useSite } from '../../context/SiteContext';
@@ -60,11 +59,11 @@ const WebhookManagement = () => {
       return;
     }
 
-    // If no federation is selected or 'ALL' is selected, show all webhooks
+    // If no site is selected or 'ALL' is selected, show all webhooks
     if (!currentSite || currentSite === STARTER_SITE) {
       setFilteredWebhooks(webhooks);
     } else {
-      // Otherwise, filter webhooks by the selected federation ID
+      // Otherwise, filter webhooks by the selected site ID
       const filtered = webhooks.filter(webhook => 
         webhook.siteId === currentSite.id
       );

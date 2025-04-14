@@ -133,10 +133,10 @@ const LogDetailsDialog = ({ open, log, onClose }) => {
             </Box>
             <Box sx={{ flex: 1 }}>
               <Typography variant="subtitle2" color="text.secondary">
-                {t('auditLogs.federation')}
+                {t('auditLogs.site')}
               </Typography>
               <Typography variant="body1" gutterBottom>
-                {log.federationName || t('auditLogs.notApplicable')}
+                {log.siteName || t('auditLogs.notApplicable')}
               </Typography>
             </Box>
           </Stack>
@@ -638,8 +638,8 @@ const AuditLogsManagement = () => {
                     <MenuItem value="EVENT">EVENT</MenuItem>
                     <MenuItem value="USER">USER</MenuItem>
                     <MenuItem value="NOTIFICATION">NOTIFICATION</MenuItem>
-                    <MenuItem value="FEDERATION">FEDERATION</MenuItem>
-                    <MenuItem value="FEDERATION-USER">FEDERATION-USER</MenuItem>
+                    <MenuItem value="SITE">SITE</MenuItem>
+                    <MenuItem value="SITE-USER">SITE-USER</MenuItem>
                   </Select>
                 </FormControl>
                 
@@ -696,7 +696,7 @@ const AuditLogsManagement = () => {
                 <TableCell>{t('auditLogs.id')}</TableCell>
                 <TableCell>{t('auditLogs.timestamp')}</TableCell>
                 <TableCell>{t('auditLogs.username')}</TableCell>
-                <TableCell>{t('auditLogs.federation')}</TableCell>
+                <TableCell>{t('auditLogs.site')}</TableCell>
                 <TableCell>{t('auditLogs.type')}</TableCell>
                 <TableCell>{t('auditLogs.entityType')}</TableCell>
                 <TableCell>{t('auditLogs.action')}</TableCell>

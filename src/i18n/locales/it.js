@@ -4,7 +4,7 @@ const it = {
       profile: "Profilo",
       administration: "Amministrazione",
       logout: "Logout",
-      federationManagement: "Gestione Siti"
+      siteManagement: "Gestione Siti"
     },
     footer: {
       title: "Controllo Accesso Risorse Cloud",
@@ -22,7 +22,7 @@ const it = {
       administration: "Amministrazione",
       resources: "Risorse",
       logout: "Logout",
-      federations: "Siti"
+      sites: "Siti"
     },
     login: {
       title: "Accesso al sistema",
@@ -93,7 +93,7 @@ const it = {
     },
     userManagement: {
       globalAdministrator: "Amministratore Globale",
-      federationAdministrator: "Amministratore di Sito",
+      siteAdministrator: "Amministratore di Sito",
       user: "Utente",
       title: "Utenti Registrati",
       addUser: "Aggiungi Utente",
@@ -156,9 +156,9 @@ const it = {
       childResourceWarning: "Questa risorsa fa parte di una gerarchia. La prenotazione potrebbe essere influenzata dalla disponibilità della sua risorsa principale.", 
       parentResourceWarning: "La prenotazione di questa risorsa renderà indisponibili tutte le sue risorse secondarie durante lo stesso periodo.", 
       affectedSubResources: "Risorse secondarie che saranno interessate:" ,
-      federation: "Sito",
-      selectFederation: "Seleziona un sito",
-      federationRequired: "Il sito è obbligatorio"
+      site: "Sito",
+      selectSite: "Seleziona un sito",
+      siteRequired: "Il sito è obbligatorio"
     },
     resourceCard: {
       site: "Sito:",
@@ -402,9 +402,9 @@ const it = {
     unableToMarkAllNotificationsAsRead: "Impossibile segnare tutte le notifiche come lette",
     unableToDeleteNotification: "Impossibile eliminare la notifica",
     moreErrorsNotDisplayed: "Ci sono altri {{count}} errori non visualizzati",
-    federation: "Sito",
-    selectFederation: "Seleziona un sito",
-    federationRequired: "Il sito è obbligatorio"
+    site: "Sito",
+    selectSite: "Seleziona un sito",
+    siteRequired: "Il sito è obbligatorio"
   },
   common: {
     unableToCompleteOperation: "Impossibile completare l'operazione",
@@ -513,26 +513,26 @@ const it = {
     unableToRemoveParent: "Impossibile rimuovere la relazione padre",
     hierarchyUpdated: "Gerarchia delle risorse aggiornata con successo"
   },
-  federations: {
+  sites: {
     title: "Siti",
     management: "Gestione Siti",
-    addFederation: "Aggiungi Sito",
-    editFederation: "Modifica Sito",
-    newFederation: "Nuovo Sito",
+    addSite: "Aggiungi Sito",
+    editSite: "Modifica Sito",
+    newSite: "Nuovo Sito",
     name: "Nome Sito",
     description: "Descrizione",
-    searchFederations: "Cerca siti...",
-    noFederationsFound: "Nessun sito trovato.",
-    federationUpdatedSuccess: "Sito '{{name}}' aggiornato con successo",
-    federationCreatedSuccess: "Sito '{{name}}' creato con successo",
-    federationDeletedSuccess: "Sito '{{name}}' eliminato con successo",
-    unableToUpdateFederation: "Impossibile aggiornare il sito '{{name}}'",
-    unableToCreateFederation: "Impossibile creare il sito '{{name}}'",
-    unableToDeleteFederation: "Impossibile eliminare il sito '{{name}}'",
-    confirmDeleteFederation: "Sei sicuro di voler eliminare il sito '{{name}}'? Tutte le risorse e i tipi di risorse associati saranno eliminati.",
+    searchSites: "Cerca siti...",
+    noSitesFound: "Nessun sito trovato.",
+    siteUpdatedSuccess: "Sito '{{name}}' aggiornato con successo",
+    siteCreatedSuccess: "Sito '{{name}}' creato con successo",
+    siteDeletedSuccess: "Sito '{{name}}' eliminato con successo",
+    unableToUpdateSite: "Impossibile aggiornare il sito '{{name}}'",
+    unableToCreateSite: "Impossibile creare il sito '{{name}}'",
+    unableToDeleteSite: "Impossibile eliminare il sito '{{name}}'",
+    confirmDeleteSite: "Sei sicuro di voler eliminare il sito '{{name}}'? Tutte le risorse e i tipi di risorse associati saranno eliminati.",
     members: "{count} membri",
     admins: "Amministratori",
-    unableToLoadFederations: "Impossibile caricare i siti",
+    unableToLoadSites: "Impossibile caricare i siti",
     unableToLoadMembers: "Impossibile caricare i membri del sito",
     unableToLoadAdmins: "Impossibile caricare gli amministratori del sito",
     addUser: "Aggiungi Utente",
@@ -541,22 +541,22 @@ const it = {
     searchUsers: "Cerca utenti...",
     noUsersFound: "Nessun utente trovato.",
     noUsersMatchingSearch: "Nessun utente corrisponde alla ricerca.",
-    noMembersInFederation: "Nessun membro in questo sito.",
-    noAdminsInFederation: "Nessun amministratore in questo sito.",
+    noMembersInSite: "Nessun membro in questo sito.",
+    noAdminsInSite: "Nessun amministratore in questo sito.",
     noAdminsMatchingSearch: "Nessun amministratore corrisponde alla ricerca.",
     unableToAddUser: "Impossibile aggiungere l'utente '{{name}}' al sito",
     unableToRemoveUser: "Impossibile rimuovere l'utente '{{name}}' del sito",
     unableToAddAdmin: "Impossibile aggiungere l'utente '{{name}}' come amministratore del sito",
     unableToRemoveAdmin: "Impossibile rimuovere l'amministratore '{{name}}'",
-    confirmRemoveUser: "Sei sicuro di voler rimuovere l'utente '{{name}}' dal sito '{{federation}}'?",
-    confirmRemoveAdmin: "Sei sicuro di voler rimuovere '{{name}}' come amministratore del sito '{{federation}}'?",
-    removeFromFederation: "Rimuovi dal sito",
+    confirmRemoveUser: "Sei sicuro di voler rimuovere l'utente '{{name}}' dal sito '{{site}}'?",
+    confirmRemoveAdmin: "Sei sicuro di voler rimuovere '{{name}}' come amministratore del sito '{{site}}'?",
+    removeFromSite: "Rimuovi dal sito",
     removeAdminRole: "Rimuovi ruolo di amministratore",
     unableToLoadUsers: "Impossibile caricare gli utenti",
     siteAdminLimitedPermissions: "Gli amministratori di siti possono visualizzare solo i siti di cui sono amministratori."
   },
-  federationSelector: {
-    selectFederation: "Seleziona Sito",
+  siteSelector: {
+    selectSite: "Seleziona Sito",
     allSites: "Tutti i Siti"
   },
   auditLogs: {
@@ -574,7 +574,7 @@ const it = {
     id: "ID",
     timestamp: "Data e Ora",
     username: "Nome Utente",
-    federation: "Sito",
+    site: "Sito",
     type: "Tipo",
     entityType: "Tipo Entità",
     entityId: "ID Entità",
@@ -611,8 +611,8 @@ const it = {
     resource: "Risorsa",
     urlHelp: "L'URL dove verrà inviato il webhook",
     eventType: "Tipo Evento",
-    federation: "Sito",
-    selectFederation: "Seleziona Sito",
+    site: "Sito",
+    selectSite: "Seleziona Sito",
     secret: "Chiave Segreta",
     secretHelp: "Utilizzata per firmare il payload del webhook per sicurezza",
     maxRetries: "Tentativi Massimi",
@@ -629,7 +629,7 @@ const it = {
     urlRequired: "L'URL è obbligatorio",
     invalidUrl: "Formato URL non valido",
     eventTypeRequired: "Il tipo di evento è obbligatorio",
-    federationRequired: "Il sito è obbligatorio",
+    siteRequired: "Il sito è obbligatorio",
     updateFailed: "Impossibile aggiornare il webhook",
     creationFailed: "Impossibile creare il webhook",
     updating: "Aggiornamento in corso...",
@@ -641,7 +641,7 @@ const it = {
     resourceCreated: "Risorsa Creata",
     resourceUpdated: "Risorsa Aggiornata",
     resourceDeleted: "Risorsa Eliminata",
-    federationName: "Sito",
+    siteName: "Sito",
     signatureEnabled: "Firma Abilitata",
     testWebhook: "Testa Webhook",
     deleteWebhook: "Elimina Webhook",

@@ -120,7 +120,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<Dashboard />}
                                     currentSection="dashboard"
-                                    requiredRole={SiteRoles.SITE_ADMIN} /* Updated from FEDERATION_ADMIN */
+                                    requiredRole={SiteRoles.SITE_ADMIN}
                                 />
                             }
                         />
@@ -160,7 +160,7 @@ const App = () => {
                                 <LayoutWrapper
                                     element={<AdminPanel />}
                                     currentSection="admin"
-                                    requiredRole={SiteRoles.SITE_ADMIN} /* Updated from FEDERATION_ADMIN */
+                                    requiredRole={SiteRoles.SITE_ADMIN}
                                 />
                             }
                         />

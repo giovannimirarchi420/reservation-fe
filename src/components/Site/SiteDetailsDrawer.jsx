@@ -83,7 +83,7 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
         setUsers(usersData);
         setFilteredUsers(usersData.filter(user => !excludeUserIds.includes(user.id)));
       }, {
-        errorMessage: t('federations.unableToLoadUsers'),
+        errorMessage: t('sites.unableToLoadUsers'),
         showError: true
       });
     } finally {
@@ -93,10 +93,10 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('federations.selectUser')}</DialogTitle>
+      <DialogTitle>{t('sites.selectUser')}</DialogTitle>
       <DialogContent>
         <TextField
-          placeholder={t('federations.searchUsers')}
+          placeholder={t('sites.searchUsers')}
           fullWidth
           variant="outlined"
           margin="normal"
@@ -118,7 +118,7 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
         ) : filteredUsers.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
             <Typography color="text.secondary">
-              {t('federations.noUsersFound')}
+              {t('sites.noUsersFound')}
             </Typography>
           </Box>
         ) : (
@@ -173,7 +173,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
   const [isAddAdminDialogOpen, setIsAddAdminDialogOpen] = useState(false);
   const [hasPermissionToEdit, setHasPermissionToEdit] = useState(false);
 
-  // Load federation data when federation changes
+  // Load sites data when site changes
   useEffect(() => {
     if (federation && open) {
       loadFederationData();
@@ -184,7 +184,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
     }
   }, [federation, open, isGlobalAdmin, canManageSite]);
 
-  // Load federation members and admins
+  // Load site members and admins
   const loadFederationData = async () => {
     if (!federation) return;
 
@@ -195,7 +195,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         const membersData = await fetchSiteUsers(federation.id);
         setMembers(membersData);
       }, {
-        errorMessage: t('federations.unableToLoadMembers'),
+        errorMessage: t('sites.unableToLoadMembers'),
         showError: true
       });
     } finally {
@@ -209,7 +209,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         const adminsData = await fetchSiteAdmins(federation.id);
         setAdmins(adminsData);
       }, {
-        errorMessage: t('federations.unableToLoadAdmins'),
+        errorMessage: t('sites.unableToLoadAdmins'),
         showError: true
       });
     } finally {
@@ -222,7 +222,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
     setActiveTab(newValue);
   };
 
-  // Add user to federation
+  // Add user to site
   const handleAddUser = async (user) => {
     if (!federation) return;
 
@@ -237,21 +237,21 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
       }, {
-        errorMessage: t('federations.unableToAddUser', { name: user.username || `${user.firstName} ${user.lastName}` }),
+        errorMessage: t('sites.unableToAddUser', { name: user.username || `${user.firstName} ${user.lastName}` }),
         showError: true
       });
     } catch (error) {
-      console.error('Error adding user to federation:', error);
+      console.error('Error adding user to site:', error);
     }
   };
 
-  // Remove user from federation
+  // Remove user from site
   const handleRemoveUser = async (user) => {
     if (!federation) return;
 
     const userName = user.username || `${user.firstName} ${user.lastName}`;
     const confirmed = window.confirm(
-      t('federations.confirmRemoveUser', { name: userName, federation: federation.name })
+      t('sites.confirmRemoveUser', { name: userName, federation: federation.name })
     );
 
     if (!confirmed) return;
@@ -264,15 +264,15 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
       }, {
-        errorMessage: t('federations.unableToRemoveUser', { name: userName }),
+        errorMessage: t('sites.unableToRemoveUser', { name: userName }),
         showError: true
       });
     } catch (error) {
-      console.error('Error removing user from federation:', error);
+      console.error('Error removing user from site:', error);
     }
   };
 
-  // Add federation admin
+  // Add site admin
   const handleAddAdmin = async (user) => {
     if (!federation) return;
 
@@ -287,21 +287,21 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
       }, {
-        errorMessage: t('federations.unableToAddAdmin', { name: user.username || `${user.firstName} ${user.lastName}` }),
+        errorMessage: t('sites.unableToAddAdmin', { name: user.username || `${user.firstName} ${user.lastName}` }),
         showError: true
       });
     } catch (error) {
-      console.error('Error adding admin to federation:', error);
+      console.error('Error adding admin to site:', error);
     }
   };
 
-  // Remove federation admin
+  // Remove site admin
   const handleRemoveAdmin = async (user) => {
     if (!federation) return;
 
     const userName = user.username || `${user.firstName} ${user.lastName}`;
     const confirmed = window.confirm(
-      t('federations.confirmRemoveAdmin', { name: userName, federation: federation.name })
+      t('sites.confirmRemoveAdmin', { name: userName, federation: federation.name })
     );
 
     if (!confirmed) return;
@@ -314,11 +314,11 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
       }, {
-        errorMessage: t('federations.unableToRemoveAdmin', { name: userName }),
+        errorMessage: t('sites.unableToRemoveAdmin', { name: userName }),
         showError: true
       });
     } catch (error) {
-      console.error('Error removing admin from federation:', error);
+      console.error('Error removing admin from site:', error);
     }
   };
 
@@ -392,15 +392,15 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
-          <Tab label={t('federations.members', {count: members.length })} />
-          <Tab label={t('federations.admins')} />
+          <Tab label={t('sites.members', {count: members.length })} />
+          <Tab label={t('sites.admins')} />
         </Tabs>
       </Box>
 
       <Box sx={{ p: 2 }}>
         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <TextField
-            placeholder={t('federations.searchUsers')}
+            placeholder={t('sites.searchUsers')}
             size="small"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -420,7 +420,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
               size="small"
               onClick={() => setIsAddUserDialogOpen(true)}
             >
-              {t('federations.addUser')}
+              {t('sites.addUser')}
             </Button>
           )}
           
@@ -431,14 +431,14 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
               size="small"
               onClick={() => setIsAddAdminDialogOpen(true)}
             >
-              {t('federations.addAdmin')}
+              {t('sites.addAdmin')}
             </Button>
           )}
         </Box>
 
         {!hasPermissionToEdit && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            {t('federations.viewOnlyMode')}
+            {t('sites.viewOnlyMode')}
           </Alert>
         )}
 
@@ -452,8 +452,8 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <Typography color="text.secondary">
                 {searchTerm 
-                  ? t('federations.noUsersMatchingSearch') 
-                  : t('federations.noMembersInFederation')}
+                  ? t('sites.noUsersMatchingSearch') 
+                  : t('sites.noMembersInSite')}
               </Typography>
             </Box>
             ) : (
@@ -479,7 +479,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
                         <ListItemSecondaryAction>
                         {currentUser.id === user.id ? '' : 
                           hasPermissionToEdit && (
-                            <Tooltip title={t('federations.removeFromFederation')}>
+                            <Tooltip title={t('sites.removeFromSite')}>
                               <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
                                 <PersonRemoveIcon />
                               </IconButton>
@@ -503,8 +503,8 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
                 <Box sx={{ textAlign: 'center', py: 4 }}>
                   <Typography color="text.secondary">
                     {searchTerm 
-                      ? t('federations.noAdminsMatchingSearch') 
-                      : t('federations.noAdminsInFederation')}
+                      ? t('sites.noAdminsMatchingSearch') 
+                      : t('sites.noAdminsInSite')}
                   </Typography>
                 </Box>
               ) : (
@@ -530,7 +530,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
                         <ListItemSecondaryAction>
                         {currentUser.id === user.id ? '' : 
                           hasPermissionToEdit && (
-                            <Tooltip title={t('federations.removeAdminRole')}>
+                            <Tooltip title={t('sites.removeAdminRole')}>
                               <IconButton edge="end" onClick={() => handleRemoveAdmin(user)}>
                                 <PersonRemoveIcon />
                               </IconButton>
@@ -547,7 +547,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
             )}
           </Box>
     
-          {/* Dialog for adding users to federation */}
+          {/* Dialog for adding users to site */}
           <UserSelectionDialog
             open={isAddUserDialogOpen}
             onClose={() => setIsAddUserDialogOpen(false)}
@@ -555,7 +555,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
             excludeUserIds={members.map(m => m.id)}
           />
     
-          {/* Dialog for adding admins to federation */}
+          {/* Dialog for adding admins to site */}
           <UserSelectionDialog
             open={isAddAdminDialogOpen}
             onClose={() => setIsAddAdminDialogOpen(false)}

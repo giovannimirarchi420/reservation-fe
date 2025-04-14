@@ -147,7 +147,7 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
               <ListItemIcon>
                 <DomainIcon />
               </ListItemIcon>
-              <ListItemText primary={t('sidebar.federations')} />
+              <ListItemText primary={t('sidebar.sites')} />
             </ListItem>
           )}
           <ListItem

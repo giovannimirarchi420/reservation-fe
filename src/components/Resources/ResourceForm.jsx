@@ -109,7 +109,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
     }
 
     if (!formData.siteId) {
-      newErrors.siteId = t('resourceForm.federationRequired');
+      newErrors.siteId = t('resourceForm.siteRequired');
     }
 
     // Check for circular reference in parent-child relationship
@@ -190,18 +190,18 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
                 helperText={errors.name}
             />
 
-            {/* Federation selector */}
+            {/* Site selector */}
             <FormControl fullWidth margin="normal" required error={!!errors.siteId}>
-              <InputLabel id="federation-label">{t('resourceForm.federation')}</InputLabel>
+              <InputLabel id="site-label">{t('resourceForm.site')}</InputLabel>
               <Select
-                  labelId="federation-label"
+                  labelId="site-label"
                   name="siteId"
                   value={formData.siteId || ''}
-                  label={t('resourceForm.federation')}
+                  label={t('resourceForm.site')}
                   onChange={handleChange}
                   disabled={!isGlobalAdmin()} // Only global admins can change the federation
               >
-                <MenuItem value="">{t('resourceForm.selectFederation')}</MenuItem>
+                <MenuItem value="">{t('resourceForm.selectSite')}</MenuItem>
                 {sites.map(site => (
                     <MenuItem 
                       key={site.id} 

@@ -22,7 +22,7 @@ const SiteSelector = () => {
     currentSite, 
     setCurrentSite,
     isGlobalAdmin,
-    STARTER_FEDERATION
+    STARTER_SITE
   } = useSite();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -43,12 +43,12 @@ const SiteSelector = () => {
 
   // Check if we should show this component at all
   if (sites.length <= 1 && !isGlobalAdmin()) {
-    return null; // Don't show selector if user has only one federation and is not a global admin
+    return null; // Don't show selector if user has only one site and is not a global admin
   }
 
   return (
     <Box sx={{ ml: 1, mr: 1 }}>
-      <Tooltip title={t('federationSelector.selectFederation')}>
+      <Tooltip title={t('siteSelector.selectSite')}>
         <Button
           color="inherit"
           onClick={handleClick}
@@ -70,7 +70,7 @@ const SiteSelector = () => {
               textOverflow: 'ellipsis'
             }}
           >
-            {currentSite?.name || t('federationSelector.allSites')}
+            {currentSite?.name || t('siteSelector.allSites')}
           </Typography>
         </Button>
       </Tooltip>
@@ -93,13 +93,13 @@ const SiteSelector = () => {
       >
         
         <MenuItem 
-          onClick={() => handleSelect(STARTER_FEDERATION)}
+          onClick={() => handleSelect(STARTER_SITE)}
           selected={!currentSite}
         >
           <ListItemIcon sx={{ minWidth: 36 }}>
-            {currentSite == STARTER_FEDERATION && <CheckIcon fontSize="small" />}
+            {currentSite == STARTER_SITE && <CheckIcon fontSize="small" />}
           </ListItemIcon>
-          <ListItemText primary={t('federationSelector.allSites')} />
+          <ListItemText primary={t('siteSelector.allSites')} />
         </MenuItem>
       
 

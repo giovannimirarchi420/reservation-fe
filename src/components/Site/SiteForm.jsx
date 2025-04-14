@@ -23,7 +23,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Initialize form data when federation changes
+  // Initialize form data when site changes
   useEffect(() => {
     if (federation) {
       setFormData({
@@ -67,7 +67,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
     const newErrors = {};
 
     if (!formData.name) {
-      newErrors.name = t('federations.nameRequired');
+      newErrors.name = t('sites.nameRequired');
     }
 
     setErrors(newErrors);
@@ -84,10 +84,10 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
         let savedFederation;
         
         if (formData.id) {
-          // Update existing federation
+          // Update existing site
           savedFederation = await updateSite(formData.id, formData);
         } else {
-          // Create new federation
+          // Create new site
           savedFederation = await createSite(formData);
         }
         
@@ -96,8 +96,8 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
         }
       }, {
         errorMessage: formData.id 
-          ? t('federations.unableToUpdateFederation', { name: formData.name }) 
-          : t('federations.unableToCreateFederation', { name: formData.name }),
+          ? t('sites.unableToUpdateSite', { name: formData.name }) 
+          : t('sites.unableToCreateSite', { name: formData.name }),
         showError: true
       });
     } finally {
@@ -113,13 +113,13 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
       fullWidth
     >
       <DialogTitle>
-        {formData.id ? t('federations.editFederation') : t('federations.newFederation')}
+        {formData.id ? t('sites.ediSite') : t('sites.newSite')}
       </DialogTitle>
       
       <DialogContent>
         <Box sx={{ pt: 2 }}>
           <TextField
-            label={t('federations.name')}
+            label={t('sites.name')}
             name="name"
             value={formData.name}
             onChange={handleChange}
@@ -132,7 +132,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
           />
           
           <TextField
-            label={t('federations.description')}
+            label={t('sites.description')}
             name="description"
             value={formData.description}
             onChange={handleChange}

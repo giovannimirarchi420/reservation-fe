@@ -8,7 +8,6 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  FormHelperText,
   IconButton,
   InputLabel,
   MenuItem,
@@ -22,10 +21,6 @@ import {
   Checkbox,
   FormControlLabel,
   FormGroup,
-  Divider,
-  List,
-  ListItem,
-  ListItemText
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -333,7 +328,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       case SiteRoles.GLOBAL_ADMIN:
         return t('userManagement.globalAdministrator');
       case SiteRoles.SITE_ADMIN:
-        return t('userManagement.federationAdministrator');
+        return t('userManagement.siteAdministrator');
       default:
         return t('userManagement.user');
     }
@@ -489,7 +484,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               <MenuItem value={SiteRoles.SITE_ADMIN}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                   <SupervisorAccountIcon sx={{ color: '#f44336' }} />
-                  <Typography>{t('userManagement.federationAdministrator')}</Typography>
+                  <Typography>{t('userManagement.siteAdministrator')}</Typography>
                 </Stack>
               </MenuItem>
               

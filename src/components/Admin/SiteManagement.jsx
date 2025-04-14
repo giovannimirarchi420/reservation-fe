@@ -16,7 +16,7 @@ const SiteManagement = () => {
     
     return (
       <Alert severity="info" sx={{ mb: 3 }}>
-        {t('federations.siteAdminLimitedPermissions')}
+        {t('sites.siteAdminLimitedPermissions')}
       </Alert>
     );
   };
@@ -24,9 +24,9 @@ const SiteManagement = () => {
   if (!canManageSites()) {
     return (
       <Box sx={{ p: 3 }}>
-        <Typography variant="h5" sx={{ mb: 3 }}>{t('federations.management')}</Typography>
+        <Typography variant="h5" sx={{ mb: 3 }}>{t('sites.management')}</Typography>
         <Alert severity="error">
-          {t('federations.noManagementPermissions')}
+          {t('sites.noManagementPermissions')}
         </Alert>
       </Box>
     );
@@ -34,7 +34,7 @@ const SiteManagement = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h5" sx={{ mb: 3 }}>{t('federations.management')}</Typography>
+      <Typography variant="h5" sx={{ mb: 3 }}>{t('sites.management')}</Typography>
       
       {renderInfoAlert()}
       

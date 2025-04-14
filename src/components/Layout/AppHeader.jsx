@@ -158,7 +158,7 @@ const AppHeader = ({ onMenuClick }) => {
         {canManageSites() && (
           <MenuItem onClick={handleNavigateToSites}>
             <DomainIcon fontSize="small" sx={{ mr: 1, color: isGlobalAdmin() ? 'gold' : '#f44336' }} />
-            {t('appHeader.federationManagement')}
+            {t('appHeader.siteManagement')}
           </MenuItem>
         )}
         

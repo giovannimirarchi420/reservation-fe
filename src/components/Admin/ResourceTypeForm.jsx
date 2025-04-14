@@ -85,7 +85,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         }
 
         if (!formData.siteId) {
-            newErrors.siteId = t('resourceType.federationRequired');
+            newErrors.siteId = t('resourceType.siteRequired');
         }
 
         setErrors(newErrors);
@@ -130,16 +130,16 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
 
                     {/* Site selector */}
                     <FormControl fullWidth margin="normal" required error={!!errors.siteId}>
-                        <InputLabel id="federation-label">{t('resourceType.federation')}</InputLabel>
+                        <InputLabel id="site-label">{t('resourceType.site')}</InputLabel>
                         <Select
-                            labelId="federation-label"
+                            labelId="site-label"
                             name="siteId"
                             value={formData.siteId || ''}
-                            label={t('resourceType.federation')}
+                            label={t('resourceType.site')}
                             onChange={handleChange}
                             disabled={!isGlobalAdmin()} // Only global admins can change the site
                         >
-                            <MenuItem value="">{t('resourceType.selectFederation')}</MenuItem>
+                            <MenuItem value="">{t('resourceType.selectSite')}</MenuItem>
                             {sites.map(site => (
                                 <MenuItem 
                                     key={site.id}

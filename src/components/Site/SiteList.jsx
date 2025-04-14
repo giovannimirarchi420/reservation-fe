@@ -11,7 +11,6 @@ import {
   Chip,
   Snackbar,
   Alert,
-  useTheme,
   Fade,
   Divider,
   Tooltip,
@@ -19,7 +18,6 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
-import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupIcon from '@mui/icons-material/Group';
 import DomainIcon from '@mui/icons-material/Domain';
@@ -75,7 +73,7 @@ const SiteList = () => {
           setFilteredSites(sitesData);
         }
       }, {
-        errorMessage: t('federations.unableToLoadFederations'),
+        errorMessage: t('sites.unableToLoadSites'),
         showError: true
       });
     } finally {
@@ -94,75 +92,75 @@ const SiteList = () => {
     setTimeout(() => setNotification(null), 6000);
   };
 
-  // Handle add federation
+  // Handle add site
   const handleAddFederation = () => {
     setSelectedFederation(null);
     setIsFormOpen(true);
   };
 
-  // Handle view federation details
-  const handleViewFederationDetails = (federation) => {
-    setSelectedFederation(federation);
+  // Handle view site details
+  const handleViewFederationDetails = (site) => {
+    setSelectedFederation(site);
     setIsDetailDrawerOpen(true);
   };
 
-  // Handle delete federation
-  const handleDeleteFederation = async (federation) => {
+  // Handle delete site
+  const handleDeleteFederation = async (site) => {
     // Check if user can delete this site
-    if (!isGlobalAdmin() && !canManageSite(federation.id)) {
+    if (!isGlobalAdmin() && !canManageSite(site.id)) {
       showNotification(
-        t('federations.noPermissionToDelete', { name: federation.name }),
+        t('sites.noPermissionToDelete', { name: site.name }),
         'error'
       );
       return;
     }
 
     const confirmed = window.confirm(
-      t('federations.confirmDeleteFederation', { name: federation.name })
+      t('sites.confirmDeleteSite', { name: site.name })
     );
 
     if (!confirmed) return;
 
     try {
       await withErrorHandling(async () => {
-        await deleteSite(federation.id);
-        setSites(sites.filter(f => f.id !== federation.id));
+        await deleteSite(site.id);
+        setSites(sites.filter(f => f.id !== site.id));
         showNotification(
-          t('federations.federationDeletedSuccess', { name: federation.name }),
+          t('sites.siteDeletedSuccess', { name: site.name }),
           'success'
         );
       }, {
-        errorMessage: t('federations.unableToDeleteFederation', { name: federation.name }),
+        errorMessage: t('sites.unableToDeleteSite', { name: site.name }),
         showError: true
       });
     } catch (error) {
-      console.error('Error deleting federation:', error);
+      console.error('Error deleting site:', error);
     }
   };
 
-  // Handle federation form save
-  const handleSaveFederation = (federation) => {
-    if (federation.id) {
-      // Update existing federation
+  // Handle site form save
+  const handleSaveFederation = (site) => {
+    if (site.id) {
+      // Update existing site
       setSites(
-        sites.map(f => (f.id === federation.id ? federation : f))
+        sites.map(f => (f.id === site.id ? site : f))
       );
       showNotification(
-        t('federations.federationUpdatedSuccess', { name: federation.name }),
+        t('sites.siteUpdatedSuccess', { name: site.name }),
         'success'
       );
     } else {
-      // Add new federation
-      setSites([...sites, federation]);
+      // Add new site
+      setSites([...sites, site]);
       showNotification(
-        t('federations.federationCreatedSuccess', { name: federation.name }),
+        t('sites.siteCreatedSuccess', { name: site.name }),
         'success'
       );
     }
     setIsFormOpen(false);
   };
 
-  // Federation card component
+  // site card component
   const FederationCard = ({ federation }) => {
     const canManageThisSite = isGlobalAdmin() || canManageSite(federation.id) || isSiteAdmin(federation.name);
     
@@ -232,7 +230,7 @@ const SiteList = () => {
             <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 1 }}>
               <Chip
                 icon={<GroupIcon />}
-                label={t('federations.members', { count: federation.memberCount || 0 })}
+                label={t('sites.members', { count: federation.memberCount || 0 })}
                 size="small"
                 variant="outlined"
                 color="primary"
@@ -259,14 +257,14 @@ const SiteList = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3, alignItems: 'center' }}>
-        <Typography variant="h5">{t('federations.title')}</Typography>
+        <Typography variant="h5">{t('sites.title')}</Typography>
         <Button
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleAddFederation}
         >
-          {t('federations.addFederation')}
+          {t('sites.addSite')}
         </Button>
       </Box>
 
@@ -275,7 +273,7 @@ const SiteList = () => {
           <SearchIcon color="action" />
         </Box>
         <TextField
-          placeholder={t('federations.searchFederations')}
+          placeholder={t('sites.searchSites')}
           variant="outlined"
           size="small"
           fullWidth
@@ -321,7 +319,7 @@ const SiteList = () => {
             }}>
               <InfoIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
               <Typography color="text.secondary" variant="h6">
-                {t('federations.noFederationsFound')}
+                {t('sites.noSitesFound')}
               </Typography>
               <Button 
                 variant="outlined" 
@@ -329,7 +327,7 @@ const SiteList = () => {
                 onClick={handleAddFederation}
                 sx={{ mt: 2 }}
               >
-                {t('federations.addFederation')}
+                {t('sites.addSite')}
               </Button>
             </Box>
           ) : (
@@ -346,7 +344,7 @@ const SiteList = () => {
         </>
       )}
 
-      {/* Federation Form Dialog */}
+      {/* Site Form Dialog */}
       <SiteForm
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -354,7 +352,7 @@ const SiteList = () => {
         onSave={handleSaveFederation}
       />
 
-      {/* Federation Details Drawer */}
+      {/* Site Details Drawer */}
       <SiteDetailsDrawer
         open={isDetailDrawerOpen}
         onClose={() => setIsDetailDrawerOpen(false)}

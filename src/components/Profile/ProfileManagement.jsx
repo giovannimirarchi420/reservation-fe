@@ -92,10 +92,10 @@ const ProfileManagement = () => {
           label: t('userManagement.globalAdministrator'),
           icon: <Security fontSize="small" />
         };
-      case SiteRoles.FEDERATION_ADMIN:
+      case SiteRoles.SITE_ADMIN:
         return { 
           color: '#f44336', 
-          label: t('userManagement.federationAdministrator'),
+          label: t('userManagement.siteAdministrator'),
           icon: <SupervisorAccount fontSize="small" />
         };
       default:
@@ -334,10 +334,7 @@ const ProfileManagement = () => {
                       <Chip
                         icon={roleInfo.icon}
                         label={roleInfo.label}
-                        sx={{ 
-                          bgcolor: userHighestRole === SiteRoles.GLOBAL_ADMIN ? 'rgba(255, 215, 0, 0.1)' :
-                                  userHighestRole === SiteRoles.FEDERATION_ADMIN ? 'rgba(244, 67, 54, 0.1)' :
-                                  'rgba(25, 118, 210, 0.1)',
+                        sx={{
                           color: roleInfo.color,
                           fontWeight: 'bold',
                           border: `1px solid ${roleInfo.color}`

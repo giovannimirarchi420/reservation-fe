@@ -168,7 +168,7 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     }
   }, [open, withErrorHandling, t, currentSite]);
 
-  // Use federation context for default federation
+  // Use site context for default site
   useEffect(() => {
     if (currentSite && currentSite !== 'ALL') {
       setFormData(prev => ({
@@ -295,7 +295,7 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
     }
 
     if (!formData.siteId) {
-      newErrors.siteId = t('webhooks.federationRequired');
+      newErrors.siteId = t('webhooks.siteRequired');
     }
 
     // Validate resource selection based on selection type
@@ -434,14 +434,14 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                 </FormControl>
                 
                 <FormControl fullWidth required error={!!errors.siteId}>
-                  <InputLabel>{t('webhooks.federation')}</InputLabel>
+                  <InputLabel>{t('webhooks.site')}</InputLabel>
                   <Select
                     name="siteId"
                     value={formData.siteId}
-                    label={t('webhooks.federation')}
+                    label={t('webhooks.site')}
                     onChange={handleChange}
                   >
-                    <MenuItem value="">{t('webhooks.selectFederation')}</MenuItem>
+                    <MenuItem value="">{t('webhooks.selectSite')}</MenuItem>
                     {sites.map(federation => (
                       <MenuItem key={federation.id} value={federation.id}>
                         {federation.name}
