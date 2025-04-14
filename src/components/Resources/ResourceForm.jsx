@@ -160,7 +160,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
   // Filter resource types to only show those from the same site
   const getFilteredResourceTypes = () => {
     const siteIdToUse = formData.siteId || (currentSite ? currentSite.id : '');
-    console.log(siteIdToUse)
+
     if (!siteIdToUse) return [];
     
     return resourceTypes.filter(type => 

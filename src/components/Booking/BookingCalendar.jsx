@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
@@ -66,6 +66,14 @@ const BookingCalendar = () => {
   const [bookingToHighlight, setBookingToHighlight] = useState(null);
   // State for notification
   const [notification, setNotification] = useState(null);
+  // State to keep track of which months have been loaded
+  const [loadedMonths, setLoadedMonths] = useState(new Set());
+
+  // Helper function to generate a month key (YYYY-MM format)
+  const generateMonthKey = useCallback((date) => {
+    const dateObj = date instanceof Date ? date : new Date(date);
+    return `${dateObj.getFullYear()}-${dateObj.getMonth()+1}`;
+  }, []);
 
   // Update moment locale based on current language
   useEffect(() => {
@@ -117,17 +125,16 @@ const BookingCalendar = () => {
     }
   }, []);
 
-  // Load events and resources
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        await withErrorHandling(async () => {
-
-          const [eventsData, resourcesData] = await Promise.all([
-            fetchEvents(currentSite?.id ? {siteId: currentSite.id} : {}),
-            fetchResources(currentSite?.id ? {siteId: currentSite.id} : {})
-          ]);
+  // Function to load events for specified date ranges and merge with existing events
+  const loadEventsForDateRange = useCallback(async (startDate, endDate, monthKeys) => {
+    setIsLoading(true);
+    try {
+      await withErrorHandling(async () => {
+        // Fetch resources if not already loaded
+        let resourcesData = resources;
+        if (resourcesData.length === 0) {
+          resourcesData = await fetchResources(currentSite?.id ? {siteId: currentSite.id} : {});
+          setResources(resourcesData);
           
           // Assign colors to resources
           const colors = {};
@@ -136,41 +143,90 @@ const BookingCalendar = () => {
             colors[resource.id] = RESOURCE_COLORS[index % RESOURCE_COLORS.length];
           });
           setResourceColors(colors);
+        }
+        
+        // Fetch events for the specified date range
+        const eventsData = await fetchEvents({
+          ...(currentSite?.id ? {siteId: currentSite.id} : {}),
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString()
+        });
+        
+        // Process the events
+        const processedEvents = eventsData.map(event => {
+          const resource = resourcesData.find(r => r.id === event.resourceId);
+          return {
+            ...event,
+            start: new Date(event.start),
+            end: new Date(event.end),
+            resourceName: resource ? resource.name : t('bookingForm.unknownResource')
+          };
+        });
+        
+        // Merge new events with existing events, avoiding duplicates
+        setEvents(prevEvents => {
+          // Create a map of existing events by ID
+          const existingEventsMap = new Map(prevEvents.map(event => [event.id, event]));
           
-          const processedEvents = eventsData.map(event => {
-            const resource = resourcesData.find(r => r.id === event.resourceId);
-            return {
-              ...event,
-              start: new Date(event.start),
-              end: new Date(event.end),
-              resourceName: resource ? resource.name : t('bookingForm.unknownResource')
-            };
+          // Add or update events from the new batch
+          processedEvents.forEach(event => {
+            existingEventsMap.set(event.id, event);
           });
           
-          setEvents(processedEvents);
-          setResources(resourcesData);
-          
-          // If there is a booking to highlight, open the details modal
-          if (bookingToHighlight) {
-            const bookingToShow = processedEvents.find(event => event.id === bookingToHighlight);
-            if (bookingToShow) {
-              setSelectedEvent(bookingToShow);
-              setIsBookingModalOpen(true);
-              // Reset after opening
-              setBookingToHighlight(null);
-            }
-          }
-        }, {
-          errorMessage: t('errors.unableToLoadCalendarData'),
-          showError: true
+          // Convert the map back to an array
+          return Array.from(existingEventsMap.values());
         });
-      } finally {
-        setIsLoading(false);
+        
+        // Mark these months as loaded
+        if (monthKeys && monthKeys.length > 0) {
+          setLoadedMonths(prevMonths => {
+            const newMonths = new Set(prevMonths);
+            monthKeys.forEach(key => newMonths.add(key));
+            return newMonths;
+          });
+        }
+
+        // If there is a booking to highlight, open the details modal
+        if (bookingToHighlight) {
+          const bookingToShow = processedEvents.find(event => event.id === bookingToHighlight);
+          if (bookingToShow) {
+            setSelectedEvent(bookingToShow);
+            setIsBookingModalOpen(true);
+            // Reset after opening
+            setBookingToHighlight(null);
+          }
+        }
+      }, {
+        errorMessage: t('errors.unableToLoadCalendarData'),
+        showError: true
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [withErrorHandling, bookingToHighlight, t, currentSite, resources, resourceColors, setResources, setResourceColors, setIsBookingModalOpen, setSelectedEvent]);
+
+  // Load initial data for current month plus adjacent months
+  useEffect(() => {
+    const loadInitialData = async () => {
+      const currentMonthStart = moment(selectedDate).startOf('month');
+      const prevMonthStart = moment(currentMonthStart).subtract(1, 'month');
+      const nextMonthStart = moment(currentMonthStart).add(1, 'month');
+      const nextMonthEnd = moment(nextMonthStart).endOf('month');
+      
+      const monthKeys = [
+        generateMonthKey(prevMonthStart),
+        generateMonthKey(currentMonthStart),
+        generateMonthKey(nextMonthStart)
+      ];
+      
+      // Only load data if these months haven't been loaded yet
+      if (!monthKeys.every(key => loadedMonths.has(key))) {
+        await loadEventsForDateRange(prevMonthStart.toDate(), nextMonthEnd.toDate(), monthKeys);
       }
     };
 
-    loadData();
-  }, [withErrorHandling, bookingToHighlight, t, currentSite]);
+    loadInitialData();
+  }, [selectedDate, generateMonthKey, loadedMonths, loadEventsForDateRange]);
 
   // Update calendar height based on current view
   useEffect(() => {
@@ -370,6 +426,50 @@ const BookingCalendar = () => {
     }
   };
 
+  // Handler for when the date changes - this will check if we need to load new months
+  const handleDateChange = (date) => {
+    setSelectedDate(date);
+    
+    // If we've navigated to a new month, check if we need to load new data
+    const newMonthKey = generateMonthKey(date);
+    
+    // If we haven't loaded this month yet, fetch it plus adjacent months
+    if (!loadedMonths.has(newMonthKey)) {
+      // Calculate the range to load (current month plus adjacent months)
+      const newMonthStart = moment(date).startOf('month');
+      const prevMonthStart = moment(newMonthStart).subtract(1, 'month');
+      const nextMonthStart = moment(newMonthStart).add(1, 'month');
+      const nextMonthEnd = moment(nextMonthStart).endOf('month');
+      
+      // Determine which months need to be loaded
+      const monthKeysToLoad = [
+        generateMonthKey(prevMonthStart),
+        newMonthKey,
+        generateMonthKey(nextMonthStart)
+      ].filter(key => !loadedMonths.has(key));
+      
+      // Load the new months if any are needed
+      if (monthKeysToLoad.length > 0) {
+        loadEventsForDateRange(prevMonthStart.toDate(), nextMonthEnd.toDate(), monthKeysToLoad);
+      }
+    }
+  };
+
+  // Handle navigation to previous/next period
+  const handlePrevious = () => {
+    const newDate = moment(selectedDate).subtract(1, currentView).toDate();
+    handleDateChange(newDate);
+  };
+
+  const handleNext = () => {
+    const newDate = moment(selectedDate).add(1, currentView).toDate();
+    handleDateChange(newDate);
+  };
+
+  const handleToday = () => {
+    handleDateChange(new Date());
+  };
+
   // Component to display events in the calendar
   const EventItem = ({ event }) => {
     // Access style properties passed from eventStyleGetter
@@ -558,7 +658,7 @@ const BookingCalendar = () => {
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <Tooltip title={t('bookingCalendar.previous')}>
                   <IconButton
-                      onClick={() => setSelectedDate(moment(selectedDate).subtract(1, currentView).toDate())}
+                      onClick={handlePrevious}
                       size="small"
                   >
                     <ChevronLeft />
@@ -567,7 +667,7 @@ const BookingCalendar = () => {
 
                 <Tooltip title={t('bookingCalendar.today')}>
                   <Button
-                      onClick={() => setSelectedDate(new Date())}
+                      onClick={handleToday}
                       variant="outlined"
                       size="small"
                       startIcon={<TodayIcon />}
@@ -579,7 +679,7 @@ const BookingCalendar = () => {
 
                 <Tooltip title={t('bookingCalendar.next')}>
                   <IconButton
-                      onClick={() => setSelectedDate(moment(selectedDate).add(1, currentView).toDate())}
+                      onClick={handleNext}
                       size="small"
                   >
                     <ChevronRight />
@@ -704,6 +804,7 @@ const BookingCalendar = () => {
                       event: EventItem,
                       toolbar: () => null // Disable the default calendar toolbar
                     }}
+                    onNavigate={handleDateChange}
                 />
             )}
           </Box>
