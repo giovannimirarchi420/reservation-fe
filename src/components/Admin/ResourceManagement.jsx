@@ -179,6 +179,13 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
     // Find the resource name before deleting it
     const resourceToDelete = resources.find(r => r.id === resourceId);
     const resourceName = resourceToDelete ? resourceToDelete.name : t('resourceManagement.selected');
+    let confirm = window.confirm(
+        t('resourceManagement.confirmDeleteResource', {name: resourceName}) + '\n' + t('resourceManagement.actionCannotBeUndone')
+    );
+
+    if (!confirm) {
+      return;
+    }
 
     try {
       // Close menu before starting the operation

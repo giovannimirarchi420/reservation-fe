@@ -28,7 +28,7 @@ export const fetchFederation = (id) => apiRequest(`/sites/${id}`);
  * @param {Object} siteData - New site data
  * @returns {Promise<Object>} Created site
  */
-export const createSite = (siteData) => apiRequest('/sites', 'POST', siteData);
+export const createSite = (siteData, isPrivate) => apiRequest(`/sites?isPrivate=${isPrivate}`, 'POST', siteData);
 
 /**
  * Update an existing site (GLOBAL_ADMIN or SITE_ADMIN for their sites)

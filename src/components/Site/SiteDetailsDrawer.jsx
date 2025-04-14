@@ -24,7 +24,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Alert
+  Alert,
+  Snackbar
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -173,6 +174,18 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isAddAdminDialogOpen, setIsAddAdminDialogOpen] = useState(false);
   const [hasPermissionToEdit, setHasPermissionToEdit] = useState(false);
+  // Add notification state
+  const [notification, setNotification] = useState(null);
+
+  // Show a notification function
+  const showNotification = (message, severity = 'success') => {
+    setNotification({ message, severity });
+    
+    // Remove the notification after 6 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 6000);
+  };
 
   // Load sites data when site changes
   useEffect(() => {
@@ -237,6 +250,10 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         setIsAddUserDialogOpen(false);
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
+        
+        // Show success notification
+        const userName = user.username || `${user.firstName} ${user.lastName}`;
+        showNotification(t('sites.userAddedSuccess', { name: userName, site: federation.name }));
       }, {
         errorMessage: t('sites.unableToAddUser', { name: user.username || `${user.firstName} ${user.lastName}` }),
         showError: true
@@ -264,6 +281,9 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         setMembers(members.filter(m => m.id !== user.id));
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
+        
+        // Show success notification
+        showNotification(t('sites.userRemovedSuccess', { name: userName, site: federation.name }));
       }, {
         errorMessage: t('sites.unableToRemoveUser', { name: userName }),
         showError: true
@@ -287,6 +307,10 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         setIsAddAdminDialogOpen(false);
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
+        
+        // Show success notification
+        const userName = user.username || `${user.firstName} ${user.lastName}`;
+        showNotification(t('sites.adminAddedSuccess', { name: userName, site: federation.name }));
       }, {
         errorMessage: t('sites.unableToAddAdmin', { name: user.username || `${user.firstName} ${user.lastName}` }),
         showError: true
@@ -314,6 +338,9 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
         setAdmins(admins.filter(a => a.id !== user.id));
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
+        
+        // Show success notification
+        showNotification(t('sites.adminRemovedSuccess', { name: userName, site: federation.name }));
       }, {
         errorMessage: t('sites.unableToRemoveAdmin', { name: userName }),
         showError: true
@@ -547,24 +574,42 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
               )
             )}
           </Box>
+
+      {/* Notification for successful operations */}
+      <Snackbar
+        open={!!notification}
+        autoHideDuration={6000}
+        onClose={() => setNotification(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        {notification && (
+          <Alert
+            onClose={() => setNotification(null)}
+            severity={notification.severity}
+            sx={{ width: '100%' }}
+          >
+            {notification.message}
+          </Alert>
+        )}
+      </Snackbar>
     
-          {/* Dialog for adding users to site */}
-          <UserSelectionDialog
-            open={isAddUserDialogOpen}
-            onClose={() => setIsAddUserDialogOpen(false)}
-            onSelect={handleAddUser}
-            excludeUserIds={members.map(m => m.id)}
-          />
+      {/* Dialog for adding users to site */}
+      <UserSelectionDialog
+        open={isAddUserDialogOpen}
+        onClose={() => setIsAddUserDialogOpen(false)}
+        onSelect={handleAddUser}
+        excludeUserIds={members.map(m => m.id)}
+      />
     
-          {/* Dialog for adding admins to site */}
-          <UserSelectionDialog
-            open={isAddAdminDialogOpen}
-            onClose={() => setIsAddAdminDialogOpen(false)}
-            onSelect={handleAddAdmin}
-            excludeUserIds={admins.map(a => a.id)}
-          />
-        </Drawer>
-      );
-    };
+      {/* Dialog for adding admins to site */}
+      <UserSelectionDialog
+        open={isAddAdminDialogOpen}
+        onClose={() => setIsAddAdminDialogOpen(false)}
+        onSelect={handleAddAdmin}
+        excludeUserIds={admins.map(a => a.id)}
+      />
+    </Drawer>
+  );
+};
     
-    export default SiteDetailsDrawer;
+export default SiteDetailsDrawer;

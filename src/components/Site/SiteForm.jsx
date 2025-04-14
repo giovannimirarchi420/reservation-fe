@@ -8,7 +8,9 @@ import {
   DialogContent,
   DialogTitle,
   TextField,
-  CircularProgress
+  CircularProgress,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import { createSite, updateSite } from '../../services/siteService';
 import useApiError from '../../hooks/useApiError';
@@ -22,6 +24,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
   });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Initialize form data when site changes
   useEffect(() => {
@@ -29,7 +32,8 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
       setFormData({
         id: federation.id,
         name: federation.name || '',
-        description: federation.description || ''
+        description: federation.description || '',
+        isPrivate: false
       });
     } else {
       resetForm();
@@ -88,7 +92,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
           savedFederation = await updateSite(formData.id, formData);
         } else {
           // Create new site
-          savedFederation = await createSite(formData);
+          savedFederation = await createSite(formData, isPrivate);
         }
         
         if (savedFederation) {
@@ -118,6 +122,17 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
       
       <DialogContent>
         <Box sx={{ pt: 2 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={isPrivate}
+              name="isPrivate"
+              value={isPrivate}
+              onChange={() => setIsPrivate((isPrivate) => !isPrivate)}
+            />
+          }
+          label={t('sites.privateSite')}
+        />
           <TextField
             label={t('sites.name')}
             name="name"
