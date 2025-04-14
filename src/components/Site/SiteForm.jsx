@@ -113,7 +113,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
       fullWidth
     >
       <DialogTitle>
-        {formData.id ? t('sites.ediSite') : t('sites.newSite')}
+        {t('sites.newSite')}
       </DialogTitle>
       
       <DialogContent>

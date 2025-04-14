@@ -11,6 +11,7 @@ import {
   CircularProgress,
   List,
   ListItem,
+  ListItemButton,
   ListItemText,
   ListItemSecondaryAction,
   ListItemAvatar,
@@ -124,10 +125,10 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
         ) : (
           <List sx={{ mt: 2 }}>
             {filteredUsers.map(user => (
-              <ListItem 
-                key={user.id} 
-                button
+              <ListItemButton 
+                key={user.id}
                 onClick={() => onSelect(user)}
+                sx={{ cursor: 'pointer' }}
               >
                 <ListItemAvatar>
                   <Avatar sx={{ bgcolor: user.role === 'ADMIN' ? 'secondary.main' : 'primary.main' }}>
@@ -144,7 +145,7 @@ const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) =
                   }
                   secondary={user.email}
                 />
-              </ListItem>
+              </ListItemButton>
             ))}
           </List>
         )}
