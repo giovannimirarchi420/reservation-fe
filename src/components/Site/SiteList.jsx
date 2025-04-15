@@ -93,7 +93,7 @@ const SiteList = () => {
   };
 
   // Handle add site
-  const handleAddFederation = () => {
+  const handleAddSite = () => {
     setSelectedFederation(null);
     setIsFormOpen(true);
   };
@@ -139,24 +139,14 @@ const SiteList = () => {
   };
 
   // Handle site form save
-  const handleSaveFederation = (site) => {
-    if (site.id) {
-      // Update existing site
-      setSites(
-        sites.map(f => (f.id === site.id ? site : f))
-      );
-      showNotification(
-        t('sites.siteUpdatedSuccess', { name: site.name }),
-        'success'
-      );
-    } else {
-      // Add new site
-      setSites([...sites, site]);
-      showNotification(
-        t('sites.siteCreatedSuccess', { name: site.name }),
-        'success'
-      );
-    }
+  const handleSaveSite = (site) => {
+    // Add new site
+    setSites([...sites, site]);
+    showNotification(
+      t('sites.siteCreatedSuccess', { name: site.name }),
+      'success'
+    );
+    
     setIsFormOpen(false);
   };
 
@@ -262,7 +252,7 @@ const SiteList = () => {
           variant="contained"
           color="primary"
           startIcon={<AddIcon />}
-          onClick={handleAddFederation}
+          onClick={handleAddSite}
         >
           {t('sites.addSite')}
         </Button>
@@ -324,7 +314,7 @@ const SiteList = () => {
               <Button 
                 variant="outlined" 
                 startIcon={<AddIcon />} 
-                onClick={handleAddFederation}
+                onClick={handleAddSite}
                 sx={{ mt: 2 }}
               >
                 {t('sites.addSite')}
@@ -349,7 +339,7 @@ const SiteList = () => {
         open={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         federation={selectedFederation}
-        onSave={handleSaveFederation}
+        onSave={handleSaveSite}
       />
 
       {/* Site Details Drawer */}

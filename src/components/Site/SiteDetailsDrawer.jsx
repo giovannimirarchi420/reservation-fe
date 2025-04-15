@@ -20,12 +20,9 @@ import {
   Tooltip,
   TextField,
   InputAdornment,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
-  Snackbar
+  Snackbar,
+  Badge
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -34,6 +31,8 @@ import {
   Search as SearchIcon,
   PersonRemove as PersonRemoveIcon,
   AdminPanelSettings as AdminPanelSettingsIcon,
+  PersonAdd as PersonAddIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import {
   fetchSiteUsers,
@@ -47,118 +46,7 @@ import { fetchUsers } from '../../services/userService';
 import { AuthContext } from '../../context/AuthContext';
 import { useSite } from '../../context/SiteContext';
 import useApiError from '../../hooks/useApiError';
-
-// User selection dialog component
-const UserSelectionDialog = ({ open, onClose, onSelect, excludeUserIds = [] }) => {
-  const { t } = useTranslation();
-  const { withErrorHandling } = useApiError();
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-
-  // Load users when dialog opens
-  useEffect(() => {
-    if (open) {
-      loadUsers();
-    }
-  }, [open]);
-
-  // Filter users based on search term
-  useEffect(() => {
-    const filtered = users.filter(user => 
-      !excludeUserIds.includes(user.id) && (
-        (user.username && user.username.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.firstName && user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.lastName && user.lastName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
-    );
-    setFilteredUsers(filtered);
-  }, [users, searchTerm, excludeUserIds]);
-
-  const loadUsers = async () => {
-    setIsLoading(true);
-    try {
-      await withErrorHandling(async () => {
-        const usersData = await fetchUsers();
-        setUsers(usersData);
-        setFilteredUsers(usersData.filter(user => !excludeUserIds.includes(user.id)));
-      }, {
-        errorMessage: t('sites.unableToLoadUsers'),
-        showError: true
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{t('sites.selectUser')}</DialogTitle>
-      <DialogContent>
-        <TextField
-          placeholder={t('sites.searchUsers')}
-          fullWidth
-          variant="outlined"
-          margin="normal"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : filteredUsers.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Typography color="text.secondary">
-              {t('sites.noUsersFound')}
-            </Typography>
-          </Box>
-        ) : (
-          <List sx={{ mt: 2 }}>
-            {filteredUsers.map(user => (
-              <ListItemButton 
-                key={user.id}
-                onClick={() => onSelect(user)}
-                sx={{ cursor: 'pointer' }}
-              >
-                <ListItemAvatar>
-                  <Avatar sx={{ bgcolor: user.role === 'ADMIN' ? 'secondary.main' : 'primary.main' }}>
-                    {user.avatar || (user.firstName && user.lastName 
-                      ? `${user.firstName[0]}${user.lastName[0]}` 
-                      : (user.username ? user.username[0] : 'U')
-                    )}
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText 
-                  primary={user.firstName && user.lastName 
-                    ? `${user.firstName} ${user.lastName}` 
-                    : user.username
-                  }
-                  secondary={user.email}
-                />
-              </ListItemButton>
-            ))}
-          </List>
-        )}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          {t('common.cancel')}
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-};
+import UserSelectionDialog from './UserSelectionDialog';
 
 const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFederationChanged }) => {
   const { t } = useTranslation();
@@ -174,8 +62,8 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
   const [isAddUserDialogOpen, setIsAddUserDialogOpen] = useState(false);
   const [isAddAdminDialogOpen, setIsAddAdminDialogOpen] = useState(false);
   const [hasPermissionToEdit, setHasPermissionToEdit] = useState(false);
-  // Add notification state
   const [notification, setNotification] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Show a notification function
   const showNotification = (message, severity = 'success') => {
@@ -231,6 +119,13 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
     }
   };
 
+  // Handle refreshing data
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await loadFederationData();
+    setIsRefreshing(false);
+  };
+
   // Handle tab change
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -243,23 +138,17 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
     try {
       await withErrorHandling(async () => {
         await addUserToSite(federation.id, user.id);
-        // Reload members
-        const membersData = await fetchSiteUsers(federation.id);
-        setMembers(membersData);
-        // Close dialog
-        setIsAddUserDialogOpen(false);
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
         
-        // Show success notification
-        const userName = user.username || `${user.firstName} ${user.lastName}`;
-        showNotification(t('sites.userAddedSuccess', { name: userName, site: federation.name }));
+        return true; // Return success status
       }, {
         errorMessage: t('sites.unableToAddUser', { name: user.username || `${user.firstName} ${user.lastName}` }),
         showError: true
       });
     } catch (error) {
       console.error('Error adding user to site:', error);
+      return false;
     }
   };
 
@@ -300,23 +189,17 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
     try {
       await withErrorHandling(async () => {
         await addSiteAdmin(federation.id, user.id);
-        // Reload admins
-        const adminsData = await fetchSiteAdmins(federation.id);
-        setAdmins(adminsData);
-        // Close dialog
-        setIsAddAdminDialogOpen(false);
         // Notify parent component
         if (onFederationChanged) onFederationChanged();
         
-        // Show success notification
-        const userName = user.username || `${user.firstName} ${user.lastName}`;
-        showNotification(t('sites.adminAddedSuccess', { name: userName, site: federation.name }));
+        return true; // Return success status
       }, {
         errorMessage: t('sites.unableToAddAdmin', { name: user.username || `${user.firstName} ${user.lastName}` }),
         showError: true
       });
     } catch (error) {
       console.error('Error adding admin to site:', error);
+      return false;
     }
   };
 
@@ -348,6 +231,14 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
     } catch (error) {
       console.error('Error removing admin from site:', error);
     }
+  };
+
+  // Handle dialog close and refresh data
+  const handleDialogClose = () => {
+    setIsAddUserDialogOpen(false);
+    setIsAddAdminDialogOpen(false);
+    // Refresh member and admin lists
+    loadFederationData();
   };
 
   // Get filtered members based on search term
@@ -420,8 +311,20 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs value={activeTab} onChange={handleTabChange} variant="fullWidth">
-          <Tab label={t('sites.members', {count: members.length })} />
-          <Tab label={t('sites.admins')} />
+          <Tab 
+            label={
+              <Badge badgeContent={members.length} color="primary">
+                {t('sites.membersHeader')}
+              </Badge>
+            } 
+          />
+          <Tab 
+            label={
+              <Badge badgeContent={admins.length} color="secondary">
+                {t('sites.admins')}
+              </Badge>
+            } 
+          />
         </Tabs>
       </Box>
 
@@ -442,26 +345,39 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
             sx={{ flexGrow: 1, mr: 1 }}
           />
           
-          {hasPermissionToEdit && activeTab === 0 && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setIsAddUserDialogOpen(true)}
-            >
-              {t('sites.addUser')}
-            </Button>
-          )}
-          
-          {hasPermissionToEdit && activeTab === 1 && 
-            (<Button
-              startIcon={<AdminPanelSettingsIcon />}
-              variant="outlined"
-              size="small"
-              onClick={() => setIsAddAdminDialogOpen(true)}
-            >
-              {t('sites.addAdmin')}
-            </Button>
-          )}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Tooltip title={t('sites.refresh')}>
+              <IconButton 
+                size="small" 
+                onClick={handleRefresh}
+                disabled={isRefreshing}
+              >
+                {isRefreshing ? <CircularProgress size={20} /> : <RefreshIcon />}
+              </IconButton>
+            </Tooltip>
+            
+            {hasPermissionToEdit && activeTab === 0 && (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<PersonAddIcon />}
+                onClick={() => setIsAddUserDialogOpen(true)}
+              >
+                {t('sites.addUser')}
+              </Button>
+            )}
+            
+            {hasPermissionToEdit && activeTab === 1 && 
+              (<Button
+                startIcon={<AdminPanelSettingsIcon />}
+                variant="outlined"
+                size="small"
+                onClick={() => setIsAddAdminDialogOpen(true)}
+              >
+                {t('sites.addAdmin')}
+              </Button>
+            )}
+          </Box>
         </Box>
 
         {!hasPermissionToEdit && (
@@ -484,96 +400,92 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
                   : t('sites.noMembersInSite')}
               </Typography>
             </Box>
-            ) : (
-                <List>
-                  {getFilteredMembers().map(user => (
-                    <React.Fragment key={user.id}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: user.role === 'ADMIN' ? 'secondary.main' : 'primary.main' }}>
-                            {user.avatar || (user.firstName && user.lastName 
-                              ? `${user.firstName[0]}${user.lastName[0]}` 
-                              : (user.username ? user.username[0] : 'U')
-                            )}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText 
-                          primary={user.firstName && user.lastName 
-                            ? `${user.firstName} ${user.lastName}` 
-                            : user.username
-                          }
-                          secondary={user.email}
-                        />
-                        <ListItemSecondaryAction>
-                        {currentUser.id === user.id ? '' : 
-                          hasPermissionToEdit && (
-                            <Tooltip title={t('sites.removeFromSite')}>
-                              <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
-                                <PersonRemoveIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )
-                        }
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                      <Divider variant="inset" component="li" />
-                    </React.Fragment>
-                  ))}
-                </List>
-              )
-            ) : (
-              // Admins tab
-              isLoadingAdmins ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-                  <CircularProgress />
-                </Box>
-              ) : getFilteredAdmins().length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography color="text.secondary">
-                    {searchTerm 
-                      ? t('sites.noAdminsMatchingSearch') 
-                      : t('sites.noAdminsInSite')}
-                  </Typography>
-                </Box>
-              ) : (
-                <List>
-                  {getFilteredAdmins().map(user => (
-                    <React.Fragment key={user.id}>
-                      <ListItem>
-                        <ListItemAvatar>
-                          <Avatar sx={{ bgcolor: 'secondary.main' }}>
-                            {user.avatar || (user.firstName && user.lastName 
-                              ? `${user.firstName[0]}${user.lastName[0]}` 
-                              : (user.username ? user.username[0] : 'U')
-                            )}
-                          </Avatar>
-                        </ListItemAvatar>
-                        <ListItemText 
-                          primary={user.firstName && user.lastName 
-                            ? `${user.firstName} ${user.lastName}` 
-                            : user.username
-                          }
-                          secondary={user.email}
-                        />
-                        <ListItemSecondaryAction>
-                        {currentUser.id === user.id ? '' : 
-                          hasPermissionToEdit && (
-                            <Tooltip title={t('sites.removeAdminRole')}>
-                              <IconButton edge="end" onClick={() => handleRemoveAdmin(user)}>
-                                <PersonRemoveIcon />
-                              </IconButton>
-                            </Tooltip>
-                          )
-                        }
-                        </ListItemSecondaryAction>
-                      </ListItem>
-                      <Divider variant="inset" component="li" />
-                    </React.Fragment>
-                  ))}
-                </List>
-              )
-            )}
-          </Box>
+          ) : (
+            <List>
+              {getFilteredMembers().map(user => (
+                <React.Fragment key={user.id}>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: user.role === 'ADMIN' ? 'secondary.main' : 'primary.main' }}>
+                        {user.avatar || (user.firstName && user.lastName 
+                          ? `${user.firstName[0]}${user.lastName[0]}` 
+                          : (user.username ? user.username[0] : 'U')
+                        )}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText 
+                      primary={user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}` 
+                        : user.username
+                      }
+                      secondary={user.email}
+                    />
+                    <ListItemSecondaryAction>
+                      {currentUser.id !== user.id && hasPermissionToEdit && (
+                        <Tooltip title={t('sites.removeFromSite')}>
+                          <IconButton edge="end" onClick={() => handleRemoveUser(user)}>
+                            <PersonRemoveIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  <Divider variant="inset" component="li" />
+                </React.Fragment>
+              ))}
+            </List>
+          )
+        ) : (
+          // Admins tab
+          isLoadingAdmins ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : getFilteredAdmins().length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <Typography color="text.secondary">
+                {searchTerm 
+                  ? t('sites.noAdminsMatchingSearch') 
+                  : t('sites.noAdminsInSite')}
+              </Typography>
+            </Box>
+          ) : (
+            <List>
+              {getFilteredAdmins().map(user => (
+                <React.Fragment key={user.id}>
+                  <ListItem>
+                    <ListItemAvatar>
+                      <Avatar sx={{ bgcolor: 'secondary.main' }}>
+                        {user.avatar || (user.firstName && user.lastName 
+                          ? `${user.firstName[0]}${user.lastName[0]}` 
+                          : (user.username ? user.username[0] : 'U')
+                        )}
+                      </Avatar>
+                    </ListItemAvatar>
+                    <ListItemText 
+                      primary={user.firstName && user.lastName 
+                        ? `${user.firstName} ${user.lastName}` 
+                        : user.username
+                      }
+                      secondary={user.email}
+                    />
+                    <ListItemSecondaryAction>
+                      {currentUser.id !== user.id && hasPermissionToEdit && (
+                        <Tooltip title={t('sites.removeAdminRole')}>
+                          <IconButton edge="end" onClick={() => handleRemoveAdmin(user)}>
+                            <PersonRemoveIcon />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  <Divider variant="inset" component="li" />
+                </React.Fragment>
+              ))}
+            </List>
+          )
+        )}
+      </Box>
 
       {/* Notification for successful operations */}
       <Snackbar
@@ -596,7 +508,7 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
       {/* Dialog for adding users to site */}
       <UserSelectionDialog
         open={isAddUserDialogOpen}
-        onClose={() => setIsAddUserDialogOpen(false)}
+        onClose={handleDialogClose}
         onSelect={handleAddUser}
         excludeUserIds={members.map(m => m.id)}
       />
@@ -604,9 +516,10 @@ const SiteDetailsDrawer = ({ open, onClose, federation, onEdit, onDelete, onFede
       {/* Dialog for adding admins to site */}
       <UserSelectionDialog
         open={isAddAdminDialogOpen}
-        onClose={() => setIsAddAdminDialogOpen(false)}
+        onClose={handleDialogClose}
         onSelect={handleAddAdmin}
         excludeUserIds={admins.map(a => a.id)}
+        isAdminSelection={true}
       />
     </Drawer>
   );
