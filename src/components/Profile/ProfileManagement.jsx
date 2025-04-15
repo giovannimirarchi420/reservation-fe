@@ -181,7 +181,7 @@ const ProfileManagement = () => {
         firstName: profileData.firstName,
         lastName: profileData.lastName,
         email: profileData.email,
-        sshPublicKey: profileData.sshPublicKey
+        sshPublicKey: profileData.sshPublicKey ? profileData.sshPublicKey : null
       };
 
       if (profileData.password) {

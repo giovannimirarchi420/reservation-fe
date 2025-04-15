@@ -133,6 +133,8 @@ const en = {
       unableToCopyPassword: "Unable to copy password to clipboard",
       globalAdministrator: "Global Administrator",
       siteAdministrator: "Site Administrator",
+      selectedSiteRoles: "Sites to administer",
+      selectSitesForAdmin: "Select sites to administer",
     },
     resourceForm: {
       editResource: "Edit Resource",

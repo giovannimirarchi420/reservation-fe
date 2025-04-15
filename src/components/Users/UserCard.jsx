@@ -51,7 +51,7 @@ const UserCard = ({ user, onEdit, onDelete }) => {
             if (user.roles.includes(SiteRoles.GLOBAL_ADMIN)) {
                 return SiteRoles.GLOBAL_ADMIN;
             }
-            if (user.roles.includes(SiteRoles.SITE_ADMIN)) {
+            if (user.roles.some(role => role.endsWith('_site_admin'))) {
                 return SiteRoles.SITE_ADMIN;
             }
             return SiteRoles.USER;

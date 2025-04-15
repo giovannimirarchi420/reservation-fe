@@ -128,7 +128,9 @@ const it = {
       actionCannotBeUndone: "Attenzione: Tutte le prenotazioni associate a questo utente saranno eliminate. Questa azione non può essere annullata.",
       invalidEmail: "Formato email non valido",
       passwordRequiredForNewUsers: "La password è obbligatoria per i nuovi utenti",
-      unableToCopyPassword: "Impossibile copiare la password negli appunti"
+      unableToCopyPassword: "Impossibile copiare la password negli appunti",
+      selectedSiteRoles: "Siti da amministrare:",
+      selectSitesForAdmin: "Seleziona siti da amministrare",
     },
     resourceForm: {
       editResource: "Modifica Risorsa",
