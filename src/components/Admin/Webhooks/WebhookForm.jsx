@@ -142,18 +142,25 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
   const [clientSecret, setClientSecret] = useState(null);
   const [isSecretDialogOpen, setIsSecretDialogOpen] = useState(false);
 
-  // Load resources and resource types
+  // Load resources and resource types based on selected site
   useEffect(() => {
     const loadData = async () => {
+      if (!open || !formData.siteId) {
+        // Don't load resources or types if no site is selected
+        setResources([]);
+        setResourceTypes([]);
+        return;
+      }
+      
       setIsLoading(true);
       try {
         await withErrorHandling(async () => {
           const [resourcesData, resourceTypesData] = await Promise.all([
-            fetchResources(currentSite?.id ? {siteId: currentSite.id} : {}),
-            fetchResourceTypes(currentSite?.id ? {siteId: currentSite.id} : {})
+            fetchResources({ siteId: formData.siteId }),
+            fetchResourceTypes({ siteId: formData.siteId })
           ]);
-          setResources(resourcesData);
-          setResourceTypes(resourceTypesData);
+          setResources(resourcesData || []);
+          setResourceTypes(resourceTypesData || []);
         }, {
           errorMessage: t('webhooks.unableToLoadResourceData'),
           showError: true
@@ -163,10 +170,8 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
       }
     };
 
-    if (open) {
-      loadData();
-    }
-  }, [open, withErrorHandling, t, currentSite]);
+    loadData();
+  }, [open, withErrorHandling, t, formData.siteId]);
 
   // Use site context for default site
   useEffect(() => {
@@ -215,6 +220,18 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
         ...errors,
         [name]: undefined
       });
+    }
+    
+    // If site changes, reset resource selection data
+    if (name === 'siteId') {
+      setFormData(prev => ({
+        ...prev,
+        [name]: value,
+        resourceId: null,
+        resourceName: null,
+        resourceTypeId: null,
+        resourceTypeName: null
+      }));
     }
   };
 
@@ -428,6 +445,7 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                     <MenuItem value={WebhookEventTypes.EVENT_DELETED}>{t('webhooks.eventDeleted')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.RESOURCE_CREATED}>{t('webhooks.resourceCreated')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.RESOURCE_UPDATED}>{t('webhooks.resourceUpdated')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.RESOURCE_STATUS_CHANGED}>{t('webhooks.resourceStatusChanged')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.RESOURCE_DELETED}>{t('webhooks.resourceDeleted')}</MenuItem>
                   </Select>
                   {errors.eventType && <FormHelperText>{errors.eventType}</FormHelperText>}
@@ -474,66 +492,104 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                     />
                     <FormControlLabel 
                       value="resource" 
-                      control={<Radio />} 
+                      control={<Radio disabled={!formData.siteId} />} 
                       label={t('webhooks.specificResource')} 
                     />
                     <FormControlLabel 
                       value="resourceType" 
-                      control={<Radio />} 
+                      control={<Radio disabled={!formData.siteId} />} 
                       label={t('webhooks.resourcesByType')} 
                     />
                   </RadioGroup>
                 </FormControl>
                 
-                {/* Resource Selection */}
+                {/* Resource Selection - only show if site is selected */}
                 {formData.resourceSelectionType === 'resource' && (
-                  <FormControl fullWidth required error={!!errors.resourceId}>
-                    <InputLabel>{t('webhooks.selectResource')}</InputLabel>
-                    <Select
-                      value={formData.resourceId || ''}
-                      label={t('webhooks.selectResource')}
-                      onChange={handleResourceSelect}
-                    >
-                      <MenuItem value="">{t('webhooks.pleaseSelectResource')}</MenuItem>
-                      {resources.map(resource => (
-                        <MenuItem key={resource.id} value={resource.id}>
-                          {resource.name} - {resource.specs}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
-                    {formData.resourceId && (
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            checked={formData.includeSubResources}
-                            onChange={handleToggleIncludeSubResources}
+                  <>
+                    {!formData.siteId ? (
+                      <Alert severity="info">
+                        {t('webhooks.selectSiteFirst')}
+                      </Alert>
+                    ) : (
+                      <FormControl fullWidth required error={!!errors.resourceId}>
+                        <InputLabel>{t('webhooks.selectResource')}</InputLabel>
+                        <Select
+                          value={formData.resourceId || ''}
+                          label={t('webhooks.selectResource')}
+                          onChange={handleResourceSelect}
+                        >
+                          <MenuItem value="">{t('webhooks.pleaseSelectResource')}</MenuItem>
+                          {isLoading ? (
+                            <MenuItem disabled>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <CircularProgress size={20} sx={{ mr: 1 }} />
+                                {t('common.loading')}
+                              </Box>
+                            </MenuItem>
+                          ) : resources.length === 0 ? (
+                            <MenuItem disabled>{t('webhooks.noResourcesFound')}</MenuItem>
+                          ) : (
+                            resources.map(resource => (
+                              <MenuItem key={resource.id} value={resource.id}>
+                                {resource.name} - {resource.specs}
+                              </MenuItem>
+                            ))
+                          )}
+                        </Select>
+                        {errors.resourceId && <FormHelperText>{errors.resourceId}</FormHelperText>}
+                        {formData.resourceId && (
+                          <FormControlLabel
+                            control={
+                              <Checkbox
+                                checked={formData.includeSubResources}
+                                onChange={handleToggleIncludeSubResources}
+                              />
+                            }
+                            label={t('webhooks.includeSubResources')}
                           />
-                        }
-                        label={t('webhooks.includeSubResources')}
-                      />
+                        )}
+                      </FormControl>
                     )}
-                  </FormControl>
+                  </>
                 )}
                 
-                {/* Resource Type Selection */}
+                {/* Resource Type Selection - only show if site is selected */}
                 {formData.resourceSelectionType === 'resourceType' && (
-                  <FormControl fullWidth required error={!!errors.resourceTypeId}>
-                    <InputLabel>{t('webhooks.selectResourceType')}</InputLabel>
-                    <Select
-                      value={formData.resourceTypeId || ''}
-                      label={t('webhooks.selectResourceType')}
-                      onChange={handleResourceTypeSelect}
-                    >
-                      <MenuItem value="">{t('webhooks.pleaseSelectResourceType')}</MenuItem>
-                      {resourceTypes.map(type => (
-                        <MenuItem key={type.id} value={type.id}>
-                          {type.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.resourceTypeId && <FormHelperText>{errors.resourceTypeId}</FormHelperText>}
-                  </FormControl>
+                  <>
+                    {!formData.siteId ? (
+                      <Alert severity="info">
+                        {t('webhooks.selectSiteFirst')}
+                      </Alert>
+                    ) : (
+                      <FormControl fullWidth required error={!!errors.resourceTypeId}>
+                        <InputLabel>{t('webhooks.selectResourceType')}</InputLabel>
+                        <Select
+                          value={formData.resourceTypeId || ''}
+                          label={t('webhooks.selectResourceType')}
+                          onChange={handleResourceTypeSelect}
+                        >
+                          <MenuItem value="">{t('webhooks.pleaseSelectResourceType')}</MenuItem>
+                          {isLoading ? (
+                            <MenuItem disabled>
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <CircularProgress size={20} sx={{ mr: 1 }} />
+                                {t('common.loading')}
+                              </Box>
+                            </MenuItem>
+                          ) : resourceTypes.length === 0 ? (
+                            <MenuItem disabled>{t('webhooks.noResourceTypesFound')}</MenuItem>
+                          ) : (
+                            resourceTypes.map(type => (
+                              <MenuItem key={type.id} value={type.id}>
+                                {type.name}
+                              </MenuItem>
+                            ))
+                          )}
+                        </Select>
+                        {errors.resourceTypeId && <FormHelperText>{errors.resourceTypeId}</FormHelperText>}
+                      </FormControl>
+                    )}
+                  </>
                 )}
               </Stack>
               

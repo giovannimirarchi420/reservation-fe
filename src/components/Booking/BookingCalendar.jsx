@@ -68,6 +68,8 @@ const BookingCalendar = () => {
   const [notification, setNotification] = useState(null);
   // State to keep track of which months have been loaded
   const [loadedMonths, setLoadedMonths] = useState(new Set());
+  // State to keep track of which months are currently being loaded (to prevent duplicate fetches)
+  const [loadingMonths, setLoadingMonths] = useState(new Set());
 
   // Helper function to generate a month key (YYYY-MM format)
   const generateMonthKey = useCallback((date) => {
@@ -127,6 +129,16 @@ const BookingCalendar = () => {
 
   // Function to load events for specified date ranges and merge with existing events
   const loadEventsForDateRange = useCallback(async (startDate, endDate, monthKeys) => {
+    // Prevent duplicate fetches for the same months
+    if (monthKeys && monthKeys.length > 0) {
+      const alreadyLoading = monthKeys.some(key => loadingMonths.has(key));
+      if (alreadyLoading) return;
+      setLoadingMonths(prev => {
+        const newSet = new Set(prev);
+        monthKeys.forEach(key => newSet.add(key));
+        return newSet;
+      });
+    }
     setIsLoading(true);
     try {
       await withErrorHandling(async () => {
@@ -202,8 +214,16 @@ const BookingCalendar = () => {
       });
     } finally {
       setIsLoading(false);
+      // Mark months as not loading anymore
+      if (monthKeys && monthKeys.length > 0) {
+        setLoadingMonths(prev => {
+          const newSet = new Set(prev);
+          monthKeys.forEach(key => newSet.delete(key));
+          return newSet;
+        });
+      }
     }
-  }, [withErrorHandling, bookingToHighlight, t, currentSite, resources, resourceColors, setResources, setResourceColors, setIsBookingModalOpen, setSelectedEvent]);
+  }, [withErrorHandling, bookingToHighlight, t, currentSite, resources, resourceColors, setResources, setResourceColors, setIsBookingModalOpen, setSelectedEvent, loadingMonths]);
 
   // Load initial data for current month plus adjacent months
   useEffect(() => {
@@ -219,14 +239,14 @@ const BookingCalendar = () => {
         generateMonthKey(nextMonthStart)
       ];
       
-      // Only load data if these months haven't been loaded yet
-      if (!monthKeys.every(key => loadedMonths.has(key))) {
+      // Only load data if these months haven't been loaded yet and are not being loaded
+      if (!monthKeys.every(key => loadedMonths.has(key) || loadingMonths.has(key))) {
         await loadEventsForDateRange(prevMonthStart.toDate(), nextMonthEnd.toDate(), monthKeys);
       }
     };
 
     loadInitialData();
-  }, [selectedDate, generateMonthKey, loadedMonths, loadEventsForDateRange]);
+  }, [selectedDate, generateMonthKey, loadedMonths, loadingMonths, loadEventsForDateRange]);
 
   // Update calendar height based on current view
   useEffect(() => {
@@ -433,8 +453,8 @@ const BookingCalendar = () => {
     // If we've navigated to a new month, check if we need to load new data
     const newMonthKey = generateMonthKey(date);
     
-    // If we haven't loaded this month yet, fetch it plus adjacent months
-    if (!loadedMonths.has(newMonthKey)) {
+    // If we haven't loaded this month yet and it's not being loaded, fetch it plus adjacent months
+    if (!loadedMonths.has(newMonthKey) && !loadingMonths.has(newMonthKey)) {
       // Calculate the range to load (current month plus adjacent months)
       const newMonthStart = moment(date).startOf('month');
       const prevMonthStart = moment(newMonthStart).subtract(1, 'month');
@@ -446,7 +466,7 @@ const BookingCalendar = () => {
         generateMonthKey(prevMonthStart),
         newMonthKey,
         generateMonthKey(nextMonthStart)
-      ].filter(key => !loadedMonths.has(key));
+      ].filter(key => !loadedMonths.has(key) && !loadingMonths.has(key));
       
       // Load the new months if any are needed
       if (monthKeysToLoad.length > 0) {

@@ -45,6 +45,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   const [isChecking, setIsChecking] = useState(false);
   const [validationMessage, setValidationMessage] = useState(null);
   const [isReadOnly, setIsReadOnly] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [affectedResources, setAffectedResources] = useState([]);
 
   // Filter available resources (only ACTIVE ones)
@@ -150,7 +151,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleChange = (e) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isSubmitting) return;
     
     const { name, value } = e.target;
     setFormData({
@@ -171,7 +172,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleDateChange = (e) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isSubmitting) return;
     
     const { name, value } = e.target;
     setFormData({
@@ -184,7 +185,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   const handleUserSelectionChange = (useCurrentUserValue) => {
-    if (isReadOnly) return;
+    if (isReadOnly || isSubmitting) return;
     
     setUseCurrentUser(useCurrentUserValue);
     
@@ -300,27 +301,49 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     if (useCurrentUser && currentUser) {
       formData.userId = currentUser.id;
     }
-    
+
     if (validateForm()) {
-      // If validation message is not set or not a success, check for conflicts
-      if (!validationMessage || validationMessage.type !== 'success') {
-        const noConflicts = await checkConflicts();
-        
-        if (!noConflicts) {
-          // If there are conflicts, ask for confirmation
-          if (!window.confirm(t('bookingForm.confirmConflictContinue'))) {
-            return; // User cancelled the operation
+      setIsSubmitting(true);
+      setValidationMessage(null);
+      try {
+        // If validation message is not set or not a success, check for conflicts
+        if (!validationMessage || validationMessage.type !== 'success') {
+          const noConflicts = await checkConflicts();
+
+          if (!noConflicts) {
+            // If there are conflicts, ask for confirmation
+            if (!window.confirm(t('bookingForm.confirmConflictContinue'))) {
+              setIsSubmitting(false);
+              return; // User cancelled the operation
+            }
           }
         }
+
+        // Proceed with saving
+        await onSave(formData);
+      } catch (error) {
+        console.error("Error during save:", error);
+      } finally {
+        setIsSubmitting(false);
       }
-      
-      // Proceed with saving
-      onSave(formData);
     } else {
       // Notify form errors
       const errorFields = Object.keys(errors).map(field => t(`bookingForm.${field}`));
       if (errorFields.length > 0) {
         notifyFormError(`${t('bookingForm.correctErrorFields')} ${errorFields.join(', ')}`);
+      }
+    }
+  };
+
+  const handleDeleteClick = async () => {
+    if (formData.id) {
+      setIsSubmitting(true);
+      try {
+        await onDelete(formData.id);
+      } catch (error) {
+        console.error("Error during delete:", error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -360,7 +383,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     
     return (
       <Paper elevation={0} variant="outlined" sx={{ p: 2, mt: 2, mb: 1, bgcolor: 'background.paper' }}>
-        {/* Clear heading explaining the hierarchy implication */}
         <Typography variant="subtitle1" color="primary" gutterBottom fontWeight="bold" sx={{ display: 'flex', alignItems: 'center' }}>
           <Box component="span" sx={{ mr: 1 }}>⚠️</Box>
           {isParent 
@@ -371,7 +393,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         
         <Divider sx={{ my: 1 }} />
         
-        {/* Clarified explanation of the relationship */}
         <Typography variant="body2" gutterBottom>
           {isParent
             ? t('bookingForm.parentResourceDetail') 
@@ -379,7 +400,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
           }
         </Typography>
         
-        {/* Clarified label for the resources list */}
         <Typography variant="body2" color="text.secondary" fontWeight="medium" sx={{ mt: 2, mb: 1 }}>
           {isParent 
             ? t('bookingForm.dependentResources') 
@@ -394,7 +414,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
           mt: 1,
           pl: 2
         }}>
-          {/* For child resources, first show the parent explicitly */}
           {!isParent && selectedResource.parentId && (
             <Box sx={{ mb: 1 }}>
               <Typography variant="body2" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
@@ -410,9 +429,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
             </Box>
           )}
           
-          {/* Show resource list with appropriate labeling */}
           {isParent ? (
-            // For parent resources, show the child resources that will be affected
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
               {affectedResources.map(resource => (
                 <Chip
@@ -425,7 +442,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               ))}
             </Typography>
           ) : (
-            // For child resources, show sibling resources (other children of same parent)
             <Box>
               {affectedResources
                 .filter(r => r.id !== selectedResource.parentId)
@@ -455,14 +471,10 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     );
   };
 
-  // Render read-only view with improved UI
   const renderReadOnlyView = () => {
-    // Get resource name
     const resourceName = getResourceName(formData.resourceId);
-    // Get user name
     const userName = getUserName(formData.userId);
     
-    // Check if this resource is part of a hierarchy
     const selectedResource = resources.find(r => r.id === formData.resourceId);
     const isHierarchical = selectedResource && 
       (selectedResource.parentId || (selectedResource.subResourceIds && selectedResource.subResourceIds.length > 0));
@@ -519,7 +531,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     );
   };
 
-  // Render edit form with improved structure and UI
   const renderEditForm = () => {
     const selectedResource = resources.find(r => r.id === formData.resourceId);
     const isHierarchical = selectedResource && 
@@ -532,11 +543,10 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         </DialogTitle>
         <DialogContent>
           <Box sx={{ pt: 2 }}>
-            {/* Basic booking information section */}
             <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'medium' }}>
               {t('bookingForm.bookingDetails')}
             </Typography>
-            
+
             <TextField
               label={t('bookingForm.title')}
               name="title"
@@ -547,9 +557,10 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               required
               error={!!errors.title}
               helperText={errors.title}
+              disabled={isSubmitting || isReadOnly}
             />
-            
-            <FormControl fullWidth margin="normal" required error={!!errors.resourceId}>
+
+            <FormControl fullWidth margin="normal" required error={!!errors.resourceId} disabled={isSubmitting || isReadOnly}>
               <InputLabel id="resource-select-label">{t('bookingForm.resource')}</InputLabel>
               <Select
                 labelId="resource-select-label"
@@ -557,10 +568,10 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 value={formData.resourceId || ''}
                 label={t('bookingForm.resource')}
                 onChange={handleChange}
+                disabled={isSubmitting || isReadOnly}
               >
                 <MenuItem value="">{t('bookingForm.selectResource')}</MenuItem>
                 {activeResources.map(resource => {
-                  // Identify if this is a parent or child resource
                   const isParent = resource.subResourceIds && resource.subResourceIds.length > 0;
                   const isChild = resource.parentId;
                   
@@ -571,7 +582,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                       alignItems: 'flex-start'
                     }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
-                        {/* Show hierarchy indicator icon */}
                         {(isParent || isChild) && (
                           <Box 
                             component="span" 
@@ -587,8 +597,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                         <Typography component="span" fontWeight="medium">
                           {resource.name}
                         </Typography>
-                        
-                        {/* Badge for hierarchical resources */}
                         {(isParent || isChild) && (
                           <Box 
                             component="span" 
@@ -619,10 +627,8 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               )}
             </FormControl>
 
-            {/* Display affected resources */}
             {renderAffectedResources()}
 
-            {/* Section for user selection - only available for admins */}
             {isSiteAdmin() && (
               <Box sx={{ mt: 3, mb: 2 }}>
                 <Divider sx={{ mb: 2 }}>
@@ -635,10 +641,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                   {t('bookingForm.adminBookingNote')}
                 </Alert>
                 
-                <FormControl fullWidth>
+                <FormControl fullWidth disabled={isSubmitting || isReadOnly}>
                   <Select
                     value={useCurrentUser ? 'current' : 'other'}
                     onChange={(e) => handleUserSelectionChange(e.target.value === 'current')}
+                    disabled={isSubmitting || isReadOnly}
                   >
                     <MenuItem value="current">
                       {t('bookingForm.bookInMyName')} ({currentUser?.name || currentUser?.username})
@@ -646,9 +653,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                     <MenuItem value="other">{t('bookingForm.bookForAnotherUser')}</MenuItem>
                   </Select>
                 </FormControl>
-                
+
                 {!useCurrentUser && (
-                  <FormControl fullWidth margin="normal" required error={!!errors.userId}>
+                  <FormControl fullWidth margin="normal" required error={!!errors.userId} disabled={isSubmitting || isReadOnly}>
                     <InputLabel id="user-select-label">{t('bookingForm.selectUser')}</InputLabel>
                     <Select
                       labelId="user-select-label"
@@ -656,6 +663,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                       value={formData.userId || ''}
                       label={t('bookingForm.selectUser')}
                       onChange={handleChange}
+                      disabled={isSubmitting || isReadOnly}
                     >
                       <MenuItem value="">{t('bookingForm.selectUser')}</MenuItem>
                       {users.map(user => (
@@ -670,7 +678,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               </Box>
             )}
             
-            {/* Date/time selection with improved labeling */}
             <Typography variant="subtitle2" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>
               {t('bookingForm.period')}
             </Typography>
@@ -692,6 +699,7 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 required
                 error={!!errors.start}
                 helperText={errors.start}
+                disabled={isSubmitting || isReadOnly}
               />
               <TextField
                 label={t('bookingForm.endDateTime')}
@@ -704,16 +712,16 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 required
                 error={!!errors.end}
                 helperText={errors.end}
+                disabled={isSubmitting || isReadOnly}
               />
             </Box>
             
-            {/* Button to check for conflicts with improved UI */}
             <Box sx={{ mt: 2, mb: 2 }}>
               <Button
                 variant="outlined"
                 color="primary"
                 onClick={checkConflicts}
-                disabled={isChecking || !formData.resourceId || !formData.start || !formData.end || 
+                disabled={isChecking || isSubmitting || !formData.resourceId || !formData.start || !formData.end || 
                   (errors.resourceId || errors.start || errors.end)}
                 fullWidth
                 startIcon={isChecking ? <CircularProgress size={20} /> : null}
@@ -723,7 +731,6 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               </Button>
             </Box>
             
-            {/* Validation message */}
             {validationMessage && (
               <Alert 
                 severity={validationMessage.type} 
@@ -742,29 +749,32 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
               value={formData.description || ''}
               onChange={handleChange}
               margin="normal"
+              disabled={isSubmitting || isReadOnly}
             />
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>
+          <Button onClick={onClose} disabled={isSubmitting}>
             {t('common.cancel')}
           </Button>
           <Button 
             variant="contained" 
             color="primary" 
             onClick={handleSubmit}
-            disabled={isChecking || activeResources.length === 0}
+            disabled={isChecking || isSubmitting || activeResources.length === 0}
+            startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {formData.id ? t('common.update') : t('common.confirm')}
+            {isSubmitting ? t('common.saving') : (formData.id ? t('common.update') : t('common.confirm'))}
           </Button>
           {formData.id && (
             <Button 
               variant="contained" 
               color="error" 
-              onClick={() => onDelete(formData.id)}
-              disabled={isChecking}
+              onClick={handleDeleteClick}
+              disabled={isChecking || isSubmitting}
+              startIcon={isSubmitting ? <CircularProgress size={20} color="inherit" /> : null}
             >
-              {t('common.delete')}
+              {isSubmitting ? t('common.deleting') : t('common.delete')}
             </Button>
           )}
         </DialogActions>
@@ -775,13 +785,13 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   return (
     <Dialog 
       open={open} 
-      onClose={onClose}
+      onClose={isSubmitting ? () => {} : onClose}
       maxWidth={isReadOnly ? "sm" : "md"}
       fullWidth
       PaperProps={{
         sx: {
-          maxHeight: '90vh', // Ensure dialog doesn't get too tall on small screens
-          overflowY: 'auto'  // Enable scrolling when content is too large
+          maxHeight: '90vh',
+          overflowY: 'auto'
         }
       }}
     >
