@@ -18,7 +18,7 @@ import { useSite } from '../../context/SiteContext';
 
 const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, onSave, onDelete }) => {
   const { t } = useTranslation();
-  const { sites, currentSite, isGlobalAdmin, isSiteAdmin } = useSite();
+  const { sites, currentSite, isGlobalAdmin, isSiteAdmin, getManageableSites } = useSite();
   const [formData, setFormData] = useState({
     name: '',
     type: '',
@@ -28,6 +28,8 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
     parentId: '', // null or empty string means no parent
     siteId: ''
   });
+
+  const manageableSites = getManageableSites();
   const [errors, setErrors] = useState({});
 
   // Populate the form when a resource is selected
@@ -68,7 +70,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
       status: 0,
       parentId: '',
       // If user is in a site context or is a site admin, pre-select their site
-      siteId: currentSite ? currentSite.id : ''
+      siteId: currentSite == "ALL" ? manageableSites[0]?.id : currentSite?.id
     });
     setErrors({});
   };
@@ -199,14 +201,13 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
                   value={formData.siteId || ''}
                   label={t('resourceForm.site')}
                   onChange={handleChange}
-                  disabled={!isGlobalAdmin()} // Only global admins can change the federation
+                  disabled={!(manageableSites.length > 1)}
               >
                 <MenuItem value="">{t('resourceForm.selectSite')}</MenuItem>
-                {sites.map(site => (
+                {manageableSites.map(site => (
                     <MenuItem 
                       key={site.id} 
                       value={site.id}
-                      disabled={!isGlobalAdmin() && !isSiteAdmin(site.id)}
                     >
                       {site.name}
                     </MenuItem>

@@ -37,7 +37,7 @@ import { useSite } from '../../context/SiteContext';
 const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const { t } = useTranslation();
   const { isGlobalAdmin } = useContext(AuthContext);
-  const { sites } = useSite();
+  const { sites, getManageableSites } = useSite();
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -346,6 +346,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
+  // Determine which sites to display for selection
+  const availableSitesForAdminSelection = getManageableSites();
+
   return (
     <Dialog
       open={open}
@@ -514,7 +517,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
               )}
               
               <FormGroup>
-                {sites.map(site => {
+                {availableSitesForAdminSelection.map(site => { 
                   const roleId = `${site.name}_site_admin`;
                   const isSelected = formData.siteAdminRoles.includes(roleId);
                   

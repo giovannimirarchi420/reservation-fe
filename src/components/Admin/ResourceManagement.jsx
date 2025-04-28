@@ -146,11 +146,11 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
       if (preparedData.id) {
         // Update an existing resource
         const updatedResource = await updateResource(preparedData.id, preparedData);
-        return { success: updatedResource.success, updated: true, resource: updatedResource };
+        return { success: updatedResource.id, updated: true, resource: updatedResource };
       } else {
         // Create a new resource
         const newResource = await createResource(preparedData);
-        return { success: newResource.success, updated: false, resource: newResource };
+        return { success: newResource.id, updated: false, resource: newResource };
       }
     }, {
       errorMessage: preparedData.id 
