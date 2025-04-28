@@ -50,7 +50,7 @@ const LayoutWrapper = ({ element, currentSection, requiredRole }) => {
     }
 
     if (!currentUser) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/" replace />;
     }
 
     // Special handling for sites section - use canManageSites

@@ -22,7 +22,8 @@ import {
     Typography,
     Snackbar,
     Alert,
-    useTheme
+    useTheme,
+    CircularProgress
 } from '@mui/material';
 import {
     Add as AddIcon,
@@ -776,7 +777,7 @@ const BookingCalendar = () => {
           >
             {isLoading ? (
                 <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                  <Typography>{t('bookingCalendar.loadingCalendar')}</Typography>
+                  <CircularProgress/>
                 </Box>
             ) : (
                 <Calendar
