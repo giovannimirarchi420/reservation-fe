@@ -27,9 +27,12 @@ A comprehensive cloud resource management application built with React and Mater
 
 - **📅 Resource Booking**: Schedule and manage resource reservations with an intuitive calendar interface
 - **📦 Resource Management**: Add, edit, and maintain resources and resource types
-- **👥 User Management**: Manage users with different permission levels (admins and regular users)
+- **🏢 Site Management**: Organize resources and users into distinct sites
+- **👥 User Management**: Manage users with different permission levels (Global Admins, Site Admins, and regular users)
 - **📊 Dashboard**: Visualize resource usage with interactive charts and statistics
 - **🔔 Notification System**: Real-time notification center for booking changes and system events
+- **🔗 Webhooks**: Configure webhooks to notify external systems about platform events
+- **📜 Audit Logs**: Track system activities and changes for security and compliance
 - **🌍 Multi-language Support**: Full internationalization for English and Italian
 - **📱 Responsive Design**: Works seamlessly on desktop and mobile devices
 - **🌓 Dark Mode**: Light or Dark Mode support
@@ -134,8 +137,11 @@ A comprehensive cloud resource management application built with React and Mater
 ### ⚙️ Admin Panel
 
 - Resource management (add, edit, delete)
-- Resource type configuration 
-- User management with role-based access
+- Resource type configuration
+- Site management (add, edit, delete sites, manage members and administrators)
+- User management with role-based access (Global Admin, Site Admin, User)
+- Webhook configuration and monitoring
+- Audit log viewing and filtering
 - System settings
 
 ### 📊 Dashboard
@@ -199,8 +205,9 @@ This will set up the complete environment including frontend, backend API, datab
 ## 🔒 Authentication and Authorization
 
 The application uses Keycloak for authentication and role-based access control:
-- **👑 Administrators**: Full access to all features
-- **👤 Users**: Can view resources and manage their own bookings
+- **👑 Global Administrators**: Full access to all features across all sites.
+- **🛡️ Site Administrators**: Full access to features within their assigned sites.
+- **👤 Users**: Can view resources and manage their own bookings within their assigned sites.
 
 ## 🤝 Contributing
 
