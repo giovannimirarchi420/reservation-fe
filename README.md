@@ -85,46 +85,7 @@ A comprehensive cloud resource management application built with React and Mater
    # or
    yarn start
    ```
-
-## 📂 Project Structure
-
-```
-/
-├── public/                       # Static assets
-│   ├── index.html                # Main HTML file
-│
-├── src/                          # Source code
-│   ├── components/               # UI components
-│   │   ├── Admin/                # Admin panel components
-│   │   ├── Booking/              # Booking components
-│   │   ├── Common/               # Shared components
-│   │   ├── Dashboard/            # Dashboard components
-│   │   ├── LanguageSelector/     # Language selection UI
-│   │   ├── Layout/               # Layout components
-│   │   ├── Notifications/        # Notification components
-│   │   ├── Profile/              # User profile management
-│   │   ├── Resources/            # Resource components
-│   │   ├── ThemeSwitcher/        # Theme toggling UI
-│   │   └── Users/                # User management components
-│   ├── config/                   # Application configuration
-│   ├── context/                  # React context providers
-│   ├── hooks/                    # Custom React hooks
-│   ├── i18n/                     # Internationalization
-│   │   └── locales/              # Language files (en, it)
-│   ├── services/                 # API services
-│   │   ├── apiCore.js            # Core API functionality
-│   │   ├── authService.js        # Authentication service
-│   │   ├── bookingService.js     # Booking API
-│   │   ├── notificationService.js # Notification API
-│   │   ├── resourceService.js    # Resource API
-│   │   └── userService.js        # User API
-│   ├── styles/                   # CSS styles
-│   ├── theme/                    # Theme configuration
-│   ├── utils/                    # Utility functions
-│   ├── App.jsx                   # Main App component
-│   └── index.jsx                 # Application entry point
-```
-
+   
 ## 🌟 Main Features
 
 ### 📅 Resource Booking Calendar
