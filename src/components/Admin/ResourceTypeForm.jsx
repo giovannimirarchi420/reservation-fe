@@ -12,7 +12,8 @@ import {
     FormControl,
     InputLabel,
     Select,
-    MenuItem
+    MenuItem,
+    CircularProgress // Import CircularProgress
 } from '@mui/material';
 import { getRandomColor } from '../../utils/colorUtils';
 import { useSite } from '../../context/SiteContext';
@@ -30,6 +31,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         siteId: ''
     });
     const [errors, setErrors] = useState({});
+    const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
 
     // Populate the form when a resource type is selected
     useEffect(() => {
@@ -92,9 +94,17 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => { // Make handleSubmit async
         if (validateForm()) {
-            onSave(formData);
+            setIsSubmitting(true); // Set submitting to true
+            try {
+                await onSave(formData); // Wait for save operation
+            } catch (error) {
+                console.error("Error saving resource type:", error);
+                // Optionally show an error message to the user
+            } finally {
+                setIsSubmitting(false); // Set submitting to false
+            }
         }
     };
 
@@ -203,21 +213,24 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                 </Box>
             </DialogContent>
             <DialogActions>
-                <Button onClick={onClose}>
+                <Button onClick={onClose} disabled={isSubmitting}> {/* Disable cancel button */}
                     {t('resourceType.cancel')}
                 </Button>
                 <Button
                     variant="contained"
                     color="primary"
                     onClick={handleSubmit}
+                    disabled={isSubmitting} // Disable submit button
+                    sx={{ minWidth: 100 }} // Ensure button width doesn't jump too much
                 >
-                    {formData.id ? t('resourceType.update') : t('resourceType.confirm')}
+                    {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (formData.id ? t('resourceType.update') : t('resourceType.confirm'))} {/* Show progress */}
                 </Button>
                 {formData.id && (
                     <Button
                         variant="contained"
                         color="error"
                         onClick={() => onDelete(formData.id)}
+                        disabled={isSubmitting} // Disable delete button
                     >
                         {t('resourceType.delete')}
                     </Button>

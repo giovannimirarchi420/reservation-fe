@@ -74,7 +74,6 @@ export const getToken = () => {
  */
 export const getUserInfo = () => {
     if (keycloak.tokenParsed) {
-        console.log(keycloak.tokenParsed)
         return {
             id: keycloak.tokenParsed.sub,
             name: keycloak.tokenParsed.preferred_username,

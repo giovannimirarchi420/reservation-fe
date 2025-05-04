@@ -21,6 +21,7 @@ import {
   Checkbox,
   FormControlLabel,
   FormGroup,
+  CircularProgress, // Import CircularProgress
 } from '@mui/material';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
@@ -46,32 +47,26 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     password: '',
     avatar: '',
     siteId: '',
-    // Simple role for display (global_admin, site_admin, user)
     baseRole: SiteRoles.USER,
-    // Array of site-specific admin roles in format siteName_site_admin
     siteAdminRoles: []
   });
   const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [copiedToClipboard, setCopiedToClipboard] = useState(false);
   const [showSnackbar, setShowSnackbar] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
-  // Check if user is global admin (to determine if they can assign GLOBAL_ADMIN role)
   const canAssignGlobalAdmin = isGlobalAdmin && isGlobalAdmin();
 
-  // Populate the form when a user is selected
   useEffect(() => {
     if (user) {
-      // Extract site admin roles from all roles
       const siteAdminRoles = [];
       let baseRole = SiteRoles.USER;
       
-      // Case 1: user.roles exists as an array
       if (Array.isArray(user.roles)) {
         if (user.roles.includes(SiteRoles.GLOBAL_ADMIN)) {
           baseRole = SiteRoles.GLOBAL_ADMIN;
         } else {
-          // Look for site-specific admin roles in format siteName_site_admin
           const sitesAdminRoleList = user.roles.filter(role => role.endsWith('_site_admin'));
           
           if (sitesAdminRoleList.length > 0) {
@@ -87,10 +82,10 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         email: user.email || '',
         firstName: user.firstName || '',
         lastName: user.lastName || '',
-        password: '',  // For security reasons, don't prefill password
+        password: '',
         avatar: user.avatar || '',
-        baseRole: baseRole, // Single role selection
-        siteAdminRoles: siteAdminRoles, // Site admin roles list
+        baseRole: baseRole,
+        siteAdminRoles: siteAdminRoles,
         siteId: user.siteId || ''
       });
     } else {
@@ -106,7 +101,7 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       lastName: '',
       password: '',
       avatar: '',
-      baseRole: SiteRoles.USER, // Default to regular user
+      baseRole: SiteRoles.USER,
       siteAdminRoles: [],
       siteId: ''
     });
@@ -116,13 +111,12 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     
-    // Handle special case for baseRole - reset siteAdminRoles when changed to global_admin or user
     if (name === 'baseRole') {
       if (value === SiteRoles.GLOBAL_ADMIN || value === SiteRoles.USER) {
         setFormData(prev => ({
           ...prev,
           [name]: value,
-          siteAdminRoles: [] // Clear site admin roles when not a site admin
+          siteAdminRoles: []
         }));
       } else {
         setFormData(prev => ({
@@ -137,7 +131,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       });
     }
 
-    // Remove errors when the user modifies the field
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -146,22 +139,18 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Handle toggling a site admin role
   const handleToggleSiteAdmin = (siteName) => {
     const roleToToggle = `${siteName}_site_admin`;
     
     setFormData(prev => {
-      // Check if this role already exists
       const hasRole = prev.siteAdminRoles.includes(roleToToggle);
       
       if (hasRole) {
-        // Remove the role
         return {
           ...prev,
           siteAdminRoles: prev.siteAdminRoles.filter(role => role !== roleToToggle)
         };
       } else {
-        // Add the role
         return {
           ...prev,
           siteAdminRoles: [...prev.siteAdminRoles, roleToToggle]
@@ -191,12 +180,10 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
       newErrors.lastName = t('userManagement.lastName') + ' ' + t('common.isRequired');
     }
 
-    // Require password only for new users
     if (!formData.id && !formData.password) {
       newErrors.password = t('userManagement.passwordRequiredForNewUsers');
     }
 
-    // Validate site admin roles if baseRole is site_admin
     if (formData.baseRole === SiteRoles.SITE_ADMIN && formData.siteAdminRoles.length === 0) {
       newErrors.siteAdminRoles = t('userManagement.selectAtLeastOneSite');
     }
@@ -205,9 +192,9 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => { // Make handleSubmit async
     if (validateForm()) {
-      // Generate avatar from initials if not specified
+      setIsLoading(true); // Set loading to true
       let userData = { ...formData };
 
       if (!userData.avatar) {
@@ -216,13 +203,11 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         userData.avatar = `${firstInitial}${lastInitial}`.toUpperCase();
       }
 
-      // If it's an update and password is empty, remove it
       if (userData.id && !userData.password) {
         const { password, ...dataWithoutPassword } = userData;
         userData = dataWithoutPassword;
       }
 
-      // Prepare roles array based on baseRole and siteAdminRoles
       let roles = [];
       
       switch(userData.baseRole) {
@@ -238,16 +223,19 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
           break;
       }
       
-      // Set the roles array
       userData.roles = roles;
       
-      // Remove the baseRole and siteAdminRoles fields which are used only for the UI
       delete userData.baseRole;
       delete userData.siteAdminRoles;
 
-      onSave(userData);
+      try {
+        await onSave(userData); // Wait for the save operation
+      } catch (error) {
+        console.error("Error saving user:", error);
+      } finally {
+        setIsLoading(false); // Set loading to false regardless of success or failure
+      }
     } else {
-      // Notify form errors
       const errorFields = Object.keys(errors).map(field => t(`userManagement.${field}`));
       if (errorFields.length > 0) {
         console.error(`${t('userManagement.correctErrorFields')} ${errorFields.join(', ')}`);
@@ -255,7 +243,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Function to generate a random password
   const generateRandomPassword = () => {
     const lowercase = 'abcdefghijklmnopqrstuvwxyz';
     const uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -265,18 +252,15 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     const allChars = lowercase + uppercase + numbers + symbols;
 
     let password = '';
-    // Make sure the password contains at least one character of each type
     password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
     password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
     password += numbers.charAt(Math.floor(Math.random() * numbers.length));
     password += symbols.charAt(Math.floor(Math.random() * symbols.length));
 
-    // Add more random characters to reach 12 characters
     for (let i = 0; i < 8; i++) {
       password += allChars.charAt(Math.floor(Math.random() * allChars.length));
     }
 
-    // Shuffle the password characters
     password = password.split('').sort(() => 0.5 - Math.random()).join('');
 
     setFormData({
@@ -287,7 +271,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     return password;
   };
 
-  // Function to copy the password to the clipboard
   const copyPasswordToClipboard = async () => {
     if (formData.password) {
       try {
@@ -295,7 +278,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         setCopiedToClipboard(true);
         setShowSnackbar(true);
 
-        // Reset the icon after 2 seconds
         setTimeout(() => {
           setCopiedToClipboard(false);
         }, 2000);
@@ -305,24 +287,21 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Close the snackbar
   const handleCloseSnackbar = () => {
     setShowSnackbar(false);
   };
 
-  // Get role color based on role
   const getRoleColor = (role) => {
     switch (role) {
       case SiteRoles.GLOBAL_ADMIN:
-        return 'gold'; // Gold for global admins
+        return 'gold';
       case SiteRoles.SITE_ADMIN:
-        return '#f44336'; // Red for site admins
+        return '#f44336';
       default:
-        return 'primary.main'; // Default blue for regular users
+        return 'primary.main';
     }
   };
 
-  // Get role name for display
   const getRoleName = (role) => {
     switch (role) {
       case SiteRoles.GLOBAL_ADMIN:
@@ -334,7 +313,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Get role icon
   const getRoleIcon = (role) => {
     switch (role) {
       case SiteRoles.GLOBAL_ADMIN:
@@ -346,7 +324,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
     }
   };
 
-  // Determine which sites to display for selection
   const availableSitesForAdminSelection = getManageableSites();
 
   return (
@@ -491,7 +468,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
                 </Stack>
               </MenuItem>
               
-              {/* Only show Global Admin option for users who are Global Admins themselves */}
               {canAssignGlobalAdmin && (
                 <MenuItem value={SiteRoles.GLOBAL_ADMIN}>
                   <Stack direction="row" alignItems="center" spacing={1}>
@@ -503,7 +479,6 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
             </Select>
           </FormControl>
 
-          {/* Only show site selection when role is SITE_ADMIN */}
           {formData.baseRole === SiteRoles.SITE_ADMIN && (
             <Box sx={{ mt: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
@@ -570,28 +545,30 @@ const UserForm = ({ open, onClose, user, onSave, onDelete }) => {
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>
+        <Button onClick={onClose} disabled={isLoading}> {/* Disable cancel button during loading */}
           {t('common.cancel')}
         </Button>
         <Button
           variant="contained"
           color="primary"
           onClick={handleSubmit}
+          disabled={isLoading} // Disable submit button during loading
+          sx={{ minWidth: 100 }} // Ensure button width doesn't jump too much
         >
-          {formData.id ? t('common.update') : t('common.confirm')}
+          {isLoading ? <CircularProgress size={24} color="inherit" /> : (formData.id ? t('common.update') : t('common.confirm'))}
         </Button>
         {formData.id && (
           <Button
             variant="contained"
             color="error"
             onClick={() => onDelete(formData.id)}
+            disabled={isLoading} // Disable delete button during loading
           >
             {t('common.delete')}
           </Button>
         )}
       </DialogActions>
 
-      {/* Feedback for copy operation */}
       <Snackbar
         open={showSnackbar}
         autoHideDuration={2000}

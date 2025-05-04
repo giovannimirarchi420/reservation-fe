@@ -12,7 +12,8 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  TextField
+  TextField,
+  CircularProgress
 } from '@mui/material';
 import { useSite } from '../../context/SiteContext';
 
@@ -31,6 +32,7 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
 
   const manageableSites = getManageableSites();
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Populate the form when a resource is selected
   useEffect(() => {
@@ -135,8 +137,9 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (validateForm()) {
+      setIsSubmitting(true);
       // Convert string values to numbers where appropriate
       const preparedData = {
         ...formData,
@@ -145,7 +148,13 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
         parentId: formData.parentId ? parseInt(formData.parentId) : null,
         siteId: formData.siteId
       };
-      onSave(preparedData);
+      try {
+        await onSave(preparedData);
+      } catch (error) {
+        console.error("Error saving resource:", error);
+      } finally {
+        setIsSubmitting(false);
+      }
     }
   };
 
@@ -297,21 +306,24 @@ const ResourceForm = ({ open, onClose, resource, resourceTypes, allResources, on
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>
+          <Button onClick={onClose} disabled={isSubmitting}>
             {t('resourceForm.cancel')}
           </Button>
           <Button
               variant="contained"
               color="primary"
               onClick={handleSubmit}
+              disabled={isSubmitting}
+              sx={{ minWidth: 100 }}
           >
-            {formData.id ? t('resourceForm.update') : t('resourceForm.confirm')}
+            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (formData.id ? t('resourceForm.update') : t('resourceForm.confirm'))}
           </Button>
           {formData.id && (
               <Button
                   variant="contained"
                   color="error"
                   onClick={() => onDelete(formData.id)}
+                  disabled={isSubmitting}
               >
                 {t('resourceForm.delete')}
               </Button>

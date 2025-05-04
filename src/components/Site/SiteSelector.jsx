@@ -36,7 +36,6 @@ const SiteSelector = () => {
   };
 
   const handleSelect = (federation) => {
-    console.log(federation)
     setCurrentSite(federation);
     handleClose();
   };

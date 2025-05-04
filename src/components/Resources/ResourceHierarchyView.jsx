@@ -338,7 +338,7 @@ const ResourceHierarchyView = ({
       showNotification(t('resourceHierarchy.alreadyParent'), 'info');
       return;
     }
-    console.log(draggedResource)
+    
     // Update the parent relationship using the main resource update API
     try {
       // Prepare resource data for update (keeping all existing properties)

@@ -650,11 +650,9 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
             color="primary"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+            sx={{ minWidth: 100 }}
           >
-            {isSubmitting
-              ? formData.id ? t('webhooks.updating') : t('webhooks.creating')
-              : formData.id ? t('common.update') : t('common.create')}
+            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : (formData.id ? t('common.update') : t('common.create'))}
           </Button>
         </DialogActions>
       </Dialog>

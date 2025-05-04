@@ -94,7 +94,7 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
           // Create new site
           savedFederation = await createSite(formData, isPrivate);
         }
-        console.log("Saved fed:" + savedFederation);
+        
         if (savedFederation) {
           onSave(savedFederation);
         }
