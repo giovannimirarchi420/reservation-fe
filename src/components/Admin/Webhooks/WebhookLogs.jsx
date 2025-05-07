@@ -14,7 +14,6 @@ import {
   IconButton,
   Typography,
   CircularProgress,
-  TextField,
   MenuItem,
   FormControl,
   InputLabel,
@@ -31,7 +30,6 @@ import {
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
   Visibility as VisibilityIcon,
-  FilterList as FilterListIcon,
   Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { fetchWebhookLogs } from '../../../services/webhookService';

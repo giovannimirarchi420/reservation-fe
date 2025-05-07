@@ -660,6 +660,8 @@ const en = {
       eventCreated: "Booking Created",
       eventUpdated: "Booking Updated",
       eventDeleted: "Booking Deleted",
+      eventStart: "Booking Started",
+      eventEnd: "Booking Ended",
       resourceCreated: "Resource Created",
       resourceUpdated: "Resource Updated",
       resourceDeleted: "Resource Deleted",

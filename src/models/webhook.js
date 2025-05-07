@@ -9,6 +9,8 @@ export const WebhookEventTypes = {
     EVENT_CREATED: 'EVENT_CREATED',
     EVENT_UPDATED: 'EVENT_UPDATED',
     EVENT_DELETED: 'EVENT_DELETED',
+    EVENT_START: 'EVENT_START', // Added new event type
+    EVENT_END: 'EVENT_END', // Added new event type
     RESOURCE_CREATED: 'RESOURCE_CREATED',
     RESOURCE_UPDATED: 'RESOURCE_UPDATED',
     RESOURCE_STATUS_CHANGED: 'RESOURCE_STATUS_CHANGED',
@@ -43,6 +45,10 @@ export const WebhookEventTypes = {
         return 'Booking Updated';
       case WebhookEventTypes.EVENT_DELETED:
         return 'Booking Deleted';
+      case WebhookEventTypes.EVENT_START: // Added case for EVENT_START
+        return 'Booking Started';
+      case WebhookEventTypes.EVENT_END: // Added case for EVENT_END
+        return 'Booking Ended';
       case WebhookEventTypes.RESOURCE_CREATED:
         return 'Resource Created';
       case WebhookEventTypes.RESOURCE_UPDATED:

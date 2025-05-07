@@ -23,7 +23,6 @@ import {
   Delete as DeleteIcon,
   PlayArrow as PlayArrowIcon,
   Link as LinkIcon,
-  VpnKey as VpnKeyIcon,
 } from '@mui/icons-material';
 import { testWebhook, deleteWebhook, updateWebhook } from '../../../services/webhookService';
 import { getEventTypeName } from '../../../models/webhook';

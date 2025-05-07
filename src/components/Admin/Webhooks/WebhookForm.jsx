@@ -443,6 +443,8 @@ const WebhookForm = ({ open, onClose, webhook, onSaved }) => {
                     <MenuItem value={WebhookEventTypes.EVENT_CREATED}>{t('webhooks.eventCreated')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.EVENT_UPDATED}>{t('webhooks.eventUpdated')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.EVENT_DELETED}>{t('webhooks.eventDeleted')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.EVENT_START}>{t('webhooks.eventStart')}</MenuItem>
+                    <MenuItem value={WebhookEventTypes.EVENT_END}>{t('webhooks.eventEnd')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.RESOURCE_CREATED}>{t('webhooks.resourceCreated')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.RESOURCE_UPDATED}>{t('webhooks.resourceUpdated')}</MenuItem>
                     <MenuItem value={WebhookEventTypes.RESOURCE_STATUS_CHANGED}>{t('webhooks.resourceStatusChanged')}</MenuItem>

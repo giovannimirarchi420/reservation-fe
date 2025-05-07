@@ -99,6 +99,11 @@ const WebhookManagement = () => {
     setIsFormOpen(false);
     setNeedsRefresh(!needsRefresh); // Toggle to force refresh
     
+    
+    if (webhook.status === 400) {
+      return; //Error will be handled in the form
+    }
+
     if (webhook.id) {
       showNotification(t('webhooks.webhookUpdatedSuccess', { name: webhook.name }));
     } else {
