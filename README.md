@@ -4,7 +4,7 @@
 [![Material UI](https://img.shields.io/badge/Material%20UI-6.4.7-purple?logo=mui)](https://mui.com/)
 [![i18next](https://img.shields.io/badge/i18next-multilingual-yellow?logo=i18next)](https://www.i18next.com/)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.0.2-orange)](package.json)
+[![Version](https://img.shields.io/badge/Version-1.4.4-orange)](package.json)
 
 A comprehensive cloud resource management application built with React and Material UI, allowing users to manage resource bookings across an organization.
 
