@@ -1,0 +1,40 @@
+name: Build and Push Docker Images
+
+on:
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 2: Checkout the source code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 3: Read the version from the package.json file
+      - name: Extract version from package.json
+        id: extract_version
+        run: |
+          VERSION=$(jq -r .version package.json)
+          echo "VERSION=$VERSION"
+          echo "version=$VERSION" >> $GITHUB_ENV
+
+      # Step 4: Log in to DockerHub
+      - name: Log in to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }} # DockerHub username stored as a secret
+          password: ${{ secrets.DOCKER_PASSWORD }} # DockerHub password stored as a secret
+
+      # Step 5: Build and push Docker image
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/resource-management-frontend:${{ env.version }}
+
+      # Step 6 (Optional): Log out of DockerHub
+      - name: Log out of DockerHub
+        run: docker logout
