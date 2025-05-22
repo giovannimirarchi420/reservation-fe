@@ -110,8 +110,8 @@ const ProfileManagement = () => {
   // Get role information
   const roleInfo = getRoleInfo(userHighestRole);
 
-/*
-  Removed because this info should be fetched with users/me endpoint
+ 
+  // This info should be fetched with users/me endpoint
   // Load SSH key data if not present in user profile
   useEffect(() => {
     const loadSshKey = async () => {
@@ -137,7 +137,7 @@ const ProfileManagement = () => {
     };
 
     loadSshKey();
-  }, [currentUser, isEditing, withErrorHandling, t]); */
+  }, [currentUser, isEditing, withErrorHandling, t]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
