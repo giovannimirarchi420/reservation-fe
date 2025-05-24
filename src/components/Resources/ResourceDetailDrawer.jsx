@@ -16,7 +16,8 @@ import {
   Tab,
   Tabs,
   Alert,
-  CircularProgress
+  CircularProgress,
+  useMediaQuery // Import useMediaQuery
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -34,10 +35,13 @@ import { ResourceStatus } from '../../services/resourceService';
 import { fetchEvents } from '../../services/bookingService';
 import useApiError from '../../hooks/useApiError';
 import { formatDate } from '../../utils/dateUtils';
+import { useTheme } from '@mui/material/styles';
 
 const ResourceDetailDrawer = ({ open, resource, resourceTypes, allResources, getResourceTypeName, onClose, onResourceSelect }) => {
   const { t } = useTranslation();
   const { withErrorHandling } = useApiError();
+  const theme = useTheme(); // Get the theme for breakpoint values
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // Check for mobile screen size
   const [parentResource, setParentResource] = useState(null);
   const [childResources, setChildResources] = useState([]);
   const [bookings, setBookings] = useState([]);
@@ -514,14 +518,15 @@ const ResourceDetailDrawer = ({ open, resource, resourceTypes, allResources, get
       anchor="right"
       open={open}
       onClose={onClose}
-      sx={{
-        '& .MuiDrawer-paper': {
-          width: { xs: '100%', sm: 450 },
-          maxWidth: '100%'
+      PaperProps={{
+        sx: {
+          width: isMobile ? '100%' : 400, // Full width on mobile, 400px otherwise
+          maxWidth: '100%', // Ensure it doesn't exceed screen width on mobile
+          boxSizing: 'border-box'
         }
       }}
     >
-      {resource && (
+      {resource ? (
         <>
           <Box sx={{ p: 2, display: 'flex', alignItems: 'center', borderBottom: 1, borderColor: 'divider' }}>
             <Typography variant="h6" sx={{ flex: 1 }}>
@@ -538,7 +543,7 @@ const ResourceDetailDrawer = ({ open, resource, resourceTypes, allResources, get
           {activeTab === 1 && renderBookingsTab()}
           {activeTab === 2 && renderHierarchyTab()}
         </>
-      )}
+      ) : null}
     </Drawer>
   );
 };

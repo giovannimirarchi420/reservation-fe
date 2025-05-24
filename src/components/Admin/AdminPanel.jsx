@@ -35,7 +35,9 @@ const AdminPanel = () => {
           onChange={handleTabChange}
           indicatorColor="primary"
           textColor="primary"
-          variant="fullWidth"
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
         >
           <Tab 
             label={t('adminPanel.resourceManagement')} 

@@ -202,25 +202,6 @@ const ResourceExplorer = () => {
                 </Tooltip>
               </ToggleButton>
             </ToggleButtonGroup>
-
-            {/* Info button */}
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<InfoIcon />}
-              onClick={() => {
-                // Show a resource that has relationships as an example
-                const resourceWithRelations = resources.find(r => 
-                  r.parentId || (r.subResourceIds && r.subResourceIds.length > 0)
-                ) || resources[0];
-                
-                if (resourceWithRelations) {
-                  handleResourceSelect(resourceWithRelations);
-                }
-              }}
-            >
-              {t('resourceExplorer.howToUse')}
-            </Button>
           </Box>
         </Box>
         
