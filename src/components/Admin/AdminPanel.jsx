@@ -39,25 +39,30 @@ const AdminPanel = () => {
           scrollButtons="auto"
           allowScrollButtonsMobile
         >
-          <Tab 
-            label={t('adminPanel.resourceManagement')} 
-            icon={<StorageIcon />} 
+          <Tab
+            label={t('adminPanel.resourceManagement')}
+            icon={<StorageIcon />}
+            sx={{ flexGrow: 1 }}
           />
-          <Tab 
-            label={t('adminPanel.resourceTypes')} 
-            icon={<CategoryIcon />} 
+          <Tab
+            label={t('adminPanel.resourceTypes')}
+            icon={<CategoryIcon />}
+            sx={{ flexGrow: 1 }}
           />
-          <Tab 
-            label={t('adminPanel.userManagement')} 
-            icon={<PeopleIcon />} 
+          <Tab
+            label={t('adminPanel.userManagement')}
+            icon={<PeopleIcon />}
+            sx={{ flexGrow: 1 }}
           />
-          <Tab 
-            label={t('adminPanel.auditLogs')} 
-            icon={<ReceiptIcon />} 
+          <Tab
+            label={t('adminPanel.auditLogs')}
+            icon={<ReceiptIcon />}
+            sx={{ flexGrow: 1 }}
           />
-          <Tab 
-            label={t('adminPanel.webhooks')} 
-            icon={<WebhookIcon />} 
+          <Tab
+            label={t('adminPanel.webhooks')}
+            icon={<WebhookIcon />}
+            sx={{ flexGrow: 1 }}
           />
         </Tabs>
 

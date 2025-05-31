@@ -420,6 +420,7 @@ const en = {
       cancel: "Cancel",
       confirm: "Confirm",
       delete: "Delete",
+      deleting: "Deleting...",
       edit: "Edit",
       close: "Close",
       noDataAvailable: "No data available",
