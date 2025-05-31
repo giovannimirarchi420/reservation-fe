@@ -38,3 +38,53 @@ jobs:
       # Step 6 (Optional): Log out of DockerHub
       - name: Log out of DockerHub
         run: docker logout
+
+      # Step 7: Update Helm Chart
+      - name: Checkout Helm chart repository
+        uses: actions/checkout@v4
+        with:
+          repository: giovannimirarchi420/reservation-helm-chart
+          token: ${{ secrets.CHART_REPO_TOKEN }}
+          path: helm-chart-repo
+
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Update frontend image tag in values.yaml
+        run: |
+          cd helm-chart-repo
+          
+          # Get current tag value
+          CURRENT_TAG=$(yq eval ".fe.image.tag" values.yaml)
+          echo "Current Frontend tag: ${CURRENT_TAG}"
+          echo "New Frontend tag: ${{ env.version }}"
+          
+          # Update the tag in values.yaml
+          yq eval ".fe.image.tag = \"${{ env.version }}\"" -i values.yaml
+          
+          # Verify the update
+          NEW_TAG=$(yq eval ".fe.image.tag" values.yaml)
+          echo "Updated Frontend tag: ${NEW_TAG}"
+
+      - name: Commit and push Helm chart changes
+        run: |
+          cd helm-chart-repo
+          
+          # Check if there are changes
+          if git diff --quiet; then
+            echo "No changes detected in values.yaml"
+            exit 0
+          fi
+          
+          # Configure git
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          
+          # Add and commit changes
+          git add values.yaml
+          git commit -m "chore: update Frontend image tag to ${{ env.version }}"
+          
+          # Push changes
+          git push
