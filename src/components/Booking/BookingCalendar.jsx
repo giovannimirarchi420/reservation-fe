@@ -88,6 +88,16 @@ const BookingCalendar = () => {
     }
   }, [i18n.language]);
 
+  // Handle site changes by clearing cached data and reloading
+  useEffect(() => {
+    // Clear all cached data when site changes
+    setLoadedMonths(new Set());
+    setEvents([]);
+    setResources([]);
+    setResourceColors({});
+    setSelectedResource(null); // Reset resource filter when site changes
+  }, [currentSite]);
+
   // Show a notification
   const showNotification = (message, severity = 'success') => {
     setNotification({ message, severity });
