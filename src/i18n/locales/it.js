@@ -89,7 +89,8 @@ const it = {
       unableToUpdateResourceType: "Impossibile aggiornare il tipo di risorsa",
       unableToCreateResourceType: "Impossibile creare il tipo di risorsa",
       unableToDeleteResourceType: "Impossibile eliminare il tipo di risorsa",
-      selected: "selezionato"
+      selected: "selezionato",
+      selectSite: "Seleziona un sito",
     },
     userManagement: {
       globalAdministrator: "Amministratore Globale",
@@ -538,6 +539,7 @@ const it = {
     adminRemovedSuccess: "I diritti di amministratore per {{name}} in {{site}} sono stati rimossi con successo",
     confirmDeleteSite: "Sei sicuro di voler eliminare il sito '{{name}}'? Tutte le risorse e i tipi di risorse associati saranno eliminati.",
     members: "{{count}} membri",
+    membersHeader: "utenti",
     privateSite: "Sito Privato",
     admins: "Amministratori",
     unableToLoadSites: "Impossibile caricare i siti",
