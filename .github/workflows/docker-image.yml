@@ -33,7 +33,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/resource-management-frontend:${{ env.version }}
+          tags: ${{ secrets.DOCKER_USERNAME }}/prognose-frontend:${{ env.version }}
 
       # Step 6 (Optional): Log out of DockerHub
       - name: Log out of DockerHub
