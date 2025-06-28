@@ -1,33 +1,35 @@
-name: Build, Push and Deploy
+name: Build, Push Docker Image & Update Helm Chart
 
 on:
-  workflow_dispatch: # Allows manual triggering of the workflow
+  workflow_dispatch:
 
 jobs:
   build-and-push:
+    name: (CI) Build and Push Docker Image
     runs-on: ubuntu-latest
 
     steps:
-      # Step 2: Checkout the source code
+      # Step 1: Checkout the source code
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Step 3: Read the version from the package.json file
+      # Step 2: Read the version from the package.json file
       - name: Extract version from package.json
         id: extract_version
         run: |
           VERSION=$(jq -r .version package.json)
           echo "VERSION=$VERSION"
           echo "version=$VERSION" >> $GITHUB_ENV
+          echo "$VERSION" > version.txt
 
-      # Step 4: Log in to DockerHub
+      # Step 3: Log in to DockerHub
       - name: Log in to DockerHub
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_USERNAME }} # DockerHub username stored as a secret
-          password: ${{ secrets.DOCKER_PASSWORD }} # DockerHub password stored as a secret
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Step 5: Build and push Docker image
+      # Step 4: Build and push Docker image
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -35,11 +37,36 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/prognose-frontend:${{ env.version }}
 
-      # Step 6 (Optional): Log out of DockerHub
+      # Step 5: Log out of DockerHub
       - name: Log out of DockerHub
         run: docker logout
 
-      # Step 7: Update Helm Chart
+      - name: Create version file
+        run: echo "${{ env.version }}" > version.txt
+
+      - name: Upload version artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prognose-frontend-version
+          path: version.txt
+
+  update-helm-chart:
+    name: (CD) Update Helm Chart Image Tag
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    steps:
+      - name: Download version artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: prognose-frontend-version
+
+      - name: Read version
+        id: read_version
+        run: |
+          VERSION=$(cat version.txt)
+          echo "version=$VERSION" >> $GITHUB_ENV
+
       - name: Checkout Helm chart repository
         uses: actions/checkout@v4
         with:
