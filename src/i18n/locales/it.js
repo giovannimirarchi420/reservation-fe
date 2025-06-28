@@ -59,6 +59,7 @@ const it = {
       unableToCreateResource: "Impossibile creare la risorsa",
       unableToDeleteResource: "Impossibile eliminare la risorsa",
       gridView: "Vista a Griglia", 
+      tableView: "Vista a Tabella",
       hierarchyView: "Vista Gerarchica" 
     },
     resourceType: {
@@ -464,6 +465,7 @@ const it = {
     noResourcesFound: "Nessuna risorsa trovata con i filtri selezionati.",
     noResourcesForGraph: "Non ci sono risorse da visualizzare nel grafo.",
     listView: "Vista elenco",
+    tableView: "Vista tabella",
     graphView: "Vista grafo",
     howToUse: "Come usare",
     viewDetails: "Visualizza dettagli",

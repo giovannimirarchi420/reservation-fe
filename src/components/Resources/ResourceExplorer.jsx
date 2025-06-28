@@ -19,11 +19,13 @@ import {
   SearchOutlined as SearchIcon,
   ViewListOutlined as ListView,
   FilterListOutlined as FilterIcon,
-  InfoOutlined as InfoIcon
+  InfoOutlined as InfoIcon,
+  TableView as TableViewIcon
 } from '@mui/icons-material';
 import { fetchResources } from '../../services/resourceService';
 import { fetchResourceTypes } from '../../services/resourceTypeService';
 import ResourceList from './ResourceList';
+import ResourceTable from './ResourceTable';
 import { SiteContext } from '../../context/SiteContext';
 import ResourceHierarchyView from './ResourceHierarchyView';
 import ResourceDetailDrawer from './ResourceDetailDrawer';
@@ -196,6 +198,11 @@ const ResourceExplorer = () => {
                   <ListView />
                 </Tooltip>
               </ToggleButton>
+              <ToggleButton value="table" aria-label="table view">
+                <Tooltip title={t('resourceExplorer.tableView')}>
+                  <TableViewIcon />
+                </Tooltip>
+              </ToggleButton>
               <ToggleButton value="hierarchy" aria-label="hierarchy view">
                 <Tooltip title={t('resourceExplorer.hierarchyView')}>
                     <AccountTreeIcon />
@@ -236,6 +243,12 @@ const ResourceExplorer = () => {
           ) : (
             viewMode === 'list' ? (
               <ResourceList 
+                resources={filteredResources} 
+                resourceTypes={resourceTypes}
+                onResourceSelect={handleResourceSelect}
+              />
+            ) : viewMode === 'table' ? (
+              <ResourceTable 
                 resources={filteredResources} 
                 resourceTypes={resourceTypes}
                 onResourceSelect={handleResourceSelect}

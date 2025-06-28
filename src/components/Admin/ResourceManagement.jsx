@@ -21,9 +21,11 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import CategoryIcon from '@mui/icons-material/Category';
 import GridViewIcon from '@mui/icons-material/GridView';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
+import TableViewIcon from '@mui/icons-material/TableView';
 import ResourceCard from '../Resources/ResourceCard';
 import ResourceForm from '../Resources/ResourceForm';
 import ResourceHierarchyView from '../Resources/ResourceHierarchyView';
+import ResourceTable from '../Resources/ResourceTable';
 import {
   createResource,
   deleteResource,
@@ -326,6 +328,11 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
                   <GridViewIcon />
                 </Tooltip>
               </ToggleButton>
+              <ToggleButton value="table" aria-label="table view">
+                <Tooltip title={t('resourceManagement.tableView')}>
+                  <TableViewIcon />
+                </Tooltip>
+              </ToggleButton>
               <ToggleButton value="hierarchy" aria-label="hierarchy view">
                 <Tooltip title={t('resourceManagement.hierarchyView')}>
                   <AccountTreeIcon />
@@ -368,6 +375,12 @@ const ResourceManagement = ({ onSwitchToResourceType }) => {
                     ))
                 )}
               </Box>
+            ) : viewMode === 'table' ? (
+              <ResourceTable 
+                resources={filteredResources}
+                resourceTypes={resourceTypes}
+                onResourceSelect={(resource) => handleEditResource(resource)}
+              />
             ) : (
               <ResourceHierarchyView 
                 resources={filteredResources}
