@@ -91,6 +91,11 @@ const it = {
       unableToDeleteResourceType: "Impossibile eliminare il tipo di risorsa",
       selected: "selezionato",
       selectSite: "Seleziona un sito",
+      customParameters: "Parametri Custom",
+      customParametersDescription: "Definisci parametri aggiuntivi che gli utenti dovranno compilare durante la prenotazione di risorse di questo tipo.",
+      parameterLabel: "Etichetta Parametro",
+      required: "Obbligatorio",
+      addParameter: "Aggiungi Parametro",
     },
     userManagement: {
       globalAdministrator: "Amministratore Globale",
@@ -240,6 +245,7 @@ const it = {
       endDateRequired: "La data di fine è obbligatoria",
       endDateAfterStart: "La data di fine deve essere successiva alla data di inizio",
       userRequired: "L'utente è obbligatorio",
+      customParameterRequired: "{{label}} è obbligatorio",
       correctErrorFields: "Per favore correggi i campi con errori:",
       affectedSubResources: "Le seguenti risorse secondarie saranno anch'esse bloccate:", 
       parentResource: "Parte della risorsa principale:" ,
@@ -252,7 +258,9 @@ const it = {
       parentResourceLabel: "Risorsa Principale",
       siblingResourcesLabel: "Altre risorse nello stesso gruppo",
       parent: "PRINCIPALE",
-      child: "SECONDARIA"
+      child: "SECONDARIA",
+      customParameters: "Parametri Custom",
+      customParametersLabel: "Parametri Aggiuntivi"
     },
     myBookings: {
       title: "Le mie prenotazioni",

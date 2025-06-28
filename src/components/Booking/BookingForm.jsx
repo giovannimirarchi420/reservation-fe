@@ -21,6 +21,7 @@ import {
   Chip,
 } from '@mui/material';
 import { fetchUsers } from '../../services/userService';
+import { fetchResourceTypes } from '../../services/resourceTypeService';
 import { formatDateForInput, formatDate } from '../../utils/dateUtils';
 import { AuthContext } from '../../context/AuthContext';
 import useApiError from '../../hooks/useApiError';
@@ -37,9 +38,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     start: null,
     end: null,
     description: '',
-    userId: ''
+    userId: '',
+    customParameters: ''
   });
   const [users, setUsers] = useState([]);
+  const [resourceTypes, setResourceTypes] = useState([]);
+  const [customParameterValues, setCustomParameterValues] = useState({});
   const [errors, setErrors] = useState({});
   const [useCurrentUser, setUseCurrentUser] = useState(true);
   const [isChecking, setIsChecking] = useState(false);
@@ -68,6 +72,21 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     loadUsers();
   }, [isSiteAdmin, withErrorHandling, t]);
 
+  // Load resource types
+  useEffect(() => {
+    const loadResourceTypes = async () => {
+      await withErrorHandling(async () => {
+        const resourceTypesData = await fetchResourceTypes();
+        setResourceTypes(resourceTypesData);
+      }, {
+        errorMessage: t('errors.unableToLoadResourceTypes'),
+        showError: true
+      });
+    };
+    
+    loadResourceTypes();
+  }, [withErrorHandling, t]);
+
   // Populate form when an event is selected
   useEffect(() => {
     if (booking) {
@@ -88,8 +107,22 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         start: booking.start,
         end: booking.end,
         description: booking.description || '',
-        userId: booking.userId || currentUser?.id || ''
+        userId: booking.userId || currentUser?.id || '',
+        customParameters: booking.customParameters || ''
       });
+
+      // Parse custom parameters if they exist
+      if (booking.customParameters) {
+        try {
+          const customParams = JSON.parse(booking.customParameters);
+          setCustomParameterValues(customParams);
+        } catch (e) {
+          console.error('Error parsing custom parameters:', e);
+          setCustomParameterValues({});
+        }
+      } else {
+        setCustomParameterValues({});
+      }
     } else {
       resetForm();
     }
@@ -141,13 +174,51 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       start: new Date(),
       end: new Date(new Date().getTime() + 60 * 60 * 1000),
       description: '',
-      userId: currentUser?.id || ''
+      userId: currentUser?.id || '',
+      customParameters: ''
     });
     setUseCurrentUser(true);
+    setCustomParameterValues({});
     setErrors({});
     setValidationMessage(null);
     setIsReadOnly(false);
     setAffectedResources([]);
+  };
+
+  // Get custom parameters for selected resource
+  const getResourceCustomParameters = () => {
+    if (!formData.resourceId) return [];
+    
+    const selectedResource = resources.find(r => r.id === formData.resourceId);
+    if (!selectedResource || !selectedResource.typeId) return [];
+    
+    const resourceType = resourceTypes.find(rt => rt.id === selectedResource.typeId);
+    if (!resourceType || !resourceType.customParameters) return [];
+    
+    try {
+      return JSON.parse(resourceType.customParameters);
+    } catch (e) {
+      console.error('Error parsing custom parameters:', e);
+      return [];
+    }
+  };
+
+  // Handle custom parameter value changes
+  const handleCustomParameterChange = (parameterId, value) => {
+    if (isReadOnly || isSubmitting) return;
+    
+    setCustomParameterValues({
+      ...customParameterValues,
+      [parameterId]: value
+    });
+    
+    // Remove error for this parameter if it exists
+    if (errors[`customParam_${parameterId}`]) {
+      setErrors({
+        ...errors,
+        [`customParam_${parameterId}`]: undefined
+      });
+    }
   };
 
   const handleChange = (e) => {
@@ -158,6 +229,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       ...formData,
       [name]: value
     });
+
+    // Reset custom parameters when resource changes
+    if (name === 'resourceId') {
+      setCustomParameterValues({});
+    }
     
     // Remove errors when user modifies the field
     if (errors[name]) {
@@ -231,6 +307,17 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     if (!formData.userId) {
       newErrors.userId = t('bookingForm.userRequired');
     }
+
+    // Validate custom parameters
+    const customParams = getResourceCustomParameters();
+    customParams.forEach(param => {
+      if (param.required) {
+        const value = customParameterValues[param.id];
+        if (!value || value.trim() === '') {
+          newErrors[`customParam_${param.id}`] = t('bookingForm.customParameterRequired', { label: param.label });
+        }
+      }
+    });
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -319,8 +406,33 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
           }
         }
 
+        // Serialize custom parameters before saving
+        const customParams = getResourceCustomParameters();
+        let customParametersJson = '';
+        
+        if (customParams.length > 0) {
+          // Only include parameters that have values
+          const filledParams = {};
+          customParams.forEach(param => {
+            const value = customParameterValues[param.id];
+            if (value && value.trim() !== '') {
+              filledParams[param.id] = value.trim();
+            }
+          });
+          
+          if (Object.keys(filledParams).length > 0) {
+            customParametersJson = JSON.stringify(filledParams);
+          }
+        }
+
+        // Prepare form data with serialized custom parameters
+        const dataToSave = {
+          ...formData,
+          customParameters: customParametersJson
+        };
+
         // Proceed with saving
-        await onSave(formData);
+        await onSave(dataToSave);
       } catch (error) {
         console.error("Error during save:", error);
       } finally {
@@ -514,6 +626,35 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 <Typography variant="body1">{formData.description}</Typography>
               </Box>
             )}
+
+            {/* Custom Parameters Section - Read Only */}
+            {(() => {
+              const customParams = getResourceCustomParameters();
+              if (customParams.length === 0 || Object.keys(customParameterValues).length === 0) return null;
+              
+              return (
+                <Box sx={{ mb: 2 }}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
+                    {t('bookingForm.customParameters')}
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
+                    {customParams.map((param, index) => {
+                      const value = customParameterValues[param.id];
+                      if (!value) return null;
+                      
+                      return (
+                        <Box key={param.id} sx={{ mb: index < customParams.length - 1 ? 2 : 0 }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                            {param.label}
+                          </Typography>
+                          <Typography variant="body1">{value}</Typography>
+                        </Box>
+                      );
+                    })}
+                  </Paper>
+                </Box>
+              );
+            })()}
 
             {renderAffectedResources()}
           </Paper>
@@ -739,6 +880,38 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                 {validationMessage.text}
               </Alert>
             )}
+
+            {/* Custom Parameters Section */}
+            {(() => {
+              const customParams = getResourceCustomParameters();
+              if (customParams.length === 0) return null;
+              
+              return (
+                <Box sx={{ mt: 3, mb: 2 }}>
+                  <Typography variant="subtitle2" sx={{ mb: 2, fontWeight: 'medium' }}>
+                    {t('bookingForm.customParameters')}
+                  </Typography>
+                  <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
+                    {customParams.map((param, index) => (
+                      <TextField
+                        key={param.id}
+                        label={`${param.label}${param.required ? ' *' : ''}`}
+                        fullWidth
+                        value={customParameterValues[param.id] || ''}
+                        onChange={(e) => handleCustomParameterChange(param.id, e.target.value)}
+                        margin={index === 0 ? "none" : "normal"}
+                        required={param.required}
+                        error={!!errors[`customParam_${param.id}`]}
+                        helperText={errors[`customParam_${param.id}`]}
+                        disabled={isSubmitting || isReadOnly}
+                        multiline
+                        rows={2}
+                      />
+                    ))}
+                  </Paper>
+                </Box>
+              );
+            })()}
             
             <TextField
               label={t('bookingForm.description')}

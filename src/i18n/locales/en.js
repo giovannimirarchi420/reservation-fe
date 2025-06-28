@@ -93,7 +93,12 @@ const en = {
       unableToDeleteResourceType: "Unable to delete resource type",
       selected: "selected",
       selectSite: "Select a site",
-      siteRequired: "Site is required"
+      siteRequired: "Site is required",
+      customParameters: "Custom Parameters",
+      customParametersDescription: "Define additional parameters that users will need to fill in when booking resources of this type.",
+      parameterLabel: "Parameter Label",
+      required: "Required",
+      addParameter: "Add Parameter"
     },
     userManagement: {
       title: "Registered Users",
@@ -243,6 +248,7 @@ const en = {
       endDateRequired: "End date is required",
       endDateAfterStart: "End date must be after start date",
       userRequired: "User is required",
+      customParameterRequired: "{{label}} is required",
       correctErrorFields: "Please correct the fields with errors:",
       affectedSubResources: "The following sub-resources will also be blocked:",
       parentResource: "Part of parent resource:",
@@ -259,7 +265,9 @@ const en = {
       parentResourceLabel: "Parent Resource",
       siblingResourcesLabel: "Other resources in the same group",
       parent: "PARENT",
-      child: "CHILD"
+      child: "CHILD",
+      customParameters: "Custom Parameters",
+      customParametersLabel: "Additional Parameters"
     },
     myBookings: {
       title: "My Bookings",

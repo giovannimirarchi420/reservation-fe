@@ -13,8 +13,13 @@ import {
     InputLabel,
     Select,
     MenuItem,
-    CircularProgress // Import CircularProgress
+    CircularProgress,
+    Typography,
+    Divider,
+    IconButton,
+    Paper
 } from '@mui/material';
+import { Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { getRandomColor } from '../../utils/colorUtils';
 import { useSite } from '../../context/SiteContext';
 
@@ -28,20 +33,32 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         name: '',
         description: '',
         color: getRandomColor(),
-        siteId: ''
+        siteId: '',
+        customParameters: []
     });
     const [errors, setErrors] = useState({});
-    const [isSubmitting, setIsSubmitting] = useState(false); // Add submitting state
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Populate the form when a resource type is selected
     useEffect(() => {
         if (resourceType) {
+            let customParams = [];
+            if (resourceType.customParameters) {
+                try {
+                    customParams = JSON.parse(resourceType.customParameters);
+                } catch (e) {
+                    console.error('Error parsing custom parameters:', e);
+                    customParams = [];
+                }
+            }
+            
             setFormData({
                 id: resourceType.id,
                 name: resourceType.name || '',
                 description: resourceType.description || '',
                 color: resourceType.color || getRandomColor(),
-                siteId: resourceType.siteId || ''
+                siteId: resourceType.siteId || '',
+                customParameters: customParams
             });
         } else {
             resetForm();
@@ -54,7 +71,8 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
             description: '',
             color: getRandomColor(),
             // If user is in a site context or is a site admin, pre-select their site
-            siteId: currentSite ? currentSite.id : ''
+            siteId: currentSite ? currentSite.id : '',
+            customParameters: []
         });
         setErrors({});
     };
@@ -94,16 +112,22 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleSubmit = async () => { // Make handleSubmit async
+    const handleSubmit = async () => {
         if (validateForm()) {
-            setIsSubmitting(true); // Set submitting to true
+            setIsSubmitting(true);
             try {
-                await onSave(formData); // Wait for save operation
+                // Prepare data for submission
+                const submissionData = {
+                    ...formData,
+                    customParameters: formData.customParameters.length > 0 
+                        ? JSON.stringify(formData.customParameters) 
+                        : null
+                };
+                await onSave(submissionData);
             } catch (error) {
                 console.error("Error saving resource type:", error);
-                // Optionally show an error message to the user
             } finally {
-                setIsSubmitting(false); // Set submitting to false
+                setIsSubmitting(false);
             }
         }
     };
@@ -113,6 +137,37 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         setFormData({
             ...formData,
             color: newColor
+        });
+    };
+
+    // Custom parameters management
+    const addCustomParameter = () => {
+        setFormData({
+            ...formData,
+            customParameters: [
+                ...formData.customParameters,
+                {
+                    id: Date.now().toString(),
+                    label: '',
+                    required: false
+                }
+            ]
+        });
+    };
+
+    const removeCustomParameter = (id) => {
+        setFormData({
+            ...formData,
+            customParameters: formData.customParameters.filter(param => param.id !== id)
+        });
+    };
+
+    const updateCustomParameter = (id, field, value) => {
+        setFormData({
+            ...formData,
+            customParameters: formData.customParameters.map(param =>
+                param.id === id ? { ...param, [field]: value } : param
+            )
         });
     };
 
@@ -208,6 +263,65 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                             sx={{ mt: 3 }}
                         >
                             {t('resourceType.random')}
+                        </Button>
+                    </Box>
+
+                    {/* Custom Parameters Section */}
+                    <Box sx={{ mt: 3 }}>
+                        <Divider sx={{ mb: 2 }}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                {t('resourceType.customParameters')}
+                            </Typography>
+                        </Divider>
+                        
+                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                            {t('resourceType.customParametersDescription')}
+                        </Typography>
+
+                        {formData.customParameters.map((param, index) => (
+                            <Paper 
+                                key={param.id} 
+                                variant="outlined" 
+                                sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}
+                            >
+                                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, mb: 2 }}>
+                                    <TextField
+                                        label={t('resourceType.parameterLabel')}
+                                        value={param.label}
+                                        onChange={(e) => updateCustomParameter(param.id, 'label', e.target.value)}
+                                        size="small"
+                                        sx={{ flexGrow: 1 }}
+                                        required
+                                    />
+                                    <FormControl size="small" sx={{ minWidth: 120 }}>
+                                        <InputLabel>{t('resourceType.required')}</InputLabel>
+                                        <Select
+                                            value={param.required ? 'yes' : 'no'}
+                                            label={t('resourceType.required')}
+                                            onChange={(e) => updateCustomParameter(param.id, 'required', e.target.value === 'yes')}
+                                        >
+                                            <MenuItem value="no">{t('common.no')}</MenuItem>
+                                            <MenuItem value="yes">{t('common.yes')}</MenuItem>
+                                        </Select>
+                                    </FormControl>
+                                    <IconButton
+                                        onClick={() => removeCustomParameter(param.id)}
+                                        color="error"
+                                        size="small"
+                                    >
+                                        <DeleteIcon />
+                                    </IconButton>
+                                </Box>
+                            </Paper>
+                        ))}
+
+                        <Button
+                            variant="outlined"
+                            startIcon={<AddIcon />}
+                            onClick={addCustomParameter}
+                            size="small"
+                        >
+                            {t('resourceType.addParameter')}
                         </Button>
                     </Box>
                 </Box>
