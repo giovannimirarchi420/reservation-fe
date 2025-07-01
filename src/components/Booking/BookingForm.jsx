@@ -115,7 +115,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       if (booking.customParameters) {
         try {
           const customParams = JSON.parse(booking.customParameters);
-          setCustomParameterValues(customParams);
+          
+          if (typeof customParams === 'object' && customParams !== null) {
+            // Simple label-value mapping
+            setCustomParameterValues(customParams);
+          }
         } catch (e) {
           console.error('Error parsing custom parameters:', e);
           setCustomParameterValues({});
@@ -127,6 +131,8 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
       resetForm();
     }
   }, [booking, currentUser, isSiteAdmin]);
+
+
 
   // Update affected resources when resourceId changes
   useEffect(() => {
@@ -204,19 +210,19 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   };
 
   // Handle custom parameter value changes
-  const handleCustomParameterChange = (parameterId, value) => {
+  const handleCustomParameterChange = (parameterLabel, value) => {
     if (isReadOnly || isSubmitting) return;
     
     setCustomParameterValues({
       ...customParameterValues,
-      [parameterId]: value
+      [parameterLabel]: value
     });
     
     // Remove error for this parameter if it exists
-    if (errors[`customParam_${parameterId}`]) {
+    if (errors[`customParam_${parameterLabel}`]) {
       setErrors({
         ...errors,
-        [`customParam_${parameterId}`]: undefined
+        [`customParam_${parameterLabel}`]: undefined
       });
     }
   };
@@ -312,9 +318,9 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
     const customParams = getResourceCustomParameters();
     customParams.forEach(param => {
       if (param.required) {
-        const value = customParameterValues[param.id];
+        const value = customParameterValues[param.label];
         if (!value || value.trim() === '') {
-          newErrors[`customParam_${param.id}`] = t('bookingForm.customParameterRequired', { label: param.label });
+          newErrors[`customParam_${param.label}`] = t('bookingForm.customParameterRequired', { label: param.label });
         }
       }
     });
@@ -411,12 +417,12 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
         let customParametersJson = '';
         
         if (customParams.length > 0) {
-          // Only include parameters that have values
+          // Create simple label:value mapping
           const filledParams = {};
           customParams.forEach(param => {
-            const value = customParameterValues[param.id];
+            const value = customParameterValues[param.label];
             if (value && value.trim() !== '') {
-              filledParams[param.id] = value.trim();
+              filledParams[param.label] = value.trim();
             }
           });
           
@@ -639,11 +645,11 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default' }}>
                     {customParams.map((param, index) => {
-                      const value = customParameterValues[param.id];
+                      const value = customParameterValues[param.label];
                       if (!value) return null;
                       
                       return (
-                        <Box key={param.id} sx={{ mb: index < customParams.length - 1 ? 2 : 0 }}>
+                        <Box key={param.label} sx={{ mb: index < customParams.length - 1 ? 2 : 0 }}>
                           <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
                             {param.label}
                           </Typography>
@@ -894,15 +900,15 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
                   <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.paper' }}>
                     {customParams.map((param, index) => (
                       <TextField
-                        key={param.id}
+                        key={param.label}
                         label={`${param.label}${param.required ? ' *' : ''}`}
                         fullWidth
-                        value={customParameterValues[param.id] || ''}
-                        onChange={(e) => handleCustomParameterChange(param.id, e.target.value)}
+                        value={customParameterValues[param.label] || ''}
+                        onChange={(e) => handleCustomParameterChange(param.label, e.target.value)}
                         margin={index === 0 ? "none" : "normal"}
                         required={param.required}
-                        error={!!errors[`customParam_${param.id}`]}
-                        helperText={errors[`customParam_${param.id}`]}
+                        error={!!errors[`customParam_${param.label}`]}
+                        helperText={errors[`customParam_${param.label}`]}
                         disabled={isSubmitting || isReadOnly}
                         multiline
                         rows={2}

@@ -147,7 +147,6 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
             customParameters: [
                 ...formData.customParameters,
                 {
-                    id: Date.now().toString(),
                     label: '',
                     required: false
                 }
@@ -155,18 +154,18 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
         });
     };
 
-    const removeCustomParameter = (id) => {
+    const removeCustomParameter = (index) => {
         setFormData({
             ...formData,
-            customParameters: formData.customParameters.filter(param => param.id !== id)
+            customParameters: formData.customParameters.filter((_, i) => i !== index)
         });
     };
 
-    const updateCustomParameter = (id, field, value) => {
+    const updateCustomParameter = (index, field, value) => {
         setFormData({
             ...formData,
-            customParameters: formData.customParameters.map(param =>
-                param.id === id ? { ...param, [field]: value } : param
+            customParameters: formData.customParameters.map((param, i) =>
+                i === index ? { ...param, [field]: value } : param
             )
         });
     };
@@ -280,7 +279,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
 
                         {formData.customParameters.map((param, index) => (
                             <Paper 
-                                key={param.id} 
+                                key={index} 
                                 variant="outlined" 
                                 sx={{ p: 2, mb: 2, bgcolor: 'background.default' }}
                             >
@@ -288,7 +287,7 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                                     <TextField
                                         label={t('resourceType.parameterLabel')}
                                         value={param.label}
-                                        onChange={(e) => updateCustomParameter(param.id, 'label', e.target.value)}
+                                        onChange={(e) => updateCustomParameter(index, 'label', e.target.value)}
                                         size="small"
                                         sx={{ flexGrow: 1 }}
                                         required
@@ -298,14 +297,14 @@ const ResourceTypeForm = ({ open, onClose, resourceType, onSave, onDelete }) => 
                                         <Select
                                             value={param.required ? 'yes' : 'no'}
                                             label={t('resourceType.required')}
-                                            onChange={(e) => updateCustomParameter(param.id, 'required', e.target.value === 'yes')}
+                                            onChange={(e) => updateCustomParameter(index, 'required', e.target.value === 'yes')}
                                         >
                                             <MenuItem value="no">{t('common.no')}</MenuItem>
                                             <MenuItem value="yes">{t('common.yes')}</MenuItem>
                                         </Select>
                                     </FormControl>
                                     <IconButton
-                                        onClick={() => removeCustomParameter(param.id)}
+                                        onClick={() => removeCustomParameter(index)}
                                         color="error"
                                         size="small"
                                     >
