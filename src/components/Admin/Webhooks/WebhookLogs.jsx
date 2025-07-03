@@ -345,7 +345,15 @@ const WebhookLogs = ({ webhooks }) => {
                   </Typography>
                   <Paper variant="outlined" sx={{ p: 2, bgcolor: 'background.default', maxHeight: 200, overflow: 'auto' }}>
                     <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                      {logDetails.payload ? JSON.stringify(JSON.parse(logDetails.payload), null, 2) : ''}
+                      {(() => {
+                        if (!logDetails.payload) return '';
+                        try {
+                          return JSON.stringify(JSON.parse(logDetails.payload), null, 2);
+                        } catch (error) {
+                          // If payload is not valid JSON, display it as is
+                          return logDetails.payload;
+                        }
+                      })()}
                     </pre>
                   </Paper>
                 </Box>
