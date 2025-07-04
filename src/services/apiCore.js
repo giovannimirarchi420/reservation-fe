@@ -144,9 +144,10 @@ export const apiRequest = async (endpoint, method = 'GET', data = null, options 
     console.error(`Error in API request to ${endpoint}:`, error);
     
     // Create a structured error for connection problems
-    const networkError = new Error(error.message || 'Error connecting to server');
+    const networkError = new Error(error.message || 'NetworkError when attempting to fetch resource');
     networkError.originalError = error;
     networkError.endpoint = endpoint;
+    networkError.type = 'NetworkError';
     
     // Handle the error through the centralized handler
     return errorHandler(networkError);
