@@ -174,11 +174,14 @@ const BookingForm = ({ open, onClose, booking, onSave, onDelete, resources }) =>
   }, [formData.resourceId, resources]);
 
   const resetForm = () => {
+    const now = new Date();
+    const startTime = new Date(now.getTime() + 5 * 60 * 1000); // Add 5 minutes to current time
+    
     setFormData({
       title: '',
       resourceId: '',
-      start: new Date(),
-      end: new Date(new Date().getTime() + 60 * 60 * 1000),
+      start: startTime,
+      end: new Date(startTime.getTime() + 60 * 60 * 1000),
       description: '',
       userId: currentUser?.id || '',
       customParameters: ''

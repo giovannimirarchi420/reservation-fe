@@ -278,11 +278,22 @@ const BookingCalendar = () => {
 
   // Handler to open booking modal with selected slot
   const handleSelectSlot = (slotInfo) => {
+    const now = new Date();
+    let startTime = slotInfo.start;
+    let endTime = slotInfo.end;
+    
+    // If the selected slot starts at or before the current time, 
+    // set it to current time + 5 minutes
+    if (startTime <= now) {
+      startTime = new Date(now.getTime() + 5 * 60 * 1000); // Current time + 5 minutes
+      endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Start time + 1 hour
+    }
+    
     setSelectedEvent({
       title: '',
       resourceId: '',
-      start: slotInfo.start,
-      end: slotInfo.end,
+      start: startTime,
+      end: endTime,
       description: '',
       userId: currentUser?.id // Use current user ID as default
     });
@@ -732,11 +743,15 @@ const BookingCalendar = () => {
                     variant="contained"
                     color="primary"
                     onClick={() => {
+                      const now = new Date();
+                      const startTime = new Date(now.getTime() + 5 * 60 * 1000); // Current time + 5 minutes
+                      const endTime = new Date(startTime.getTime() + 60 * 60 * 1000); // Start time + 1 hour
+                      
                       setSelectedEvent({
                         title: '',
                         resourceId: '',
-                        start: new Date(),
-                        end: new Date(new Date().getTime() + 60 * 60 * 1000),
+                        start: startTime,
+                        end: endTime,
                         description: '',
                         userId: currentUser?.id // Set current user ID as default
                       });
