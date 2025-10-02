@@ -22,7 +22,8 @@ const en = {
       administration: "Administration",
       resources: "Resources",
       logout: "Logout",
-      sites: "Sites"
+      sites: "Sites",
+      documentation: "Documentation"
     },
     login: {
       title: "System Login",

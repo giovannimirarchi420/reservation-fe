@@ -20,6 +20,7 @@ import ListAltIcon from '@mui/icons-material/ListAlt';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import ExploreIcon from '@mui/icons-material/Explore';
 import DomainIcon from '@mui/icons-material/Domain';
+import MenuBookIcon from '@mui/icons-material/MenuBook';
 import { AuthContext } from '../../context/AuthContext';
 import { useSite } from '../../context/SiteContext';
 
@@ -35,6 +36,15 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
   
   // Check if user has admin rights (either global or site)
   const isAdmin = isGlobalAdmin() || isSiteAdmin();
+
+  // Get documentation URL from environment variables
+  const documentationUrl = process.env.REACT_APP_DOCUMENTATION_URL;
+
+  const handleDocumentationClick = () => {
+    if (documentationUrl) {
+      window.open(documentationUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <Drawer
@@ -150,6 +160,20 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
               <ListItemText primary={t('sidebar.sites')} />
             </ListItem>
           )}
+
+          {documentationUrl && (
+            <ListItem
+              button
+              onClick={handleDocumentationClick}
+              sx={{ cursor: 'pointer' }}
+            >
+              <ListItemIcon>
+                <MenuBookIcon />
+              </ListItemIcon>
+              <ListItemText primary={t('sidebar.documentation')} />
+            </ListItem>
+          )}
+
           <ListItem
             button
             onClick={logout}

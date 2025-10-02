@@ -22,7 +22,8 @@ const it = {
       administration: "Amministrazione",
       resources: "Risorse",
       logout: "Logout",
-      sites: "Siti"
+      sites: "Siti",
+      documentation: "Documentazione"
     },
     login: {
       title: "Accesso al sistema",
