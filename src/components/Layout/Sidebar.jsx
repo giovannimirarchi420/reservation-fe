@@ -37,8 +37,8 @@ const Sidebar = ({ open, onClose, currentSection, onSectionChange }) => {
   // Check if user has admin rights (either global or site)
   const isAdmin = isGlobalAdmin() || isSiteAdmin();
 
-  // Get documentation URL from environment variables
-  const documentationUrl = process.env.REACT_APP_DOCUMENTATION_URL;
+  // Get documentation URL from runtime configuration or environment variables
+  const documentationUrl = window.ENV?.DOCUMENTATION_URL || process.env.REACT_APP_DOCUMENTATION_URL;
 
   const handleDocumentationClick = () => {
     if (documentationUrl) {
