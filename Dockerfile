@@ -35,8 +35,7 @@ RUN echo '#!/bin/sh' > /docker-entrypoint.sh && \
     echo '  KEYCLOAK_URL: "${REACT_APP_KEYCLOAK_URL}",' >> /docker-entrypoint.sh && \
     echo '  KEYCLOAK_REALM: "${REACT_APP_KEYCLOAK_REALM}",' >> /docker-entrypoint.sh && \
     echo '  KEYCLOAK_CLIENT_ID: "${REACT_APP_KEYCLOAK_CLIENT_ID}",' >> /docker-entrypoint.sh && \
-    echo '  API_URL: "${REACT_APP_API_URL}",' >> /docker-entrypoint.sh && \
-    echo '  DOCUMENTATION_URL: "${REACT_APP_DOCUMENTATION_URL}"' >> /docker-entrypoint.sh && \
+    echo '  API_URL: "${REACT_APP_API_URL}"' >> /docker-entrypoint.sh && \
     echo '};' >> /docker-entrypoint.sh && \
     echo 'EOF' >> /docker-entrypoint.sh && \
     echo 'nginx -g "daemon off;"' >> /docker-entrypoint.sh && \
