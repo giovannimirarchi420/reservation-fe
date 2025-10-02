@@ -348,6 +348,8 @@ const en = {
       email: "Email",
       username: "Username",
       newPassword: "New Password (leave empty to keep current)",
+      confirmPassword: "Confirm New Password",
+      passwordsDoNotMatch: "Passwords do not match",
       saveChanges: "Save Changes",
       saving: "Saving...",
       profileUpdatedSuccess: "Profile updated successfully",

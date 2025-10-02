@@ -46,8 +46,10 @@ const ProfileManagement = () => {
   const { withErrorHandling } = useApiError();
   const [isEditing, setIsEditing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [notification, setNotification] = useState(null);
+  const [passwordError, setPasswordError] = useState('');
 
   // Create a translation object with the new keys
   const profileTranslations = {
@@ -61,6 +63,7 @@ const ProfileManagement = () => {
     email: '',
     username: '',
     password: '',
+    confirmPassword: '',
     sshPublicKey: ''
   });
   const [sshKeyExpanded, setSshKeyExpanded] = useState(false);
@@ -75,6 +78,7 @@ const ProfileManagement = () => {
         email: currentUser.email || '',
         username: currentUser.username || currentUser.name || '',
         password: '',
+        confirmPassword: '',
         sshPublicKey: currentUser.sshPublicKey || ''
       });
     }
@@ -145,6 +149,11 @@ const ProfileManagement = () => {
       ...profileData,
       [name]: value
     });
+    
+    // Clear password error when user types
+    if ((name === 'password' || name === 'confirmPassword') && passwordError) {
+      setPasswordError('');
+    }
   };
 
   const handleToggleEdit = () => {
@@ -157,9 +166,11 @@ const ProfileManagement = () => {
           email: currentUser.email || '',
           username: currentUser.username || currentUser.name || '',
           password: '',
+          confirmPassword: '',
           sshPublicKey: currentUser.sshPublicKey || ''
         });
       }
+      setPasswordError(''); // Clear password error when canceling
     }
     setIsEditing(!isEditing);
   };
@@ -174,6 +185,13 @@ const ProfileManagement = () => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate password confirmation if password is provided
+    if (profileData.password && profileData.password !== profileData.confirmPassword) {
+      setPasswordError(t('profile.passwordsDoNotMatch'));
+      return;
+    }
+    
     setIsSaving(true);
 
     try {
@@ -213,7 +231,8 @@ const ProfileManagement = () => {
         // Update form data with updated values
         setProfileData({
           ...profileData,
-          password: '' // Reset password in form
+          password: '', // Reset password in form
+          confirmPassword: '' // Reset confirm password in form
         });
       }
     } finally {
@@ -427,27 +446,57 @@ const ProfileManagement = () => {
                 />
                 
                 {isEditing && (
-                  <TextField
-                    label={t('profile.newPassword')}
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    value={profileData.password}
-                    onChange={handleChange}
-                    fullWidth
-                    margin="normal"
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            onClick={() => setShowPassword(!showPassword)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
-                          </IconButton>
-                        </InputAdornment>
-                      )
-                    }}
-                  />
+                  <>
+                    <TextField
+                      label={t('profile.newPassword')}
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      value={profileData.password}
+                      onChange={handleChange}
+                      fullWidth
+                      margin="normal"
+                      error={!!passwordError}
+                      helperText={passwordError}
+                      InputProps={{
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton
+                              onClick={() => setShowPassword(!showPassword)}
+                              edge="end"
+                            >
+                              {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                    
+                    {profileData.password && (
+                      <TextField
+                        label={t('profile.confirmPassword')}
+                        name="confirmPassword"
+                        type={showConfirmPassword ? "text" : "password"}
+                        value={profileData.confirmPassword}
+                        onChange={handleChange}
+                        fullWidth
+                        margin="normal"
+                        error={!!passwordError}
+                        helperText={passwordError && !profileData.password ? '' : passwordError}
+                        InputProps={{
+                          endAdornment: (
+                            <InputAdornment position="end">
+                              <IconButton
+                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                edge="end"
+                              >
+                                {showConfirmPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
+                              </IconButton>
+                            </InputAdornment>
+                          )
+                        }}
+                      />
+                    )}
+                  </>
                 )}
 
                 {/* SSH Key Management Section */}

@@ -341,6 +341,8 @@ const it = {
       email: "Email",
       username: "Nome Utente",
       newPassword: "Nuova Password (lascia vuoto per mantenere attuale)",
+      confirmPassword: "Conferma Nuova Password",
+      passwordsDoNotMatch: "Le password non corrispondono",
       saveChanges: "Salva Modifiche",
       saving: "Salvataggio...",
       profileUpdatedSuccess: "Profilo aggiornato con successo",
