@@ -10,8 +10,11 @@ import {
   TextField,
   CircularProgress,
   Checkbox,
-  FormControlLabel
+  FormControlLabel,
+  Tooltip,
+  Stack
 } from '@mui/material';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import { createSite, updateSite } from '../../services/siteService';
 import useApiError from '../../hooks/useApiError';
 
@@ -122,17 +125,28 @@ const SiteForm = ({ open, onClose, federation, onSave }) => {
       
       <DialogContent>
         <Box sx={{ pt: 2 }}>
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={isPrivate}
-              name="isPrivate"
-              value={isPrivate}
-              onChange={() => setIsPrivate((isPrivate) => !isPrivate)}
+        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isPrivate}
+                name="isPrivate"
+                value={isPrivate}
+                onChange={() => setIsPrivate((isPrivate) => !isPrivate)}
+              />
+            }
+            label={t('sites.privateSite')}
+          />
+          <Tooltip title={t('sites.privateSiteInfo')} arrow placement="right">
+            <InfoOutlinedIcon 
+              sx={{ 
+                fontSize: 20, 
+                color: 'text.secondary',
+                cursor: 'help'
+              }} 
             />
-          }
-          label={t('sites.privateSite')}
-        />
+          </Tooltip>
+        </Stack>
           <TextField
             label={t('sites.name')}
             name="name"

@@ -560,6 +560,7 @@ const it = {
     members: "{{count}} membri",
     membersHeader: "utenti",
     privateSite: "Sito Privato",
+    privateSiteInfo: "Un sito privato limita l'accesso solo agli utenti invitati. Nessuno può accedere a meno che non venga esplicitamente aggiunto da un amministratore del sito.",
     admins: "Amministratori",
     unableToLoadSites: "Impossibile caricare i siti",
     unableToLoadMembers: "Impossibile caricare i membri del sito",

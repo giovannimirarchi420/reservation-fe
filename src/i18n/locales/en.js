@@ -564,6 +564,7 @@ const en = {
       members: "{{count}} members",
       membersHeader: "members",
       privateSite: "Private site",
+      privateSiteInfo: "A private site restricts access to only invited users. No one can join unless explicitly added by a site administrator.",
       admins: "Administrators",
       unableToLoadSites: "Unable to load sites",
       unableToLoadMembers: "Unable to load site members",
