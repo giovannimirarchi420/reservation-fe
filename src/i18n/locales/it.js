@@ -139,6 +139,7 @@ const it = {
       unableToCopyPassword: "Impossibile copiare la password negli appunti",
       selectedSiteRoles: "Siti da amministrare:",
       selectSitesForAdmin: "Seleziona siti da amministrare",
+      selectAtLeastOneSite: "Seleziona almeno un sito per gli amministratori di sito",
     },
     resourceForm: {
       editResource: "Modifica Risorsa",

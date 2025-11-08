@@ -142,6 +142,7 @@ const en = {
       siteAdministrator: "Site Administrator",
       selectedSiteRoles: "Sites to administer",
       selectSitesForAdmin: "Select sites to administer",
+      selectAtLeastOneSite: "Please select at least one site for site administrators",
     },
     resourceForm: {
       editResource: "Edit Resource",
